@@ -4,71 +4,73 @@
 
 ****************************************
 Начало работы:
-
+```php
 include "api_vk.php"; //Подключаем нашу волшебную библиотеку для работы с api vk
-
 $vk_api = new vk_api("ВАШ_ТОКЕН"); //Токен сообщества VK
-
+```
 ******************************************
 Отправка сообщения пользователю:
-
-$id - ID - пользователя
-$message - сообщение
-
+```php
+$id // ID - пользователя
+$message // сообщение
 $vk_api->sendMessage($id, $message);
+```
 *******************************************
 Отправка клавиатуры пользователю:
 
 Создание кнопок:
-
-$button1_1 = \[null, "white", "white"\];
-$button1_2 = \[\["animals" => 'Pig'\], "blue", "blue"\];
-$button2_1 = \[\["animals" => 'Cow'\], "green", "green"\];
-$button2_2 = \[\["animals" => 'Chicken'\], "red", "red"\];
-
+```php
+$button1_1 = [null, "white", "white"];
+$button1_2 = [["animals" => 'Pig'], "blue", "blue"];
+$button2_1 = [["animals" => 'Cow'], "green", "green"];
+$button2_2 = [["animals" => 'Chicken'], "red", "red"];
+```
 Отправка клавиатуры с текстом "Клавиатура":
-
-$vk_api->sendButton($id, 'Клавиатура', \[
-	\[$button1_1, $button1_2\],
-	\[$button2_1, $button2_2\]
-\]);
-
+```php
+$vk_api->sendButton($id, 'Клавиатура', [
+	[$button1_1, $button1_2],
+	[$button2_1, $button2_2]
+]);
+```
 Будет выведено как:
-\[ white \] | \[ blue \]
-\[ green \] | \[ red  \]
+> [ white ] | [ blue ]
+> [ green ] | [ red  ]
 
 Такая оправка клавиатуры:
-
-$vk_api->sendButton($id, 'Клавиатура', \[
-	\[$button1_1, $button1_2, $button2_2\],
-	\[$button2_1\]
-\]);
-
+```php
+$vk_api->sendButton($id, 'Клавиатура', [
+	[$button1_1, $button1_2, $button2_2],
+	[$button2_1]
+]);
+```
 Выведет следующее:
 
-\[ white \] | \[ blue \] | \[ red \]
-\[           green            \]
+> [ white ] | [ blue ] | [ red ]
+> [           green            ]
 
 Как описываются кнопки ?
 
 Пример:
-$button1_1 = \[null, "white", "white"\];
-$button1_2 = \[\["animals" => 'Pig'\], "blue", "blue"\];
-
+```php
+$button1_1 = [null, "white", "white"];
+$button1_2 = [["animals" => 'Pig'], "blue", "blue"];
+```
 Значение1: Payload - может принимать значение: ассоциативный массив или null
 Значение2: Надпись на кнопке - текст
 Значение3: Цвет кнопки - может принимать значения: 'white', 'blue', 'green', 'red'
 ********************************************************************************************
 Отправка изображеий:
-
-$id - ID пользователя VK, которому будет отправлена картинка
-$upload_image - Локальный путь до картинке
-$filename - Название картинки
-
+```php
+$id // ID пользователя VK, которому будет отправлена картинка
+$upload_image // Локальный путь до картинке
+$filename // Название картинки
+```
 Пример использования:
-
+```php
+$vk_api->sendImage($id, $upload_image, $filename);
+```
+Пример использования:
 ```php
 $uploaddir = __DIR__ . "/img/";       //Путь к каталогу с картинками
-
 $vk_api->sendImage($id, $uploaddir."pink_salmon.jpg", "pink_salmon.jpg");
 ```
