@@ -123,7 +123,7 @@ class vk_api{
 	  return $output;
 	}
 
-	public function sendImage($id, $local_file_path, $filename, $message = '') {                 //Функция печати
+	public function sendImage($id, $local_file_path, $filename, $message = '') {
 	  $upload_url = $this->sendDocuments($id, 'photo')['response']['upload_url'];
 
 	  $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
