@@ -27,8 +27,8 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
   $message = $data->object->body; //Получаем тест сообщение пользователя(в этом скрипте не используется, но вам может понадобится)
   if (!isset($data->object->payload)){ //Если кнопка не нажата
   
-    $button1_1 = [["animals" => 'Fish'], "Fish", "red"]; //Генерируем кнопку 'Fish'
-    $button1_2 = [["animals" => 'Other animals'], "Other animals", "green"]; //Генерируем кнопку 'Other animals'
+    $button1_1 = [["animals" => 'Fish'], "Рыбы", "red"]; //Генерируем кнопку 'Fish'
+    $button1_2 = [["animals" => 'Other animals'], "Другие животные", "green"]; //Генерируем кнопку 'Other animals'
 
     $vk_api->sendButton($id, 'Кого тебе показать?', [ //Отправляем кнопки пользователю
     [$button1_1, $button1_2]
@@ -38,19 +38,19 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
   
     $payload = json_decode($data->object->payload, True); //Получаем её payload
 	
-    $button2_1 = [null, "<< Back", "red"]; // Код кнопки "<< Back"
+    $button2_1 = [null, "<< Назад", "red"]; // Код кнопки "<< Back"
 
     switch ($payload['animals']) { //Смотрим что в payload кнопках
       case 'Fish': //Если это Fish
-        $button1_1 = [["animals" => 'Pink_salmon'], "Pink salmon", "white"];
-        $button1_2 = [["animals" => 'Goldfish'], "Goldfish", "blue"];
-        $button1_3 = [["animals" => 'Plotva'], "Plotva", "green"];
+        $button1_1 = [["animals" => 'Pink_salmon'], "Горбуша", "white"];
+        $button1_2 = [["animals" => 'Goldfish'], "Золотая рыбка", "blue"];
+        $button1_3 = [["animals" => 'Plotva'], "Плотва", "green"];
         $send = 1; //Флаг 1
         break;
       case 'Other animals': //Если это Other animals
-        $button1_1 = [["animals" => 'Chicken'], "Chicken", "white"];
-        $button1_2 = [["animals" => 'Pig'], "Pig", "blue"];
-        $button1_3 = [["animals" => 'Cow'], "Cow", "green"];
+        $button1_1 = [["animals" => 'Chicken'], "Курица", "white"];
+        $button1_2 = [["animals" => 'Pig'], "Свинья", "blue"];
+        $button1_3 = [["animals" => 'Cow'], "Корова", "green"];
         $send = 1; //Флаг 1
         break;
       case 'Pink_salmon': //Если это Pink_salmon
