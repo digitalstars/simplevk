@@ -52,7 +52,7 @@ class vk_api{
 		$buttons = array(
 			"one_time" => False,
 			"buttons" => $buttons);
-		$buttons = json_encode($buttons);
+		$buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
 		//echo $buttons;
 		return $this->request('messages.send',array('message'=>$message, 'user_id'=>$userID, 'keyboard'=>$buttons));
 	}
