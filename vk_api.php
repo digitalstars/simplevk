@@ -82,7 +82,11 @@ class vk_api{
 		$url = 'https://api.vk.com/method/'.$method;
 		$params['access_token']=$this->token;
 		$params['v']='5.78';
-		return json_decode(file_get_contents($url.'?'.http_build_query($params)), true);
+		$result = json_decode(file_get_contents($url.'?'.http_build_query($params)), true);
+		if (isset($result['response']))
+			return $result['response'];
+		else
+			return $result;
 	}
 
 	private function replaceColor($color) {
@@ -124,13 +128,13 @@ class vk_api{
 	}
 
 	public function sendImage($id, $local_file_path, $filename, $message = '') {
-	  $upload_url = $this->sendDocuments($id, 'photo')['response']['upload_url'];
+	  $upload_url = $this->sendDocuments($id, 'photo')['upload_url'];
 
 	  $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
 
 	  $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
 
-	  $this->request('messages.send',array('attachment'=>"photo". $upload_file['response'][0]['owner_id'] . "_" . $upload_file['response'][0]['id'],'user_id'=>$id));
+	  $this->request('messages.send',array('attachment'=>"photo". $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'],'user_id'=>$id));
 	  
 	  return 1;
 	}
