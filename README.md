@@ -15,6 +15,7 @@ $method //Метод из документации api в VK
 $array //Массив входных параметров
 $vk_api->request($method, $array);
 ```
+Возвращает массив ответа от api ВК
 Пример:
 ```php
 $vk_api->request('users.get', ["user_ids" => $id]) // Получение имени и фамилия пользователя по ID
