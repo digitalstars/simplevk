@@ -42,7 +42,7 @@ class vk_api{
 				$color = $this->replaceColor($button[2]);
 				$buttons[$i][$j]["action"]["type"] = "text";
 				if ($button[0] != null)
-					$buttons[$i][$j]["action"]["payload"] = json_encode($button[0]);
+					$buttons[$i][$j]["action"]["payload"] = json_encode($button[0], JSON_UNESCAPED_UNICODE);
 				$buttons[$i][$j]["action"]["label"] = $button[1];
 				$buttons[$i][$j]["color"] = $color;
 				$j++;
