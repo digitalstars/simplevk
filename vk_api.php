@@ -33,7 +33,7 @@ class vk_api{
 		}
 	}
 
-	public function sendButton($userID, $message, $gl_massiv) {
+	public function sendButton($userID, $message, $gl_massiv, $one_time = False) {
 		$buttons = [];
 		$i = 0;
 		foreach ($gl_massiv as $button_str) {
@@ -50,7 +50,7 @@ class vk_api{
 			$i++;	
 		}
 		$buttons = array(
-			"one_time" => False,
+			"one_time" => $one_time,
 			"buttons" => $buttons);
 		$buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
 		//echo $buttons;
