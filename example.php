@@ -55,27 +55,27 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
         break;
       case 'Pink_salmon': //Если это Pink_salmon
         $vk_api->sendMessage($id, "Держи свою горбушу!"); //отправляем сообщение
-        $vk_api->sendImage($id, $uploaddir."pink_salmon.jpg", "pink_salmon.jpg"); //отправляем картинку
+        $vk_api->sendImage($id, $uploaddir."pink_salmon.jpg"); //отправляем картинку
         break;
       case 'Goldfish': //Если это Goldfish
         $vk_api->sendMessage($id, "Она исполнит твои желания...");
-        $vk_api->sendImage($id, $uploaddir."goldfish.jpg", "goldfish.jpg");
+        $vk_api->sendImage($id, $uploaddir."goldfish.jpg");
         break;
       case 'Plotva': //Если это Plotva
         $vk_api->sendMessage($id, "Плотва уже устала от вас");
-        $vk_api->sendImage($id, $uploaddir."plotva.jpg", "plotva.jpg");
+        $vk_api->sendImage($id, $uploaddir."plotva.jpg");
         break;
       case 'Chicken': //Если это Chicken
         $vk_api->sendMessage($id, "Кто-то просил курочку?");
-        $vk_api->sendImage($id, $uploaddir."chicken.jpg", "chicken.jpg");
+        $vk_api->sendImage($id, $uploaddir."chicken.jpg");
         break;
       case 'Pig': //Если это Pig
         $vk_api->sendMessage($id, "Eeee COOL Peppa PIG!");
-        $vk_api->sendImage($id, $uploaddir."pepa.jpg", "pepa.jpg");
+        $vk_api->sendImage($id, $uploaddir."pepa.jpg");
         break;
       case 'Cow': //Если это Cow
         $vk_api->sendMessage($id, "Корооовкааааа");
-        $vk_api->sendImage($id, $uploaddir."cow.jpg", "cow.jpg");
+        $vk_api->sendImage($id, $uploaddir."cow.jpg");
         break;
 
       default:
