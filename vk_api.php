@@ -33,7 +33,7 @@ class vk_api{
 		}
 	}
 
-	public function sendButton($userID, $message, $gl_massiv, $one_time = False) {
+	public function sendButton($userID, $message, $gl_massiv) {
 		$buttons = [];
 		$i = 0;
 		foreach ($gl_massiv as $button_str) {
@@ -50,7 +50,7 @@ class vk_api{
 			$i++;	
 		}
 		$buttons = array(
-			"one_time" => $one_time,
+			"one_time" => False,
 			"buttons" => $buttons);
 		$buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
 		//echo $buttons;
@@ -82,7 +82,13 @@ class vk_api{
 		$url = 'https://api.vk.com/method/'.$method;
 		$params['access_token']=$this->token;
 		$params['v']='5.78';
-		$result = json_decode(file_get_contents($url.'?'.http_build_query($params)), true);
+		$result = json_decode(file_get_contents($url, true, stream_context_create(array(
+		    'http' => array(
+		        'method'  => 'POST',
+		        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+		        'content' => http_build_query($params)
+		    )
+		))), true);
 		if (isset($result['response']))
 			return $result['response'];
 		else
@@ -127,7 +133,7 @@ class vk_api{
 	  return $output;
 	}
 
-	public function sendImage($id, $local_file_path, $filename, $message = '') {
+	public function sendImage($id, $local_file_path) {
 	  $upload_url = $this->sendDocuments($id, 'photo')['upload_url'];
 
 	  $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
