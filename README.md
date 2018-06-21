@@ -32,13 +32,12 @@ $vk_api->sendMessage($id, $message);
 ```php
 $id // ID пользователя VK, которому будет отправлена картинка
 $upload_image // Локальный путь до картинке
-$filename // Название картинки
-$vk_api->sendImage($id, $upload_image, $filename);
+$vk_api->sendImage($id, $upload_image);
 ```
 ### Пример использования:
 ```php
 $uploaddir = __DIR__ . "/img/";       //Путь к каталогу с картинками
-$vk_api->sendImage($id, $uploaddir."pink_salmon.jpg", "pink_salmon.jpg");
+$vk_api->sendImage($id, $uploaddir."pink_salmon.jpg");
 ```
 *******************************************
 ## Отправка клавиатуры пользователю:
