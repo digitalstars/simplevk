@@ -24,7 +24,12 @@ echo 'ok'; //Говорим vk, что мы приняли callback
 
 if (isset($data->type) and $data->type == 'message_new') { //Проверяем, если это сообщение от пользователя
 	$id = $data->object->from_id; //Получаем id пользователя, который написал сообщение
-	$payload = json_decode($data->object->payload, True) ?? null; //получаем payload, данный код поддерживается только в PHP 7.0+
+	
+	if (isset($data->object->payload)){  //получаем payload
+        	$payload = json_decode($data->object->payload, True);
+   	} else {
+      		$payload = null;
+   	}
   
 	if (isset($payload['command'])) { //Если нажата кнопка начать или << назад
 		$vk->sendButton($id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
