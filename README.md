@@ -6,38 +6,37 @@
 ## Начало работы:
 ```php
 require_once "vk_api.php"; //Подключаем библиотеку для работы с vk_api
-$vk_api = new vk_api("ВАШ_ТОКЕН"); //Токен сообщества VK
+$vk = new vk_api("ВАШ_ТОКЕН", "ВЕРСИЯ_API"); //Токен сообщества VK
 ```
 ******************************************
 ## Универсальный метод:
 ```php
 $method //Метод из документации api в VK
-$array //Массив входных параметров
-$vk_api->request($method, $array);
+$array_arguments //Массив входных параметров
+$vk->request($method, $array_arguments);
 ```
 Возвращает массив ответа от api ВК, т.е. все параметры, указанные в документации вк к методу\
 Пример:
 ```php
-$vk_api->request('users.get', ["user_ids" => $id]) // Получение имени и фамилия пользователя по ID
+$vk->request('users.get', ["user_ids" => $id]) // Получение имени и фамилия пользователя по ID
 ```
 ******************************************
 ## Отправка сообщения пользователю:
 ```php
 $id // ID - пользователя
 $message // сообщение
-$vk_api->sendMessage($id, $message);
+$vk->sendMessage($id, $message);
 ```
 *******************************************
 ## Отправка изображеий:
 ```php
 $id // ID пользователя VK, которому будет отправлена картинка
 $upload_image // Локальный путь до картинке
-$vk_api->sendImage($id, $upload_image);
+$vk->sendImage($id, $upload_image);
 ```
 ### Пример использования:
 ```php
-$uploaddir = __DIR__ . "/img/";       //Путь к каталогу с картинками
-$vk_api->sendImage($id, $uploaddir."pink_salmon.jpg");
+$vk->sendImage($id, "img/pink_salmon.jpg");
 ```
 *******************************************
 ## Отправка клавиатуры пользователю:
@@ -57,7 +56,7 @@ $button2_2 = [["animals" => 'Chicken'], "red", "red"];
 $id // ID пользователя, кому будет отправлена клавиатура
 [[$button, ...], ...] // Массив из отправляемый кнопок
 $one_time // Не обязательный параметр. Принимает значение True или False. Если True - после нажатия клавиши клавиатуры, клавиатура исчезнет, Flase - не исчезнет. По умолчанию = False
-$vk_api->sendButton($id, 'Клавиатура', [
+$vk->sendButton($id, 'Клавиатура', [
 	[$button1_1, $button1_2],
 	[$button2_1, $button2_2]
 ], $one_time);
@@ -69,7 +68,7 @@ $vk_api->sendButton($id, 'Клавиатура', [
 ```
 Такой запрос:
 ```php
-$vk_api->sendButton($id, 'Клавиатура', [
+$vk->sendButton($id, 'Клавиатура', [
 	[$button1_1, $button1_2, $button2_2],
 	[$button2_1]
 ]);
@@ -85,5 +84,5 @@ $vk_api->sendButton($id, 'Клавиатура', [
 ```php
 $id // ID пользователя
 $message // Сообщение, отправляемое при удалении клавиатуры
-$vk_api->sendButton($id, $message, []);
+$vk->sendButton($id, $message, []);
 ```
