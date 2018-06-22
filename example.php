@@ -1,94 +1,58 @@
 <?php
-require_once "vk_api.php"; //Подключаем нашу волшебную библиотеку для работы с api vk
+require_once "vk_api.php"; //Подключаем библиотеку для работы с api vk
 
 //**********CONFIG**************
-$vk_key = "your_key"; //тот самый длинный ключ доступа сообщества
-$access_key = "your_key"; //например c40b9566, введите свой
-$uploaddir = __DIR__ . "/img/"; //Путь к каталогу с картинками
+const VK_KEY = "your_key"; //тот самый длинный ключ доступа сообщества
+const ACCESS_KEY = "your_key"; //например c40b9566, введите свой
+const VERSION = "5.80"; //ваша версия используемого api
 //******************************
 
-$vk_api = new vk_api($vk_key); //Ключ сообщества VK
+const BTN_FISH =  [["animals" => 'Fish'], "А какие бывают?", "blue"]; //Код кнопки 'Fish'
+const BTN_BACK =  [["command" => 'start'], "<< Назад", "red"]; // Код кнопки '<< Назад'
+const BTN_SALMON = [["animals" => 'Pink_salmon'], "Горбуша", "white"]; // Код кнопки 'Горбуша'
+const BTN_GOLDFISH = [["animals" => 'Goldfish'], "Золотая рыбка", "blue"]; // Код кнопки 'Золотая рыбка'
+const BTN_PLOTVA = [["animals" => 'Plotva'], "Плотва", "green"]; // Код кнопки 'Плотва'
 
+$vk = new vk_api(VK_KEY, VERSION); // создание экземпляра класса работы с api, принимает ключ и версию api
 $data = json_decode(file_get_contents('php://input')); //Получает и декодирует JSON пришедший из ВК
 
-if (isset($data->type) and $data->type == 'confirmation') { //Если vk запрашивает ключ
-	echo $access_key; //Отправляем ключ
-	exit(0); //Завершаем скрипт
+if ($data->type == 'confirmation') { //Если vk запрашивает ключ
+	exit(ACCESS_KEY); //Завершаем скрипт отправкой ключа
 }
 
 echo 'ok'; //Говорим vk, что мы приняли callback
 
 if (isset($data->type) and $data->type == 'message_new') { //Проверяем, если это сообщение от пользователя
-
-  $id = $data->object->user_id; //Получаем id пользователя, который написал сообщение
-
-  $send = 0; //Флаг 0 (Магия о_О)
-
-  $message = $data->object->body; //Получаем тест сообщение пользователя(в этом скрипте не используется, но вам может понадобится)
-  if (!isset($data->object->payload)){ //Если кнопка не нажата
+	$id = $data->object->from_id; //Получаем id пользователя, который написал сообщение
+	$payload = json_decode($data->object->payload, True) ?? null; //получаем payload, данный код поддерживается только в PHP 7.0+
   
-    $button1_1 = [["animals" => 'Fish'], "Рыбы", "red"]; //Генерируем кнопку 'Fish'
-    $button1_2 = [["animals" => 'Other animals'], "Другие животные", "green"]; //Генерируем кнопку 'Other animals'
-
-    $vk_api->sendButton($id, 'Кого тебе показать?', [ //Отправляем кнопки пользователю
-    [$button1_1, $button1_2]
-    ]);
-	
-  } else {
-  
-    $payload = json_decode($data->object->payload, True); //Получаем её payload
-	
-    $button2_1 = [null, "<< Назад", "red"]; // Код кнопки "<< Back"
-
-    switch ($payload['animals']) { //Смотрим что в payload кнопках
-      case 'Fish': //Если это Fish
-        $button1_1 = [["animals" => 'Pink_salmon'], "Горбуша", "white"];
-        $button1_2 = [["animals" => 'Goldfish'], "Золотая рыбка", "blue"];
-        $button1_3 = [["animals" => 'Plotva'], "Плотва", "green"];
-        $send = 1; //Флаг 1
-        break;
-      case 'Other animals': //Если это Other animals
-        $button1_1 = [["animals" => 'Chicken'], "Курица", "white"];
-        $button1_2 = [["animals" => 'Pig'], "Свинья", "blue"];
-        $button1_3 = [["animals" => 'Cow'], "Корова", "green"];
-        $send = 1; //Флаг 1
-        break;
-      case 'Pink_salmon': //Если это Pink_salmon
-        $vk_api->sendMessage($id, "Держи свою горбушу!"); //отправляем сообщение
-        $vk_api->sendImage($id, $uploaddir."pink_salmon.jpg"); //отправляем картинку
-        break;
-      case 'Goldfish': //Если это Goldfish
-        $vk_api->sendMessage($id, "Она исполнит твои желания...");
-        $vk_api->sendImage($id, $uploaddir."goldfish.jpg");
-        break;
-      case 'Plotva': //Если это Plotva
-        $vk_api->sendMessage($id, "Плотва уже устала от вас");
-        $vk_api->sendImage($id, $uploaddir."plotva.jpg");
-        break;
-      case 'Chicken': //Если это Chicken
-        $vk_api->sendMessage($id, "Кто-то просил курочку?");
-        $vk_api->sendImage($id, $uploaddir."chicken.jpg");
-        break;
-      case 'Pig': //Если это Pig
-        $vk_api->sendMessage($id, "Eeee COOL Peppa PIG!");
-        $vk_api->sendImage($id, $uploaddir."pepa.jpg");
-        break;
-      case 'Cow': //Если это Cow
-        $vk_api->sendMessage($id, "Корооовкааааа");
-        $vk_api->sendImage($id, $uploaddir."cow.jpg");
-        break;
-
-      default:
-        break;
-    }
-
-    if ($send) { //Если флаг = 1, отправить сформированные кнопки
-      $vk_api->sendButton($id, 'А точнее?', [ //Отправляем кнопки пользователю
-        [$button1_1, $button1_2, $button1_3],
-        [$button2_1]
-      ]);
-    }
-  }
+	if (isset($payload['command'])) { //Если нажата кнопка начать или << назад
+		$vk->sendButton($id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
+	} else {
+		if ($payload != null) { // если payload существует
+			switch ($payload['animals']) { //Смотрим что в payload кнопках
+				case 'Fish': //Если это Fish
+					$vk->sendButton($id, 'Вот такие, выбирай', [ //Отправляем кнопки пользователю
+						[BTN_SALMON, BTN_GOLDFISH, BTN_PLOTVA],
+						[BTN_BACK]
+					]);
+					break;
+				case 'Pink_salmon': //Если это Горбуша
+					$vk->sendMessage($id, "Держи свою горбушу!"); //отправляем сообщение
+					$vk->sendImage($id, "img/pink_salmon.jpg"); //отправляем картинку
+					break;
+				case 'Goldfish': //Если это Золотая рыбка
+					$vk->sendMessage($id, "Она исполнит твои желания...");
+					$vk->sendImage($id, "img/goldfish.jpg");
+					break;
+				case 'Plotva': //Если это Плотва
+					$vk->sendMessage($id, "Ой, похоже картинку перепутали)");
+					$vk->sendImage($id, "img/plotva.jpg");
+					break;
+				default:
+					break;
+			}
+		}
+	}
 }
-
 ?>
