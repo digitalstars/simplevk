@@ -8,8 +8,9 @@ class vk_api{
 	/**
 	 * @param string $token Токен
 	 */
-	public function __construct($token){
+	public function __construct($token, $v){
 		$this->token = $token;
+		$this->v = $v;
 	}
 	/**
 	 * Отправить сообщение пользователю
@@ -81,7 +82,7 @@ class vk_api{
 	public function request($method,$params=array()){
 		$url = 'https://api.vk.com/method/'.$method;
 		$params['access_token']=$this->token;
-		$params['v']='5.78';
+		$params['v']=$this->v;
 		if (function_exists('curl_init')) {
 			$ch = curl_init(); 
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
