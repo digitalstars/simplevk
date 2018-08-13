@@ -1,5 +1,5 @@
 <?php
-require_once "vk_api.php"; //Подключаем библиотеку для работы с api vk
+include "vk_api.php"; //Подключаем библиотеку для работы с api vk
 
 //**********CONFIG**************
 const VK_KEY = "your_key"; //тот самый длинный ключ доступа сообщества
@@ -24,6 +24,12 @@ $vk->sendOK(); //Говорим vk, что мы приняли callback
 
 if (isset($data->type) and $data->type == 'message_new') { //Проверяем, если это сообщение от пользователя
 	$id = $data->object->from_id; //Получаем id пользователя, который написал сообщение
+	$messqge = $data->object->text;
+
+	if (isset($data->object->peer_id))
+        $peer_id = $data->object->peer_id; // Получаем peer_id чата, откуда прилитело сообщение
+    else
+        $peer_id = $id;
 	
 	if (isset($data->object->payload)){  //получаем payload
         	$payload = json_decode($data->object->payload, True);
@@ -31,28 +37,28 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
       		$payload = null;
    	}
   
-	if (isset($payload['command'])) { //Если нажата кнопка начать или << назад
-		$vk->sendButtonChat($id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
+	if (isset($payload['command']) or strtolower($messqge) == 'начать') { //Если нажата кнопка начать или << назад
+		$vk->sendButton($peer_id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
 	} else {
 		if ($payload != null) { // если payload существует
 			switch ($payload['animals']) { //Смотрим что в payload кнопках
 				case 'Fish': //Если это Fish
-					$vk->sendButtonChat($id, 'Вот такие, выбирай', [ //Отправляем кнопки пользователю
+					$vk->sendButton($peer_id, 'Вот такие, выбирай', [ //Отправляем кнопки пользователю
 						[BTN_SALMON, BTN_GOLDFISH, BTN_PLOTVA],
 						[BTN_BACK]
 					]);
 					break;
 				case 'Pink_salmon': //Если это Горбуша
-					$vk->sendMessage($id, "Держи свою горбушу!"); //отправляем сообщение
-					$vk->sendImage($id, "img/pink_salmon.jpg"); //отправляем картинку
+					$vk->sendMessage($peer_id, "Держи свою горбушу!"); //отправляем сообщение
+					$vk->sendImage($peer_id, "img/pink_salmon.jpg"); //отправляем картинку
 					break;
 				case 'Goldfish': //Если это Золотая рыбка
-					$vk->sendMessage($id, "Она исполнит твои желания...");
-					$vk->sendImage($id, "img/goldfish.jpg");
+					$vk->sendMessage($peer_id, "Она исполнит твои желания...");
+					$vk->sendImage($peer_id, "img/goldfish.jpg");
 					break;
 				case 'Plotva': //Если это Плотва
-					$vk->sendMessage($id, "Ой, похоже картинку перепутали)");
-					$vk->sendImage($id, "img/plotva.jpg");
+					$vk->sendMessage($peer_id, "Ой, похоже картинку перепутали)");
+					$vk->sendImage($peer_id, "img/plotva.jpg");
 					break;
 				default:
 					break;
