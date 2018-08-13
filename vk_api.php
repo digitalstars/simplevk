@@ -27,20 +27,17 @@ class vk_api{
         }
     }
 
-    public function sendMessage($sendID,$message, $send = 'user_id'){
+    public function sendMessage($sendID,$message){
         if ($sendID != 0 and $sendID != '0') {
-            return $this->request('messages.send',array('message'=>$message, $send=>$sendID));
+            return $this->request('messages.send',array('message'=>$message, 'peer_id'=>$sendID));
         } else {
             return true;
         }
     }
 
-    public function sendMessageChat($sendID,$message){
-        return $this->sendMessage($sendID,$message, 'peer_id');
-    }
-
     public function sendOK(){
         echo 'ok';
+        $response_length = ob_get_length();
         // check if fastcgi_finish_request is callable
         if (is_callable('fastcgi_finish_request')) {
             /*
@@ -58,7 +55,7 @@ class vk_api{
         $serverProtocole = filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING);
         header($serverProtocole.' 200 OK');
         header('Content-Encoding: none');
-        header('Content-Length: '.ob_get_length());
+        header('Content-Length: '. $response_length);
         header('Connection: close');
 
         ob_end_flush();
@@ -66,7 +63,7 @@ class vk_api{
         flush();
     }
 
-    public function sendButton($sendID, $message, $gl_massiv = [], $one_time = False, $send = 'user_id') {
+    public function sendButton($sendID, $message, $gl_massiv = [], $one_time = False) {
         $buttons = [];
         $i = 0;
         foreach ($gl_massiv as $button_str) {
@@ -87,11 +84,7 @@ class vk_api{
             "buttons" => $buttons);
         $buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
         //echo $buttons;
-        return $this->request('messages.send',array('message'=>$message, $send=>$sendID, 'keyboard'=>$buttons));
-    }
-
-    public function sendButtonChat($sendID, $message, $gl_massiv = [], $one_time = False) {
-        return $this->sendButton($sendID, $message, $gl_massiv, $one_time, 'peer_id');
+        return $this->request('messages.send',array('message'=>$message, 'peer_id'=>$sendID, 'keyboard'=>$buttons));
     }
 
     public function sendDocuments($sendID, $selector = 'doc'){
@@ -182,19 +175,16 @@ class vk_api{
         return $output;
     }
 
-    public function sendImage($id, $local_file_path, $send = 'user_id') {
+    public function sendImage($id, $local_file_path)
+    {
         $upload_url = $this->sendDocuments($id, 'photo')['upload_url'];
 
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
 
         $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
 
-        $this->request('messages.send',array('attachment'=>"photo". $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'],$send=>$id));
+        $this->request('messages.send', array('attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id));
 
         return 1;
-    }
-
-    public function sendImageChat($id, $local_file_path) {
-        return $this->sendImage($id, $local_file_path, 'peer_id');
     }
 }
