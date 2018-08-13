@@ -20,7 +20,7 @@ if ($data->type == 'confirmation') { //Если vk запрашивает клю
 	exit(ACCESS_KEY); //Завершаем скрипт отправкой ключа
 }
 
-echo 'ok'; //Говорим vk, что мы приняли callback
+$vk->sendOK(); //Говорим vk, что мы приняли callback
 
 if (isset($data->type) and $data->type == 'message_new') { //Проверяем, если это сообщение от пользователя
 	$id = $data->object->from_id; //Получаем id пользователя, который написал сообщение
@@ -32,12 +32,12 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
    	}
   
 	if (isset($payload['command'])) { //Если нажата кнопка начать или << назад
-		$vk->sendButton($id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
+		$vk->sendButtonChat($id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
 	} else {
 		if ($payload != null) { // если payload существует
 			switch ($payload['animals']) { //Смотрим что в payload кнопках
 				case 'Fish': //Если это Fish
-					$vk->sendButton($id, 'Вот такие, выбирай', [ //Отправляем кнопки пользователю
+					$vk->sendButtonChat($id, 'Вот такие, выбирай', [ //Отправляем кнопки пользователю
 						[BTN_SALMON, BTN_GOLDFISH, BTN_PLOTVA],
 						[BTN_BACK]
 					]);
