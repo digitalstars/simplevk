@@ -1,160 +1,200 @@
 <?php
 class vk_api{
-	/**
-	 * Токен
-	 * @var string
-	 */
-	private $token = '';
-	/**
-	 * @param string $token Токен
-	 */
-	public function __construct($token, $v){
-		$this->token = $token;
-		$this->v = $v;
-	}
-	/**
-	 * Отправить сообщение пользователю
-	 * @param int $userID Идентификатор пользователя
-	 * @param string $message Сообщение
-	 * @return mixed|null
-	 */
-	public function sendDocMessage($userID,$id_owner,$id_doc){
-		if ($userID != 0 and $userID != '0') {
-			return $this->request('messages.send',array('attachment'=>"doc". $id_owner . "_" . $id_doc,'user_id'=>$userID));
-		} else {
-			return true;
-		}
-	}
+    /**
+     * Токен
+     * @var string
+     */
+    private $token = '';
+    private $v = '';
+    /**
+     * @param string $token Токен
+     */
+    public function __construct($token, $v){
+        $this->token = $token;
+        $this->v = $v;
+    }
+    /**
+     * Отправить сообщение пользователю
+     * @param int $sendID Идентификатор получателя
+     * @param string $message Сообщение
+     * @return mixed|null
+     */
+    public function sendDocMessage($sendID, $id_owner, $id_doc){
+        if ($sendID != 0 and $sendID != '0') {
+            return $this->request('messages.send',array('attachment'=>"doc". $id_owner . "_" . $id_doc,'user_id'=>$sendID));
+        } else {
+            return true;
+        }
+    }
 
-	public function sendMessage($userID,$message){
-		if ($userID != 0 and $userID != '0') {
-			return $this->request('messages.send',array('message'=>$message,'user_id'=>$userID));
-		} else {
-			return true;
-		}
-	}
+    public function sendMessage($sendID,$message, $send = 'user_id'){
+        if ($sendID != 0 and $sendID != '0') {
+            return $this->request('messages.send',array('message'=>$message, $send=>$sendID));
+        } else {
+            return true;
+        }
+    }
 
-	public function sendButton($userID, $message, $gl_massiv) {
-		$buttons = [];
-		$i = 0;
-		foreach ($gl_massiv as $button_str) {
-			$j = 0;
-			foreach ($button_str as $button) {
-				$color = $this->replaceColor($button[2]);
-				$buttons[$i][$j]["action"]["type"] = "text";
-				if ($button[0] != null)
-					$buttons[$i][$j]["action"]["payload"] = json_encode($button[0], JSON_UNESCAPED_UNICODE);
-				$buttons[$i][$j]["action"]["label"] = $button[1];
-				$buttons[$i][$j]["color"] = $color;
-				$j++;
-			}
-			$i++;	
-		}
-		$buttons = array(
-			"one_time" => False,
-			"buttons" => $buttons);
-		$buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
-		//echo $buttons;
-		return $this->request('messages.send',array('message'=>$message, 'user_id'=>$userID, 'keyboard'=>$buttons));
-	}
+    public function sendMessageChat($sendID,$message){
+        return $this->sendMessage($sendID,$message, 'peer_id');
+    }
 
-	public function sendDocuments($userID, $selector = 'doc'){
-		if ($selector == 'doc')
-			return $this->request('docs.getMessagesUploadServer',array('type'=>'doc','peer_id'=>$userID));
-		else
-			return $this->request('photos.getMessagesUploadServer',array('peer_id'=>$userID));
-	}
+    public function sendOK(){
+        echo 'ok';
+        // check if fastcgi_finish_request is callable
+        if (is_callable('fastcgi_finish_request')) {
+            /*
+             * This works in Nginx but the next approach not
+             */
+            session_write_close();
+            fastcgi_finish_request();
 
-	public function saveDocuments($file, $titile){
-		return $this->request('docs.save',array('file'=>$file, 'title'=>$titile));
-	}
+            return;
+        }
 
-	public function savePhoto($photo, $server, $hash){
-		return $this->request('photos.saveMessagesPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash));
-	}
+        ignore_user_abort(true);
 
-	/**
-	 * Запрос к VK
-	 * @param string $method Метод
-	 * @param array $params Параметры
-	 * @return mixed|null
-	 */
-	public function request($method,$params=array()){
-		$url = 'https://api.vk.com/method/'.$method;
-		$params['access_token']=$this->token;
-		$params['v']=$this->v;
-		if (function_exists('curl_init')) {
-			$ch = curl_init(); 
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-				"Content-Type:multipart/form-data"
-			));
-			curl_setopt($ch, CURLOPT_URL, $url); 
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $params); 
-			$result = json_decode(curl_exec($ch), True);
-			curl_close($ch);
-		} else {
-			$result = json_decode(file_get_contents($url, true, stream_context_create(array(
-			    'http' => array(
-			        'method'  => 'POST',
-			        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-			        'content' => http_build_query($params)
-			    )
-			))), true);
-		}
-		if (isset($result['response']))
-			return $result['response'];
-		else
-			return $result;
-	}
+        ob_start();
+        $serverProtocole = filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING);
+        header($serverProtocole.' 200 OK');
+        header('Content-Encoding: none');
+        header('Content-Length: '.ob_get_length());
+        header('Connection: close');
 
-	private function replaceColor($color) {
-		switch ($color) {
-			case 'red':
-				$color = 'negative';
-				break;
-			case 'green':
-				$color = 'positive';
-				break;
-			case 'white':
-				$color = 'default';
-				break;
-			case 'blue':
-				$color = 'primary';
-				break;
-			
-			default:
-				# code...
-				break;
-		}
-		return $color;
-	}
+        ob_end_flush();
+        ob_flush();
+        flush();
+    }
 
-	private function sendFiles($url, $local_file_path, $type = 'file') {
-	  $post_fields = array(
-	  $type => new CURLFile(realpath($local_file_path))
-	  );
+    public function sendButton($sendID, $message, $gl_massiv = [], $one_time = False, $send = 'user_id') {
+        $buttons = [];
+        $i = 0;
+        foreach ($gl_massiv as $button_str) {
+            $j = 0;
+            foreach ($button_str as $button) {
+                $color = $this->replaceColor($button[2]);
+                $buttons[$i][$j]["action"]["type"] = "text";
+                if ($button[0] != null)
+                    $buttons[$i][$j]["action"]["payload"] = json_encode($button[0], JSON_UNESCAPED_UNICODE);
+                $buttons[$i][$j]["action"]["label"] = $button[1];
+                $buttons[$i][$j]["color"] = $color;
+                $j++;
+            }
+            $i++;
+        }
+        $buttons = array(
+            "one_time" => $one_time,
+            "buttons" => $buttons);
+        $buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
+        //echo $buttons;
+        return $this->request('messages.send',array('message'=>$message, $send=>$sendID, 'keyboard'=>$buttons));
+    }
 
-	  $ch = curl_init(); 
-	  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-	    "Content-Type:multipart/form-data"
-	  ));
-	  curl_setopt($ch, CURLOPT_URL, $url); 
-	  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-	  curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields); 
-	  $output = curl_exec($ch);
-	  return $output;
-	}
+    public function sendButtonChat($sendID, $message, $gl_massiv = [], $one_time = False) {
+        return $this->sendButton($sendID, $message, $gl_massiv, $one_time, 'peer_id');
+    }
 
-	public function sendImage($id, $local_file_path) {
-	  $upload_url = $this->sendDocuments($id, 'photo')['upload_url'];
+    public function sendDocuments($sendID, $selector = 'doc'){
+        if ($selector == 'doc')
+            return $this->request('docs.getMessagesUploadServer',array('type'=>'doc','peer_id'=>$sendID));
+        else
+            return $this->request('photos.getMessagesUploadServer',array('peer_id'=>$sendID));
+    }
 
-	  $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
+    public function saveDocuments($file, $titile){
+        return $this->request('docs.save',array('file'=>$file, 'title'=>$titile));
+    }
 
-	  $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
+    public function savePhoto($photo, $server, $hash){
+        return $this->request('photos.saveMessagesPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash));
+    }
 
-	  $this->request('messages.send',array('attachment'=>"photo". $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'],'user_id'=>$id));
-	  
-	  return 1;
-	}
+    /**
+     * Запрос к VK
+     * @param string $method Метод
+     * @param array $params Параметры
+     * @return mixed|null
+     */
+    public function request($method,$params=array()){
+        $url = 'https://api.vk.com/method/'.$method;
+        $params['access_token']=$this->token;
+        $params['v']=$this->v;
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                "Content-Type:multipart/form-data"
+            ));
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+            $result = json_decode(curl_exec($ch), True);
+            curl_close($ch);
+        } else {
+            $result = json_decode(file_get_contents($url, true, stream_context_create(array(
+                'http' => array(
+                    'method'  => 'POST',
+                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'content' => http_build_query($params)
+                )
+            ))), true);
+        }
+        if (isset($result['response']))
+            return $result['response'];
+        else
+            return $result;
+    }
+
+    private function replaceColor($color) {
+        switch ($color) {
+            case 'red':
+                $color = 'negative';
+                break;
+            case 'green':
+                $color = 'positive';
+                break;
+            case 'white':
+                $color = 'default';
+                break;
+            case 'blue':
+                $color = 'primary';
+                break;
+
+            default:
+                # code...
+                break;
+        }
+        return $color;
+    }
+
+    private function sendFiles($url, $local_file_path, $type = 'file') {
+        $post_fields = array(
+            $type => new CURLFile(realpath($local_file_path))
+        );
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            "Content-Type:multipart/form-data"
+        ));
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+        $output = curl_exec($ch);
+        return $output;
+    }
+
+    public function sendImage($id, $local_file_path, $send = 'user_id') {
+        $upload_url = $this->sendDocuments($id, 'photo')['upload_url'];
+
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
+
+        $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
+
+        $this->request('messages.send',array('attachment'=>"photo". $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'],$send=>$id));
+
+        return 1;
+    }
+
+    public function sendImageChat($id, $local_file_path) {
+        return $this->sendImage($id, $local_file_path, 'peer_id');
+    }
 }
