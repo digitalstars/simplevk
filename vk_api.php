@@ -93,8 +93,6 @@ class vk_api{
             $result = $this->request('docs.getMessagesUploadServer',array('type'=>'doc','peer_id'=>$sendID));
         else if ($selector == 'photo')
             $result = $this->request('photos.getMessagesUploadServer',array('peer_id'=>$sendID));
-        if (!isset($result) or isset($result['error']))
-            throw new vk_apiException(json_encode($result));
         return $result;
     }
 
@@ -153,6 +151,8 @@ class vk_api{
                 )
             ))), true);
         }
+        if (!isset($result) or isset($result['error']))
+            throw new vk_apiException(json_encode($result));
         if (isset($result['response']))
             return $result['response'];
         else
@@ -234,22 +234,15 @@ class vk_api{
     }
 }
 
+class base {
+    protected $vk_api;
+    protected $message = null;
+    protected $images = [];
+    protected $props = [];
 
-class post {
+    protected $prop_list;
 
-    /**
-     * @method createPost
-     * @param: var
-     */
-    private $vk_api;
-    private $message = null;
-    private $images = [];
-    private $props = [];
-
-    private $prop_list = ['friends_only', 'from_group', 'services', 'signed', 'publish_date', 'lat', 'long', 'place_id',
-        'post_id', 'guid', 'mark_as_ads', 'close_comments'];
-//publish_date
-    public function __construct($vk_api)
+    protected function __construct($vk_api)
     {
         $this->vk_api = $vk_api;
     }
@@ -258,13 +251,13 @@ class post {
         $this->message = $message;
     }
 
-    public function addImage($images) {
-        if (is_array($images))
-            foreach ($images as $kay => $val) {
-                $this->images[] = $val;
+    protected function addMedia($media, $selector) {
+        if (is_array($media))
+            foreach ($media as $kay => $val) {
+                $this->$selector[] = $val;
             }
         else
-            $this->images[] = $images;
+            $this->$selector[] = $media;
     }
 
     public function getImages() {
@@ -315,6 +308,16 @@ class post {
     public function getProps() {
         return $this->props;
     }
+}
+
+
+class post extends base{
+
+    public function __construct($vk_api) {
+        $this->prop_list = ['friends_only', 'from_group', 'services', 'signed', 'publish_date', 'lat', 'long', 'place_id',
+            'post_id', 'guid', 'mark_as_ads', 'close_comments'];
+        parent::__construct($vk_api);
+    }
 
     public function send($sendID, $publish_date = null) {
         if (is_numeric($publish_date))
@@ -322,6 +325,18 @@ class post {
         $other = ['images' => $this->images,
                     'props' => $this->props];
         return $this->vk_api->createPost($sendID, $this->message, $other);
+    }
+
+    public function addImage($images) {
+        parent::addMedia($images, 'images');
+    }
+}
+
+class message extends base{
+    public function __construct($vk_api) {
+        $this->prop_list = ['random_id', 'domain', 'chat_id', 'user_ids', 'lat', 'long', 'forward_messages',
+            'sticker_id', 'payload'];
+        parent::__construct($vk_api);
     }
 }
 

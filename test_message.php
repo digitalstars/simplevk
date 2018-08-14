@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: zerox
- * Date: 14.08.18
- * Time: 0:30
+ * Date: 15.08.18
+ * Time: 1:35
  */
 
 include "vk_api.php"; //Подключаем библиотеку для работы с api vk
@@ -21,7 +21,7 @@ try {
     $my_post->addImage('img/goldfish.jpg');
     $my_post->addImage('img/pink_salmon.jpg');
     $my_post->addImage('img/plotva.jpg');
-    $my_post->send('105083531', time() + 120);
+    $my_post->send('id юзера или группы для публикации', time() + 120);
 } catch (vk_apiException $e) {
     print_r($e->getMessage());
 }
