@@ -9,7 +9,7 @@
 include "vk_api.php"; //Подключаем библиотеку для работы с api vk
 
 //**********CONFIG**************
-const VK_KEY = "SECRET KAY !!!!"; //тот самый длинный ключ доступа сообщества
+const VK_KEY = "ключ доступа приложения"; //ключ авторизации через приложение
 const ACCESS_KEY = "your_key"; //например c40b9566, введите свой
 const VERSION = "5.80"; //ваша версия используемого api
 //******************************
@@ -22,7 +22,7 @@ try {
     $my_post->addImage('img/goldfish.jpg');
     $my_post->addImage('img/pink_salmon.jpg');
     $my_post->addImage('img/plotva.jpg');
-    $my_post->send('-165686210', time() + 120);
+    $my_post->send('ID пользователя ВК', time() + 120);
 } catch (vk_apiException $e) {
     print_r($e->getMessage());
 }

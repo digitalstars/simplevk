@@ -98,9 +98,13 @@ class vk_api{
         return $result;
     }
 
-    public function getWallUploadServer($groupID) {
-        $groupID *= -1;
-        return $this->request('photos.getWallUploadServer',array('group_id'=>$groupID));
+    public function getWallUploadServer($id) {
+        if ($id < 0) {
+            $id *= -1;
+            return $this->request('photos.getWallUploadServer', array('group_id' => $id));
+        } else {
+            return $this->request('photos.getWallUploadServer', array('user_id' => $id));
+        }
     }
 
     public function saveDocuments($file, $titile){
@@ -111,9 +115,13 @@ class vk_api{
         return $this->request('photos.saveMessagesPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash));
     }
 
-    public function savePhotoWallGroup($photo, $server, $hash, $groupID){
-        $groupID *= -1;
-        return $this->request('photos.saveWallPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash, 'group_id' => $groupID));
+    public function savePhotoWall($photo, $server, $hash, $id){
+        if ($id < 0) {
+            $id *= -1;
+            return $this->request('photos.saveWallPhoto', array('photo' => $photo, 'server' => $server, 'hash' => $hash, 'group_id' => $id));
+        } else {
+            return $this->request('photos.saveWallPhoto', array('photo' => $photo, 'server' => $server, 'hash' => $hash, 'user_id' => $id));
+        }
     }
 
     /**
@@ -211,7 +219,7 @@ class vk_api{
             foreach ($other['images'] as $kay => $val) {
                 $upload_url = $this->getWallUploadServer($id);
                 $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
-                $upload_file = $this->savePhotoWallGroup($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
                 $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
             }
             $send_attachment = ["attachments" => join(',', $send_attachment)];
