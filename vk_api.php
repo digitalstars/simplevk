@@ -254,7 +254,10 @@ class base {
     protected function addMedia($media, $selector) {
         if (is_array($media))
             foreach ($media as $kay => $val) {
-                $this->$selector[] = $val;
+                if (is_array($val))
+                    $this->$selector += $val;
+                else
+                    $this->$selector[] = $val;
             }
         else
             $this->$selector[] = $media;
@@ -327,8 +330,8 @@ class post extends base{
         return $this->vk_api->createPost($sendID, $this->message, $other);
     }
 
-    public function addImage($images) {
-        parent::addMedia($images, 'images');
+    public function addImage() {
+        parent::addMedia(func_get_args(), 'images');
     }
 }
 
