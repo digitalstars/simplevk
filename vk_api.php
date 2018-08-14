@@ -87,11 +87,20 @@ class vk_api{
         return $this->request('messages.send',array('message'=>$message, 'peer_id'=>$sendID, 'keyboard'=>$buttons));
     }
 
-    public function sendDocuments($sendID, $selector = 'doc'){
+    public function getUploadServer($sendID, $selector = 'doc'){
+        $result = null;
         if ($selector == 'doc')
-            return $this->request('docs.getMessagesUploadServer',array('type'=>'doc','peer_id'=>$sendID));
-        else
-            return $this->request('photos.getMessagesUploadServer',array('peer_id'=>$sendID));
+            $result = $this->request('docs.getMessagesUploadServer',array('type'=>'doc','peer_id'=>$sendID));
+        else if ($selector == 'photo')
+            $result = $this->request('photos.getMessagesUploadServer',array('peer_id'=>$sendID));
+        if (!isset($result) or isset($result['error']))
+            throw new vk_apiException(json_encode($result));
+        return $result;
+    }
+
+    public function getWallUploadServer($groupID) {
+        $groupID *= -1;
+        return $this->request('photos.getWallUploadServer',array('group_id'=>$groupID));
     }
 
     public function saveDocuments($file, $titile){
@@ -100,6 +109,11 @@ class vk_api{
 
     public function savePhoto($photo, $server, $hash){
         return $this->request('photos.saveMessagesPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash));
+    }
+
+    public function savePhotoWallGroup($photo, $server, $hash, $groupID){
+        $groupID *= -1;
+        return $this->request('photos.saveWallPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash, 'group_id' => $groupID));
     }
 
     /**
@@ -172,12 +186,13 @@ class vk_api{
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
         $output = curl_exec($ch);
+        if ($output == '')
+            throw new vk_apiException('Не удалось загрузить файл на сервер');
         return $output;
     }
 
-    public function sendImage($id, $local_file_path)
-    {
-        $upload_url = $this->sendDocuments($id, 'photo')['upload_url'];
+    public function sendImage($id, $local_file_path) {
+        $upload_url = $this->getUploadServer($id, 'photo')['upload_url'];
 
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
 
@@ -186,5 +201,125 @@ class vk_api{
         $this->request('messages.send', array('attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id));
 
         return 1;
+    }
+
+    public function createPost($id, $message = null, $other = null) {
+        $send_attachment = [];
+        $send_other = [];
+        $send_message = [];
+        if (isset($other['images']) and count($other['images']) != 0) {
+            foreach ($other['images'] as $kay => $val) {
+                $upload_url = $this->getWallUploadServer($id);
+                $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
+                $upload_file = $this->savePhotoWallGroup($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
+            }
+            $send_attachment = ["attachments" => join(',', $send_attachment)];
+        }
+        if (isset($other['props'])) {
+            $send_other = $other['props'];
+        }
+        if (isset($message))
+            $send_message = ['message' => $message];
+        return $this->request('wall.post', ['owner_id' => $id] + $send_message + $send_other + $send_attachment);
+        // return ['owner_id' => $id] + $send_message + $send_other + $send_attachment;
+    }
+}
+
+
+class post {
+
+    /**
+     * @method createPost
+     * @param: var
+     */
+    private $vk_api;
+    private $message = null;
+    private $images = [];
+    private $props = [];
+
+    private $prop_list = ['friends_only', 'from_group', 'services', 'signed', 'publish_date', 'lat', 'long', 'place_id',
+        'post_id', 'guid', 'mark_as_ads', 'close_comments'];
+//publish_date
+    public function __construct($vk_api)
+    {
+        $this->vk_api = $vk_api;
+    }
+
+    public function setMessage($message) {
+        $this->message = $message;
+    }
+
+    public function addImage($images) {
+        if (is_array($images))
+            foreach ($images as $kay => $val) {
+                $this->images[] = $val;
+            }
+        else
+            $this->images[] = $images;
+    }
+
+    public function getImages() {
+        return $this->images;
+    }
+
+    public function getMessage() {
+        return $this->message;
+    }
+
+    public function removeImages($images) {
+        $search = array_search($images, $this->images);
+        if ($search) {
+            $remove_val = $this->images[$search];
+            unset($this->images[$search]);
+            return $remove_val;
+        }
+        if (is_numeric($images) and ($images >= 0 and $images <= count($this->images) -1)) {
+            $remove_val = $this->images[$images];
+            unset($this->images[$images]);
+            return $remove_val;
+        }
+        return 0;
+    }
+
+    public function addProp($prop, $value) {
+        if (!in_array($prop, $this->prop_list))
+            return 0;
+        $this->props += [$prop => $value];
+        return $prop;
+    }
+
+    public function removeProp($prop) {
+        $search = array_search($prop, $this->props);
+        if ($search) {
+            $remove_val = $this->props[$search];
+            unset($this->props[$search]);
+            return $remove_val;
+        }
+        if (is_numeric($prop) and ($prop >= 0 and $prop <= count($this->props) -1)) {
+            $remove_val = $this->props[$prop];
+            unset($this->props[$prop]);
+            return $remove_val;
+        }
+        return 0;
+    }
+
+    public function getProps() {
+        return $this->props;
+    }
+
+    public function send($sendID, $publish_date = null) {
+        if (is_numeric($publish_date))
+            $this->props['publish_date'] = $publish_date;
+        $other = ['images' => $this->images,
+                    'props' => $this->props];
+        return $this->vk_api->createPost($sendID, $this->message, $other);
+    }
+}
+
+
+class vk_apiException extends Exception {
+    function __construct($message) {
+        parent::__construct($message);
     }
 }
