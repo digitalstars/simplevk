@@ -19,13 +19,6 @@ class vk_api{
      * @param string $message Сообщение
      * @return mixed|null
      */
-    public function sendDocMessage($sendID, $id_owner, $id_doc){
-        if ($sendID != 0 and $sendID != '0') {
-            return $this->request('messages.send',array('attachment'=>"doc". $id_owner . "_" . $id_doc,'user_id'=>$sendID));
-        } else {
-            return true;
-        }
-    }
 
     public function sendMessage($sendID,$message){
         if ($sendID != 0 and $sendID != '0') {
@@ -91,7 +84,7 @@ class vk_api{
         return $this->request('messages.send',array('message'=>$message, 'peer_id'=>$sendID, 'keyboard'=>$buttons));
     }
 
-    public function getUploadServer($sendID, $selector = 'doc'){
+    private function getUploadServer($sendID, $selector = 'doc'){
         $result = null;
         if ($selector == 'doc')
             $result = $this->request('docs.getMessagesUploadServer',array('type'=>'doc','peer_id'=>$sendID));
@@ -109,15 +102,11 @@ class vk_api{
         }
     }
 
-    public function saveDocuments($file, $titile){
-        return $this->request('docs.save',array('file'=>$file, 'title'=>$titile));
-    }
-
-    public function savePhoto($photo, $server, $hash){
+    private function savePhoto($photo, $server, $hash){
         return $this->request('photos.saveMessagesPhoto',array('photo'=>$photo, 'server'=>$server, 'hash' => $hash));
     }
 
-    public function savePhotoWall($photo, $server, $hash, $id){
+    private function savePhotoWall($photo, $server, $hash, $id){
         if ($id < 0) {
             $id *= -1;
             return $this->request('photos.saveWallPhoto', array('photo' => $photo, 'server' => $server, 'hash' => $hash, 'group_id' => $id));
@@ -215,7 +204,29 @@ class vk_api{
         return $this->request('messages.send', array('attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id));
     }
 
-    public function createPost($id, $message = [], $props = [], $media) {
+    private function uploadDocs($id, $local_file_path, $title = null) {
+        if (!isset($title))
+            $title = preg_replace("!.*?/!", '', $local_file_path);
+        $upload_url = $this->getUploadServer($id)['upload_url'];
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
+        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
+        return $upload_file;
+    }
+
+    public function sendDocMessage($sendID, $local_file_path, $title = null){
+        $upload_file = current($this->uploadDocs($sendID, $local_file_path, $title));
+        if ($sendID != 0 and $sendID != '0') {
+            return $this->request('messages.send',array('attachment'=>"doc". $upload_file['owner_id'] . "_" . $upload_file['id'],'peer_id'=>$sendID));
+        } else {
+            return true;
+        }
+    }
+
+    private function saveDocuments($file, $titile) {
+        return $this->request('docs.save',array('file'=>$file, 'title'=>$titile));
+    }
+
+    public function createPost($id, $message = null, $props = [], $media = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massiv) {
@@ -223,11 +234,10 @@ class vk_api{
                 case "images":
                     foreach ($massiv as $image) {
                         $upload_url = $this->getWallUploadServer($id);
-                        $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
+                        $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $image, 'photo'), true);
                         $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
                         $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
                     }
-                    $send_attachment = ["attachments" => join(',', $send_attachment)];
                     break;
                 case "docs":
                     break;
@@ -235,29 +245,36 @@ class vk_api{
                     break;
             }
         }
+        if (count($send_attachment) != 0)
+            $send_attachment = ["attachment" => join(',', $send_attachment)];
         if(isset($message))
             $message = ['message' => $message];
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
     }
 
-    public function createMessages($id, $message = [], $props = [], $media, $keyboard = []) {
+    public function createMessages($id, $message = null, $props = [], $media = [], $keyboard = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massiv) {
             switch ($selector) {
                 case "images":
                     foreach ($massiv as $image) {
-                        $upload_file = $upload_file = $this->uploadImage($id, $val);
+                        $upload_file = $upload_file = $this->uploadImage($id, $image);
                         $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
                     }
-                    $send_attachment = ["attachments" => join(',', $send_attachment)];
                     break;
                 case "docs":
+                    foreach ($massiv as $document) {
+                        $upload_file = current($this->uploadDocs($id, $document));
+                        $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
+                    }
                     break;
                 case "other":
                     break;
             }
         }
+        if (count($send_attachment) != 0)
+            $send_attachment = ["attachment" => join(',', $send_attachment)];
         if(isset($message))
             $message = ['message' => $message];
         if (isset($keyboard))
@@ -269,7 +286,7 @@ class vk_api{
 
 class base {
     protected $vk_api;
-    protected $message = [];
+    protected $message = null;
     protected $media = [];
     protected $props = [];
 
@@ -295,6 +312,10 @@ class base {
         return $prop;
     }
 
+    public function addDocs() {
+        $this->addMedia(func_get_args(), 'docs');
+    }
+
     protected function addMedia($media, $selector) {
         if (is_array($media))
             foreach ($media as $kay => $val) {
@@ -309,19 +330,27 @@ class base {
             throw new vk_apiException('Максимум 10 прикрепляемых файлов');
     }
 
-    public function removeImages($images) {
-        $search = array_search($images, $this->media['images']);
+    private function removeMedia($media, $selector) {
+        $search = array_search($media, $this->media[$selector]);
         if ($search) {
-            $remove_val = $this->media['images'][$search];
-            unset($this->media['images'][$search]);
+            $remove_val = $this->media[$selector][$search];
+            unset($this->media[$selector][$search]);
             return $remove_val;
         }
-        if (is_numeric($images) and ($images >= 0 and $images <= count($this->media['images']) -1)) {
-            $remove_val = $this->media['images'][$images];
-            unset($this->media['images'][$images]);
+        if (is_numeric($media) and ($media >= 0 and $media <= count($this->media[$selector]) -1)) {
+            $remove_val = $this->media[$selector][$media];
+            unset($this->media[$selector][$media]);
             return $remove_val;
         }
         return 0;
+    }
+
+    public function removeImages($images) {
+        return $this->removeMedia($images, 'images');
+    }
+
+    public function removeDocs($docs) {
+        return $this->removeMedia($docs, 'docs');
     }
 
     public function removeProp($prop) {
