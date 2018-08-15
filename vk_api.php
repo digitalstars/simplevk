@@ -214,56 +214,11 @@ class vk_api{
         $upload_file = $this->uploadImage($id, $local_file_path);
         return $this->request('messages.send', array('attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id));
     }
-
-    public function createPost($id, $message = null, $other = null) {
-        $send_attachment = [];
-        $send_other = [];
-        $send_message = [];
-        if (isset($other['images']) and count($other['images']) != 0) {
-            foreach ($other['images'] as $kay => $val) {
-                $upload_url = $this->getWallUploadServer($id);
-                $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
-                $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
-                $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
-            }
-            $send_attachment = ["attachments" => join(',', $send_attachment)];
-        }
-        if (isset($other['props'])) {
-            $send_other = $other['props'];
-        }
-        if (isset($message))
-            $send_message = ['message' => $message];
-        return $this->request('wall.post', ['owner_id' => $id] + $send_message + $send_other + $send_attachment);
-        // return ['owner_id' => $id] + $send_message + $send_other + $send_attachment;
-    }
-
-    public function createMessages($id, $message = null, $keyboard = null, $other = null) {
-        $buttons = [];
-        $send_attachment = [];
-        $send_other = [];
-        $send_message = [];
-        if (isset($other['images']) and count($other['images']) != 0) {
-            foreach ($other['images'] as $kay => $val) {
-                $upload_file = $upload_file = $this->uploadImage($id, $val);
-                $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
-            }
-            $send_attachment = ["attachment" => join(',', $send_attachment)];
-        }
-        if (isset($other['props'])) {
-            $send_other = $other['props'];
-        }
-        if (isset($message))
-            $send_message = ['message' => $message];
-        if (isset($keyboard))
-            $buttons = ['keyboard' => $this->generateButton($keyboard['keyboard'], $keyboard['one_time'])];
-        return $this->request('messages.send', ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons);
-        // return ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons;
-    }
 }
 
 class base {
     protected $vk_api;
-    protected $message = null;
+    protected $message = [];
     protected $media = [];
     protected $props = [];
 
@@ -274,16 +229,19 @@ class base {
         $this->vk_api = $vk_api;
     }
 
-    private function countMedia() {
-        $count = 0;
-        foreach ($this->media as $kye => $var) {
-            $count += count($var);
-        }
-        return $count;
+    public function addImage() {
+        $this->addMedia(func_get_args(), 'images');
     }
 
     public function setMessage($message) {
-        $this->message = $message;
+        $this->message = ['message' => $message];
+    }
+
+    public function addProp($prop, $value) {
+        if (!in_array($prop, $this->prop_list))
+            return 0;
+        $this->props += [$prop => $value];
+        return $prop;
     }
 
     protected function addMedia($media, $selector) {
@@ -298,15 +256,6 @@ class base {
             $this->$selector[] = $media;
         if ($this->countMedia() > 10)
             throw new vk_apiException('Максимум 10 прикрепляемых файлов');
-    }
-
-    public function getImages() {
-        if (isset($this->media['images']))
-            return $this->media['images'];
-    }
-
-    public function getMessage() {
-        return $this->message;
     }
 
     public function removeImages($images) {
@@ -324,13 +273,6 @@ class base {
         return 0;
     }
 
-    public function addProp($prop, $value) {
-        if (!in_array($prop, $this->prop_list))
-            return 0;
-        $this->props += [$prop => $value];
-        return $prop;
-    }
-
     public function removeProp($prop) {
         $search = array_search($prop, $this->props);
         if ($search) {
@@ -346,13 +288,72 @@ class base {
         return 0;
     }
 
+    public function createPost($id, $message = [], $props = []) {
+        $send_attachment = [];
+
+        foreach ($this->media as $selector => $massiv) {
+            switch ($selector) {
+                case "images":
+                    foreach ($massiv as $image) {
+                        $upload_url = $this->getWallUploadServer($id);
+                        $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
+                        $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                        $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
+                    }
+                    $send_attachment = ["attachments" => join(',', $send_attachment)];
+                case "docs":
+                    exit(0);
+                case "other":
+                    exit(0);
+            }
+        }
+        return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
+    }
+
+    public function createMessages($id, $message = [], $props = [], $keyboard = null) {
+        $buttons = [];
+        $send_attachment = [];
+
+        foreach ($this->media as $selector => $massiv) {
+            switch ($selector) {
+                case "images":
+                    foreach ($massiv as $image) {
+                        $upload_file = $upload_file = $this->uploadImage($id, $val);
+                        $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
+                    }
+                    $send_attachment = ["attachments" => join(',', $send_attachment)];
+                case "docs":
+                    exit(0);
+                case "other":
+                    exit(0);
+            }
+        }
+        if (isset($keyboard))
+            $buttons = ['keyboard' => $this->generateButton($keyboard['keyboard'], $keyboard['one_time'])];
+        return $this->request('messages.send', ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons);
+    }
+
+    private function countMedia() {
+        $count = 0;
+        foreach ($this->media as $kye => $var) {
+            $count += count($var);
+        }
+        return $count;
+    }
+
+    public function getImages() {
+        if (isset($this->media['images']))
+            return $this->media['images'];
+    }
+
+    public function getMessage() {
+        return $this->message;
+    }
+
     public function getProps() {
         return $this->props;
     }
 
-    public function addImage() {
-        $this->addMedia(func_get_args(), 'images');
-    }
 }
 
 
@@ -365,12 +366,11 @@ class post extends base{
     }
 
     public function send($id, $publish_date = null) {
-        if (is_numeric($publish_date) or $publish_date <= time())
+        if ($publish_date >= time())
             $this->props['publish_date'] = $publish_date;
         else
             throw new vk_apiException('Неверно указан $publish_date');
-        $other = $this->media + ['props' => $this->props];
-        return $this->vk_api->createPost($id, $this->message, $other);
+        return $this->vk_api->createPost($id, $this->message, $this->props);
     }
 }
 
@@ -393,8 +393,7 @@ class message extends base{
     }
 
     public function send($id) {
-        $other = $this->media + ['props' => $this->props];
-        return $this->vk_api->createMessages($id, $this->message, $this->keyboard, $other);
+        return $this->vk_api->createMessages($id, $this->message, $this->props, $this->keyboard);
     }
 }
 
