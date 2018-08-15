@@ -274,6 +274,14 @@ class base {
         $this->vk_api = $vk_api;
     }
 
+    private function countMedia() {
+        $count = 0;
+        foreach ($this->media as $kye => $var) {
+            $count += count($var);
+        }
+        return $count;
+    }
+
     public function setMessage($message) {
         $this->message = $message;
     }
@@ -288,6 +296,8 @@ class base {
             }
         else
             $this->$selector[] = $media;
+        if ($this->countMedia() > 10)
+            throw new vk_apiException('Максимум 10 прикрепляемых файлов');
     }
 
     public function getImages() {
