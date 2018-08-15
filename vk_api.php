@@ -384,7 +384,7 @@ class message extends base{
         parent::__construct($vk_api);
     }
 
-    public function setKayboard($keyboard = [], $one_time = false) {
+    public function setKayboards($keyboard = [], $one_time = false) {
         $this->keyboard = ['keyboard' => $keyboard, 'one_time' => $one_time];
         echo "Test";
     }
