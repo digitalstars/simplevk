@@ -353,8 +353,7 @@ class post extends base{
             $this->props['publish_date'] = $publish_date;
         else
             throw new vk_apiException('Неверно указан $publish_date');
-        $other = ['images' => $this->media,
-                    'props' => $this->props];
+        $other = $this->media + ['props' => $this->props];
         return $this->vk_api->createPost($id, $this->message, $other);
     }
 
