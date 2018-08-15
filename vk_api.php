@@ -350,6 +350,7 @@ class base {
         return $this->message;
     }
 
+
     public function getProps() {
         return $this->props;
     }
