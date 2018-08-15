@@ -276,6 +276,7 @@ class vk_api{
             $buttons = ['keyboard' => $this->generateButton($keyboard['keyboard'], $keyboard['one_time'])];
         return $this->request('messages.send', ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons);
         // return ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons;
+        //teeest
     }
 }
 
