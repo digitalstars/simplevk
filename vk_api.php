@@ -386,6 +386,7 @@ class message extends base{
 
     public function setKayboard($keyboard = [], $one_time = false) {
         $this->keyboard = ['keyboard' => $keyboard, 'one_time' => $one_time];
+        echo "Test";
     }
 
     public function getKeyboard() {
