@@ -63,6 +63,10 @@ class vk_api{
         flush();
     }
 
+    private function generateButton($sendID, $message, $gl_massiv = [], $one_time = False) {
+
+    }
+
     public function sendButton($sendID, $message, $gl_massiv = [], $one_time = False) {
         $buttons = [];
         $i = 0;
@@ -83,7 +87,6 @@ class vk_api{
             "one_time" => $one_time,
             "buttons" => $buttons);
         $buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
-        //echo $buttons;
         return $this->request('messages.send',array('message'=>$message, 'peer_id'=>$sendID, 'keyboard'=>$buttons));
     }
 
@@ -232,12 +235,34 @@ class vk_api{
         return $this->request('wall.post', ['owner_id' => $id] + $send_message + $send_other + $send_attachment);
         // return ['owner_id' => $id] + $send_message + $send_other + $send_attachment;
     }
+
+    public function createMessages($id, $message, $keyboard, $other) {
+        $send_attachment = [];
+        $send_other = [];
+        $send_message = [];
+        if (isset($other['images']) and count($other['images']) != 0) {
+            foreach ($other['images'] as $kay => $val) {
+                $upload_url = $this->getWallUploadServer($id);
+                $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
+                $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
+            }
+            $send_attachment = ["attachments" => join(',', $send_attachment)];
+        }
+        if (isset($other['props'])) {
+            $send_other = $other['props'];
+        }
+        if (isset($message))
+            $send_message = ['message' => $message];
+        return $this->request('wall.post', ['owner_id' => $id] + $send_message + $send_other + $send_attachment);
+        // return ['owner_id' => $id] + $send_message + $send_other + $send_attachment;
+    }
 }
 
 class base {
     protected $vk_api;
     protected $message = null;
-    protected $images = [];
+    protected $media = [];
     protected $props = [];
 
     protected $prop_list;
@@ -255,16 +280,17 @@ class base {
         if (is_array($media))
             foreach ($media as $kay => $val) {
                 if (is_array($val))
-                    $this->$selector += $val;
+                    $this->media[$selector] += $val;
                 else
-                    $this->$selector[] = $val;
+                    $this->media[$selector][] = $val;
             }
         else
             $this->$selector[] = $media;
     }
 
     public function getImages() {
-        return $this->images;
+        if (isset($this->media['images']))
+            return $this->media['images'];
     }
 
     public function getMessage() {
@@ -272,15 +298,15 @@ class base {
     }
 
     public function removeImages($images) {
-        $search = array_search($images, $this->images);
+        $search = array_search($images, $this->media['images']);
         if ($search) {
-            $remove_val = $this->images[$search];
-            unset($this->images[$search]);
+            $remove_val = $this->media['images'][$search];
+            unset($this->media['images'][$search]);
             return $remove_val;
         }
-        if (is_numeric($images) and ($images >= 0 and $images <= count($this->images) -1)) {
-            $remove_val = $this->images[$images];
-            unset($this->images[$images]);
+        if (is_numeric($images) and ($images >= 0 and $images <= count($this->media['images']) -1)) {
+            $remove_val = $this->media['images'][$images];
+            unset($this->media['images'][$images]);
             return $remove_val;
         }
         return 0;
@@ -322,12 +348,14 @@ class post extends base{
         parent::__construct($vk_api);
     }
 
-    public function send($sendID, $publish_date = null) {
-        if (is_numeric($publish_date))
+    public function send($id, $publish_date = null) {
+        if (is_numeric($publish_date) or $publish_date <= time())
             $this->props['publish_date'] = $publish_date;
-        $other = ['images' => $this->images,
+        else
+            throw new vk_apiException('Неверно указан $publish_date');
+        $other = ['images' => $this->media,
                     'props' => $this->props];
-        return $this->vk_api->createPost($sendID, $this->message, $other);
+        return $this->vk_api->createPost($id, $this->message, $other);
     }
 
     public function addImage() {
@@ -336,10 +364,27 @@ class post extends base{
 }
 
 class message extends base{
+
+    private $keyboard = [];
+
     public function __construct($vk_api) {
         $this->prop_list = ['random_id', 'domain', 'chat_id', 'user_ids', 'lat', 'long', 'forward_messages',
             'sticker_id', 'payload'];
         parent::__construct($vk_api);
+    }
+
+    public function setKayboard($keyboard = []) {
+        $this->keyboard = $keyboard;
+    }
+
+    public function getKeyboard() {
+        return $this->keyboard;
+    }
+
+    public function send($id) {
+        $other = ['images' => $this->media,
+                    'props' => $this->props];
+        return $this->vk_api->createMessages($id, $this->message, $this->keyboard, $other);
     }
 }
 
