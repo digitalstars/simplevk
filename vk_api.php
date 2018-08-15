@@ -203,16 +203,16 @@ class vk_api{
         return $output;
     }
 
-    public function sendImage($id, $local_file_path) {
+    private function uploadImage($id, $local_file_path) {
         $upload_url = $this->getUploadServer($id, 'photo')['upload_url'];
-
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
-
         $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
+        return $upload_file;
+    }
 
-        $this->request('messages.send', array('attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id));
-
-        return 1;
+    public function sendImage($id, $local_file_path) {
+        $upload_file = $this->uploadImage($id, $local_file_path);
+        return $this->request('messages.send', array('attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id));
     }
 
     public function createPost($id, $message = null, $other = null) {
@@ -244,9 +244,7 @@ class vk_api{
         $send_message = [];
         if (isset($other['images']) and count($other['images']) != 0) {
             foreach ($other['images'] as $kay => $val) {
-                $upload_url = $this->getUploadServer($id, 'photo')['upload_url'];
-                $answer_vk = json_decode($this->sendFiles($upload_url, $val, 'photo'), true);
-                $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
+                $upload_file = $upload_file = $this->uploadImage($id, $val);
                 $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
             }
             $send_attachment = ["attachment" => join(',', $send_attachment)];
