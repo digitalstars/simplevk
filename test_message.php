@@ -21,8 +21,8 @@ try {
     $my_msg = new message($vk);
 //    $my_msg->setMessage("Разных рыбин сообщение...");
     $my_msg->addImage('img/goldfish.jpg');
-    $my_msg->addImage('img/pink_salmon.jpg');
-    $my_msg->addImage('img/plotva.jpg');
+//    $my_msg->addImage('img/pink_salmon.jpg');
+//    $my_msg->addImage('img/plotva.jpg');
     $my_msg->setKayboard([[$test_button, $test_button],
                             [$test_button, $test_button]], true);
     print_r( $my_msg->send('105083531') );
