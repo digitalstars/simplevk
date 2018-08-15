@@ -19,11 +19,11 @@ try {
     $vk = new vk_api(VK_KEY, VERSION);
 
     $my_msg = new message($vk);
-//    $my_msg->setMessage("Разных рыбин сообщение...");
+    $my_msg->setMessage("Разных рыбин сообщение...");
     $my_msg->addImage('img/goldfish.jpg');
-//    $my_msg->addImage('img/pink_salmon.jpg');
-//    $my_msg->addImage('img/plotva.jpg');
-    $my_msg->setKayboard([[$test_button, $test_button],
+    $my_msg->addImage('img/pink_salmon.jpg');
+    $my_msg->addDocs('img/plotva.jpg');
+    $my_msg->setKeyboard([[$test_button, $test_button],
                             [$test_button, $test_button]], true);
     print_r( $my_msg->send('105083531') );
 } catch (vk_apiException $e) {
