@@ -9,19 +9,18 @@
 include "vk_api.php"; //Подключаем библиотеку для работы с api vk
 
 //**********CONFIG**************
-const VK_KEY = "K"; //ключ авторизации через приложение
+const VK_KEY = "85f6fff60b018e84265283a33f2897fdfeed3531e895a478e28d4b3af268e43953782a63e8e6613d9f21a"; //ключ авторизации через приложение
 const VERSION = "5.80"; //ваша версия используемого api
 //******************************
 try {
     $vk = new vk_api(VK_KEY, VERSION);
 
-    $my_post = new post($vk);
-    $my_post->setMessage("Разных рыбин пост...");
-    $my_post->addProp('from_group', 1);
-    $my_post->addImage('img/goldfish.jpg');
-    $my_post->addImage('img/pink_salmon.jpg');
-    $my_post->addImage('img/plotva.jpg');
-    $my_post->send('id юзера или группы для публикации', time() + 120);
+    $my_msg = new message($vk);
+    $my_msg->setMessage("Разных рыбин сообщение...");
+    $my_msg->addImage('img/goldfish.jpg');
+    $my_msg->addImage('img/pink_salmon.jpg');
+    $my_msg->addImage('img/plotva.jpg');
+    print_r( $my_msg->send('105083531') );
 } catch (vk_apiException $e) {
     print_r($e->getMessage());
 }

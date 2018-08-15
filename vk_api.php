@@ -63,11 +63,7 @@ class vk_api{
         flush();
     }
 
-    private function generateButton($sendID, $message, $gl_massiv = [], $one_time = False) {
-
-    }
-
-    public function sendButton($sendID, $message, $gl_massiv = [], $one_time = False) {
+    private function generateButton($gl_massiv = [], $one_time = False) {
         $buttons = [];
         $i = 0;
         foreach ($gl_massiv as $button_str) {
@@ -87,6 +83,11 @@ class vk_api{
             "one_time" => $one_time,
             "buttons" => $buttons);
         $buttons = json_encode($buttons, JSON_UNESCAPED_UNICODE);
+        return $buttons;
+    }
+
+    public function sendButton($sendID, $message, $gl_massiv = [], $one_time = False) {
+        $buttons = $this->generateButton($gl_massiv, $one_time);
         return $this->request('messages.send',array('message'=>$message, 'peer_id'=>$sendID, 'keyboard'=>$buttons));
     }
 
@@ -236,26 +237,29 @@ class vk_api{
         // return ['owner_id' => $id] + $send_message + $send_other + $send_attachment;
     }
 
-    public function createMessages($id, $message, $keyboard, $other) {
+    public function createMessages($id, $message = null, $keyboard = null, $other = null) {
+        $buttons = [];
         $send_attachment = [];
         $send_other = [];
         $send_message = [];
         if (isset($other['images']) and count($other['images']) != 0) {
             foreach ($other['images'] as $kay => $val) {
-                $upload_url = $this->getWallUploadServer($id);
-                $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $val, 'photo'), true);
-                $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                $upload_url = $this->getUploadServer($id, 'photo')['upload_url'];
+                $answer_vk = json_decode($this->sendFiles($upload_url, $val, 'photo'), true);
+                $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
                 $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
             }
-            $send_attachment = ["attachments" => join(',', $send_attachment)];
+            $send_attachment = ["attachment" => join(',', $send_attachment)];
         }
         if (isset($other['props'])) {
             $send_other = $other['props'];
         }
         if (isset($message))
             $send_message = ['message' => $message];
-        return $this->request('wall.post', ['owner_id' => $id] + $send_message + $send_other + $send_attachment);
-        // return ['owner_id' => $id] + $send_message + $send_other + $send_attachment;
+        if (isset($keyboard))
+            $buttons = $this->generateButton($keyboard['keyboard'], $keyboard['one_time']);
+        return $this->request('messages.send', ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons);
+        // return ['peer_id' => $id] + $send_message + $send_other + $send_attachment + $buttons;
     }
 }
 
@@ -337,6 +341,10 @@ class base {
     public function getProps() {
         return $this->props;
     }
+
+    public function addImage() {
+        $this->addMedia(func_get_args(), 'images');
+    }
 }
 
 
@@ -356,15 +364,11 @@ class post extends base{
         $other = $this->media + ['props' => $this->props];
         return $this->vk_api->createPost($id, $this->message, $other);
     }
-
-    public function addImage() {
-        parent::addMedia(func_get_args(), 'images');
-    }
 }
 
 class message extends base{
 
-    private $keyboard = [];
+    private $keyboard = null;
 
     public function __construct($vk_api) {
         $this->prop_list = ['random_id', 'domain', 'chat_id', 'user_ids', 'lat', 'long', 'forward_messages',
@@ -372,8 +376,8 @@ class message extends base{
         parent::__construct($vk_api);
     }
 
-    public function setKayboard($keyboard = []) {
-        $this->keyboard = $keyboard;
+    public function setKayboard($keyboard = [], $one_time = false) {
+        $this->keyboard = ['keyboard' => $keyboard, 'one_time' => $one_time];
     }
 
     public function getKeyboard() {
@@ -381,8 +385,7 @@ class message extends base{
     }
 
     public function send($id) {
-        $other = ['images' => $this->media,
-                    'props' => $this->props];
+        $other = $this->media + ['props' => $this->props];
         return $this->vk_api->createMessages($id, $this->message, $this->keyboard, $other);
     }
 }
