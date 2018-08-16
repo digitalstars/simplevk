@@ -1,6 +1,6 @@
 <?php
-namespace src;
-use src\Base as Base;
+namespace vk_api;
+require_once('autoload.php');
 
 class Message extends Base
 {

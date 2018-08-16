@@ -1,7 +1,8 @@
 <?php
-use src\Post as Post;
-use src\vk_api as vk_api;
-use src\VkApiException as VkApiException;
+require_once('src/autoload.php');
+use vk_api\Post as Post;
+use vk_api\vk_api as vk_api;
+use vk_api\VkApiException as VkApiException;
 
 //**********CONFIG**************
 const VK_KEY = ""; //ключ авторизации через приложение
@@ -14,7 +15,7 @@ try {
     $my_post->setMessage("Разных рыбин пост...");
     $my_post->addProp('from_group', 1);
     $my_post->addImage('img/goldfish.jpg', 'img/pink_salmon.jpg', 'img/plotva.jpg');
-    $my_post->send('89846036', time() + 120);
+    $my_post->send('105083531', time() + 120);
 } catch (VkApiException $e) {
     print_r($e->getMessage());
 }

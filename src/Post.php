@@ -1,7 +1,6 @@
 <?php
-namespace src;
-use src\Base as Base;
-use src\VkApiException as VkApiException;
+namespace vk_api;
+require_once('autoload.php');
 
 class Post extends Base
 {

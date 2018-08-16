@@ -1,7 +1,8 @@
 <?php
 
-namespace src;
-use src\VkApiException as VkApiException;
+namespace vk_api;
+use CURLFile;
+require_once('autoload.php');
 
 class vk_api
 {

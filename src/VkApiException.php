@@ -1,6 +1,8 @@
 <?php
-namespace src;
+namespace vk_api;
 use Exception;
+
+require_once('autoload.php');
 
 class VkApiException extends Exception
 {

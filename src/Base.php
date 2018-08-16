@@ -1,6 +1,6 @@
 <?php
-namespace src;
-use src\VkApiException as VkApiException;
+namespace vk_api;
+require_once('autoload.php');
 
 class Base
 {
