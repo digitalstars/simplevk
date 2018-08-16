@@ -85,13 +85,22 @@ class vk_api
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $user_id, 'keyboard' => $keyboard]);
     }
 
-    private function getUploadServer($peer_id, $selector = 'doc')
+    private function getUploadServerMessages($peer_id, $selector = 'doc')
     {
         $result = null;
         if ($selector == 'doc')
             $result = $this->request('docs.getMessagesUploadServer', ['type' => 'doc', 'peer_id' => $peer_id]);
         else if ($selector == 'photo')
             $result = $this->request('photos.getMessagesUploadServer', ['peer_id' => $peer_id]);
+        return $result;
+    }
+
+    private function getUploadServerPost($peer_id = []) {
+        if ($peer_id < 0)
+            $peer_id = ['group_id' => $peer_id * -1];
+        else
+            $peer_id = [];
+        $result = $this->request('docs.getUploadServer', $peer_id);
         return $result;
     }
 
@@ -184,7 +193,7 @@ class vk_api
 
     private function uploadImage($id, $local_file_path)
     {
-        $upload_url = $this->getUploadServer($id, 'photo')['upload_url'];
+        $upload_url = $this->getUploadServerMessages($id, 'photo')['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
         $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
         return $upload_file;
@@ -196,28 +205,42 @@ class vk_api
         return $this->request('messages.send', ['attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id]);
     }
 
-    private function uploadDocs($id, $local_file_path, $title = null)
+    private function uploadDocsMessages($id, $local_file_path, $title = null)
     {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
-        $upload_url = $this->getUploadServer($id)['upload_url'];
+        $upload_url = $this->getUploadServerMessages($id)['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
         $upload_file = $this->saveDocuments($answer_vk['file'], $title);
         return $upload_file;
     }
 
+    private function uploadDocs($id, $local_file_path, $title = null)
+    {
+        if (!isset($title))
+            $title = preg_replace("!.*?/!", '', $local_file_path);
+        $upload_url = $this->getUploadServerPost($id)['upload_url'];
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
+        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
+        return $upload_file;
+    }
+
+    public function uploadDocsGroup($groupID, $local_file_path, $title = null) {
+        return $this->uploadDocs($groupID, $local_file_path, $title);
+    }
+
+    public function uploadDocsUser($local_file_path, $title = null) {
+        return $this->uploadDocs([], $local_file_path, $title);
+    }
+
     public function sendDocMessage($id, $local_file_path, $title = null)
     {
-        $upload_file = current($this->uploadDocs($id, $local_file_path, $title));
+        $upload_file = current($this->uploadDocsMessages($id, $local_file_path, $title));
         if ($id != 0 and $id != '0') {
             return $this->request('messages.send', ['attachment' => "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'], 'peer_id' => $id]);
         } else {
             return true;
         }
-    }
-
-    public function sendDocPost($id, $local_file_path, $title = null) {
-
     }
 
     private function saveDocuments($file, $title)
@@ -240,6 +263,10 @@ class vk_api
                     }
                     break;
                 case "docs":
+                    foreach ($massive as $docs) {
+                        $upload_file = current( $this->uploadDocsUser($docs) );
+                        $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
+                    }
                     break;
                 case "other":
                     break;
@@ -266,7 +293,7 @@ class vk_api
                     break;
                 case "docs":
                     foreach ($massiv as $document) {
-                        $upload_file = current($this->uploadDocs($id, $document));
+                        $upload_file = current($this->uploadDocsMessages($id, $document));
                         $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
                     }
                     break;

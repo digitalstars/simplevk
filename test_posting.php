@@ -14,8 +14,10 @@ try {
     $my_post = new Post($vk);
     $my_post->setMessage("Разных рыбин пост...");
     $my_post->addProp('from_group', 1);
-    $my_post->addImage('img/goldfish.jpg', 'img/pink_salmon.jpg', 'img/plotva.jpg');
-    $my_post->send('105083531', time() + 120);
+//    $my_post->addImage('img/goldfish.jpg', 'img/pink_salmon.jpg', 'img/plotva.jpg');
+    $my_post->addImage('img/plotva.jpg');
+    $my_post->addDocs('img/goldfish.jpg');
+    print_r( $my_post->send('-165686210', time() + 120) );
 } catch (VkApiException $e) {
     print_r($e->getMessage());
 }
