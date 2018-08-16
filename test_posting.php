@@ -1,8 +1,8 @@
 <?php
 require_once('src/autoload.php');
-use vk_api\Post as Post;
-use vk_api\vk_api as vk_api;
-use vk_api\VkApiException as VkApiException;
+use DigitalStar\vk_api\Post as Post;
+use DigitalStar\vk_api\vk_api as vk_api;
+use DigitalStar\vk_api\VkApiException as VkApiException;
 
 //**********CONFIG**************
 const VK_KEY = ""; //ключ авторизации через приложение

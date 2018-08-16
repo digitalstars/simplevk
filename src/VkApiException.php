@@ -1,5 +1,5 @@
 <?php
-namespace vk_api;
+namespace DigitalStar\vk_api;
 use Exception;
 
 require_once('autoload.php');

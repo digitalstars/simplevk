@@ -5,7 +5,7 @@
  * Date: 16.08.18
  * Time: 3:59
  */
-namespace vk_api;
+namespace DigitalStar\vk_api;
 
 require_once('Base.php');
 require_once('Message.php');

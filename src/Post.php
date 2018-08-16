@@ -1,5 +1,5 @@
 <?php
-namespace vk_api;
+namespace DigitalStar\vk_api;
 require_once('autoload.php');
 
 class Post extends Base

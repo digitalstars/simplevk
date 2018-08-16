@@ -1,6 +1,6 @@
 <?php
 
-namespace vk_api;
+namespace DigitalStar\vk_api;
 use CURLFile;
 require_once('autoload.php');
 
@@ -214,6 +214,10 @@ class vk_api
         } else {
             return true;
         }
+    }
+
+    public function sendDocPost($id, $local_file_path, $title = null) {
+
     }
 
     private function saveDocuments($file, $title)
