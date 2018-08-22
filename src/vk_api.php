@@ -310,6 +310,17 @@ class vk_api
         return $this->request('messages.send', ['peer_id' => $id] + $message + $props + $send_attachment + $keyboard);
     }
 
+    public function getGroupsUser($id = [], $extended = 1 , $props = []) {
+        if (is_numeric($id))
+            $id = ['user_id' => $id];
+        if (!is_array($props))
+            $props = [];
+        if ($extended == 1)
+            $extended = ['extended' => 1];
+        else
+            $extended = [];
+        return $this->request('groups.get', $id + $props + $extended);
+    }
 }
 
 
