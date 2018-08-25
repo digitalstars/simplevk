@@ -5,12 +5,12 @@ use DigitalStar\vk_api\vk_api as vk_api;
 use DigitalStar\vk_api\VkApiException as VkApiException;
 
 //**********CONFIG**************
-const VK_KEY = "KEY"; //ключ авторизации через приложение
+const VK_KEY = "key"; //ключ авторизации через приложение
 const VERSION = "5.80"; //ваша версия используемого api
 //******************************
 try {
-    // $vk = new vk_api('login', 'pass', VERSION);
-    $vk = new vk_api(VK_KEY, VERSION);
+//    $vk = new vk_api('login', 'pass', VERSION);
+//    $vk = new vk_api(VK_KEY, VERSION);
 
     $my_post = new Post($vk);
     $my_post->setMessage("Разных рыбин пост...");

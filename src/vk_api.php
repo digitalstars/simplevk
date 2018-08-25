@@ -9,11 +9,17 @@ class vk_api
 
     private $token = '';
     private $version = '';
+    private $auth = null;
 
-    public function __construct($token, $version)
-    {
-        $this->token = $token;
-        $this->version = $version;
+    public function __construct($token, $version, $also_version = null) {
+        if (isset($also_version)) {
+            $this->auth = new Auth($token, $version);
+            $this->token = $this->auth->getAccessToken();
+            $this->version = $also_version;
+        } else {
+            $this->token = $token;
+            $this->version = $version;
+        }
     }
 
     public function sendMessage($id, $message)
