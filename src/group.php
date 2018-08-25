@@ -1,0 +1,27 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: zerox
+ * Date: 25.08.18
+ * Time: 23:59
+ */
+
+namespace DigitalStar\vk_api;
+require_once('autoload.php');
+
+
+class group extends vk_api {
+    private $groupID;
+
+    public function __construct($groupID, $vk_api) {
+        $this->groupID = $groupID;
+        $class_data = $vk_api->copyAllDataclass();
+        parent::setAllDataclass($class_data[0], $class_data[1], $class_data[2]);
+    }
+
+    protected function editRequestParams($method, $params) {
+//        if ($method == 'messages.send' or $method == 'photos.saveMessagesPhoto')
+            $params['group_id'] = $this->groupID;
+        return [$method, $params];
+    }
+}

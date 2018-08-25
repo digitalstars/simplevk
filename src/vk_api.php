@@ -1,17 +1,24 @@
 <?php
 
 namespace DigitalStar\vk_api;
+
 use CURLFile;
+
 require_once('autoload.php');
 
-class vk_api
-{
+class vk_api {
 
     private $token = '';
     private $version = '';
     private $auth = null;
 
     public function __construct($token, $version, $also_version = null) {
+        if ($token instanceof auth) {
+            $this->auth = $token;
+            $this->version = $version;
+            $this->token = $this->auth->getAccessToken();
+            return ;
+        }
         if (isset($also_version)) {
             $this->auth = new Auth($token, $version);
             $this->token = $this->auth->getAccessToken();
@@ -22,8 +29,17 @@ class vk_api
         }
     }
 
-    public function sendMessage($id, $message)
-    {
+    protected function copyAllDataclass() {
+        return [$this->token, $this->version, $this->auth];
+    }
+
+    protected function setAllDataclass($token, $version, $auth){
+        $this->token = $token;
+        $this->version = $version;
+        $this->auth = $auth;
+    }
+
+    public function sendMessage($id, $message) {
         if ($id != 0 and $id != '0') {
             return $this->request('messages.send', ['message' => $message, 'peer_id' => $id]);
         } else {
@@ -31,8 +47,7 @@ class vk_api
         }
     }
 
-    public function sendOK()
-    {
+    public function sendOK() {
         echo 'ok';
         $response_length = ob_get_length();
         // check if fastcgi_finish_request is callable
@@ -62,8 +77,7 @@ class vk_api
         return True;
     }
 
-    private function generateKeyboard($buttons = [], $one_time = False)
-    {
+    private function generateKeyboard($buttons = [], $one_time = False) {
         $keyboard = [];
         $i = 0;
         foreach ($buttons as $button_str) {
@@ -80,19 +94,17 @@ class vk_api
             $i++;
         }
         $keyboard = ["one_time" => $one_time,
-                    "buttons" => $keyboard];
+            "buttons" => $keyboard];
         $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
         return $keyboard;
     }
 
-    public function sendButton($user_id, $message, $buttons = [], $one_time = False)
-    {
+    public function sendButton($user_id, $message, $buttons = [], $one_time = False) {
         $keyboard = $this->generateKeyboard($buttons, $one_time);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $user_id, 'keyboard' => $keyboard]);
     }
 
-    private function getUploadServerMessages($peer_id, $selector = 'doc')
-    {
+    private function getUploadServerMessages($peer_id, $selector = 'doc') {
         $result = null;
         if ($selector == 'doc')
             $result = $this->request('docs.getMessagesUploadServer', ['type' => 'doc', 'peer_id' => $peer_id]);
@@ -110,8 +122,7 @@ class vk_api
         return $result;
     }
 
-    public function getWallUploadServer($id)
-    {
+    public function getWallUploadServer($id) {
         if ($id < 0) {
             $id *= -1;
             return $this->request('photos.getWallUploadServer', ['group_id' => $id]);
@@ -120,13 +131,11 @@ class vk_api
         }
     }
 
-    private function savePhoto($photo, $server, $hash)
-    {
+    private function savePhoto($photo, $server, $hash) {
         return $this->request('photos.saveMessagesPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash]);
     }
 
-    private function savePhotoWall($photo, $server, $hash, $id)
-    {
+    private function savePhotoWall($photo, $server, $hash, $id) {
         if ($id < 0) {
             $id *= -1;
             return $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'group_id' => $id]);
@@ -134,9 +143,13 @@ class vk_api
             return $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'user_id' => $id]);
         }
     }
-    
-    public function request($method, $params = [])
-    {
+
+    protected function editRequestParams($method, $params) {
+        return [$method, $params];
+    }
+
+    public function request($method, $params = []) {
+        list($method, $params) = $this->editRequestParams($method, $params);
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
@@ -167,19 +180,25 @@ class vk_api
             return $result;
     }
 
-    private function replaceColor($color)
-    {
+    private function replaceColor($color) {
         switch ($color) {
-            case 'red':   $color = 'negative'; break;
-            case 'green': $color = 'positive'; break;
-            case 'white': $color = 'default'; break;
-            case 'blue':  $color = 'primary'; break;
+            case 'red':
+                $color = 'negative';
+                break;
+            case 'green':
+                $color = 'positive';
+                break;
+            case 'white':
+                $color = 'default';
+                break;
+            case 'blue':
+                $color = 'primary';
+                break;
         }
         return $color;
     }
 
-    private function sendFiles($url, $local_file_path, $type = 'file')
-    {
+    private function sendFiles($url, $local_file_path, $type = 'file') {
         $post_fields = [
             $type => new CURLFile(realpath($local_file_path))
         ];
@@ -197,22 +216,19 @@ class vk_api
         return $output;
     }
 
-    private function uploadImage($id, $local_file_path)
-    {
+    private function uploadImage($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'photo')['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
         $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
         return $upload_file;
     }
 
-    public function sendImage($id, $local_file_path)
-    {
+    public function sendImage($id, $local_file_path) {
         $upload_file = $this->uploadImage($id, $local_file_path);
         return $this->request('messages.send', ['attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id]);
     }
 
-    private function uploadDocsMessages($id, $local_file_path, $title = null)
-    {
+    private function uploadDocsMessages($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerMessages($id)['upload_url'];
@@ -221,8 +237,7 @@ class vk_api
         return $upload_file;
     }
 
-    private function uploadDocs($id, $local_file_path, $title = null)
-    {
+    private function uploadDocs($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerPost($id)['upload_url'];
@@ -239,8 +254,7 @@ class vk_api
         return $this->uploadDocs([], $local_file_path, $title);
     }
 
-    public function sendDocMessage($id, $local_file_path, $title = null)
-    {
+    public function sendDocMessage($id, $local_file_path, $title = null) {
         $upload_file = current($this->uploadDocsMessages($id, $local_file_path, $title));
         if ($id != 0 and $id != '0') {
             return $this->request('messages.send', ['attachment' => "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'], 'peer_id' => $id]);
@@ -249,13 +263,11 @@ class vk_api
         }
     }
 
-    private function saveDocuments($file, $title)
-    {
+    private function saveDocuments($file, $title) {
         return $this->request('docs.save', ['file' => $file, 'title' => $title]);
     }
 
-    public function createPost($id, $message = null, $props = [], $media = [])
-    {
+    public function createPost($id, $message = null, $props = [], $media = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massive) {
@@ -270,7 +282,7 @@ class vk_api
                     break;
                 case "docs":
                     foreach ($massive as $docs) {
-                        $upload_file = current( $this->uploadDocsUser($docs) );
+                        $upload_file = current($this->uploadDocsUser($docs));
                         $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
                     }
                     break;
@@ -285,8 +297,7 @@ class vk_api
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
     }
 
-    public function createMessages($id, $message = null, $props = [], $media = [], $keyboard = [])
-    {
+    public function createMessages($id, $message = null, $props = [], $media = [], $keyboard = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massiv) {
@@ -311,12 +322,12 @@ class vk_api
             $send_attachment = ["attachment" => join(',', $send_attachment)];
         if (isset($message))
             $message = ['message' => $message];
-        if (isset($keyboard))
+        if ($keyboard != [])
             $keyboard = ['keyboard' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['one_time'])];
         return $this->request('messages.send', ['peer_id' => $id] + $message + $props + $send_attachment + $keyboard);
     }
 
-    public function getGroupsUser($id = [], $extended = 1 , $props = []) {
+    public function getGroupsUser($id = [], $extended = 1, $props = []) {
         if (is_numeric($id))
             $id = ['user_id' => $id];
         if (!is_array($props))

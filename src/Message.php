@@ -5,7 +5,7 @@ require_once('autoload.php');
 class Message extends Base
 {
 
-    private $keyboard = null;
+    private $keyboard = [];
 
     public function __construct($vk_api)
     {

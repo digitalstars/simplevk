@@ -13,3 +13,4 @@ require_once('Post.php');
 require_once('vk_api.php');
 require_once('VkApiException.php');
 require_once('auth.php');
+require_once('group.php');
