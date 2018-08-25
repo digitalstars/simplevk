@@ -24,7 +24,7 @@ $vk->sendOK(); //Говорим vk, что мы приняли callback
 
 if (isset($data->type) and $data->type == 'message_new') { //Проверяем, если это сообщение от пользователя
 	$id = $data->object->from_id; //Получаем id пользователя, который написал сообщение
-	$messqge = $data->object->text;
+	$message = $data->object->text;
 
 	if (isset($data->object->peer_id))
         $peer_id = $data->object->peer_id; // Получаем peer_id чата, откуда прилитело сообщение
@@ -37,7 +37,7 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
       		$payload = null;
    	}
   
-	if (isset($payload['command']) or strtolower($messqge) == 'начать') { //Если нажата кнопка начать или << назад
+	if (isset($payload['command']) or strtolower($message) == 'начать') { //Если нажата кнопка начать или << назад
 		$vk->sendButton($peer_id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
 	} else {
 		if ($payload != null) { // если payload существует
