@@ -144,6 +144,16 @@ class vk_api {
         }
     }
 
+    public function groupInfo($group_url) {
+        $group_url = preg_replace("!.*?/!", '', $group_url);
+        return current($this->request('groups.getById', ["group_ids" => $group_url]));
+    }
+
+    public function userInfo($user_url) {
+        $user_url = preg_replace("!.*?/!", '', $user_url);
+        return current($this->request('users.get', ["user_ids" => $user_url]));
+    }
+
     protected function editRequestParams($method, $params) {
         return [$method, $params];
     }
