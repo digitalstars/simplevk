@@ -172,10 +172,8 @@ class Auth {
             '&password='.$this->pass.
             $scope.
             $captcha;
-        echo $token_url."\n";
         $response_auth = $this->getCURL($token_url, null, false)['body'];
         $response_auth = json_decode($response_auth, true);
-        print_r($response_auth);
 
         if (isset($response_auth['access_token']))
             return $response_auth['access_token'];
