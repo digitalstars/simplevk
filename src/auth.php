@@ -12,7 +12,7 @@ require_once('autoload.php');
 
 class Auth {
     private $login = null;
-    private $pass;
+    private $pass = null;
     private $cookie = null;
     private $useragent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36';
     private $id_app = '6660888';
@@ -20,8 +20,11 @@ class Auth {
     private $scope = '';
     private $method = '';
     private $default_scope = "notify,friends,photos,audio,video,stories,pages,status,notes,messages,wall,ads,offline,docs,groups,notifications,stats,email,market";
+    private $is_auth = 0;
+    private $auth_method = 0 ; //0 - mobile, 1 - app
+    private $captcha_sid = null;
 
-    public function __construct($login, $pass = null, $other = null) {
+    public function __construct($login, $pass = null, $other = null, $mobile = true) {
         if (!isset($login))
             throw new VkApiException("Укажите логин и пароль либо куки");
         if (is_array($other)) {
@@ -34,11 +37,19 @@ class Auth {
             $this->login = $login;
             $this->pass = $pass;
             $this->method = 'pass';
-            $this->loginInVK();
+            if (!$mobile)
+                $this->auth_method = 1;
         } else {
             $this->method = 'cookie';
             $this->cookie = json_decode($login, true);
+            $this->auth_method = 1;
         }
+    }
+
+    public function auth() {
+        if ($this->auth_method == 0)
+            throw new VkApiException("Только для авторизации через приложение");
+        $this->loginInVK();
     }
 
     public function dumpCookie() {
@@ -52,9 +63,19 @@ class Auth {
         return True;
     }
 
-    public function getAccessToken() {
-        if ($this->access_token == '')
-            $this->access_token = $this->generateAccessToken();
+    public function getAccessToken($captcha_key = null, $captcha_sid = null) {
+        if ($this->access_token != '')
+            return $this->access_token;
+        if ($this->auth_method) {
+            if ($this->is_auth == 0)
+                $this->loginInVK();
+            if ($this->access_token == '')
+                $this->access_token = $this->generateAccessToken();
+        } else {
+            if (isset($this->captcha_sid))
+                $captcha_sid = $this->captcha_sid;
+            $this->access_token = $this->generateAccessTokenMobile($captcha_key, $captcha_sid);
+        }
         return $this->access_token;
     }
 
@@ -92,6 +113,8 @@ class Auth {
 
         if (!isset($auth_page['header']['set-cookie']))
             throw new VkApiException("Ошибка, куки пользователя не получены");
+
+        $this->is_auth = 1;
     }
 
     private function generateAccessToken($scope = null, $resend = false) {
@@ -128,6 +151,36 @@ class Auth {
         if (preg_match("!access_token=(.*?)&!s", $access_token_location,$access_token) != 1)
             throw new VkApiException("Не удалось найти access_token в строке ридеректа, ошибка:".$this->getCURL($access_token_location, null, false)['body']);
         return $access_token[1];
+    }
+
+    private function generateAccessTokenMobile($captcha_key, $captcha_sid) {
+        if (!isset($this->pass))
+            throw new VkApiException("Метод работает только с логином и паролем");
+
+        $captcha = '';
+        $this->scope = [];
+        $scope = $this->default_scope;
+        foreach (preg_split("!,!", $scope) as $one_scope)
+            $this->scope[] = $one_scope;
+        $scope = "&scope=$scope";
+
+        if (isset($captcha_sid) and isset($captcha_key))
+            $captcha = "&captcha_sid=$captcha_sid&captcha_key=$captcha_key";
+
+        $token_url = 'https://oauth.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH'.
+            '&username='.$this->login.
+            '&password='.$this->pass.
+            $scope.
+            $captcha;
+        echo $token_url."\n";
+        $response_auth = $this->getCURL($token_url, null, false)['body'];
+        $response_auth = json_decode($response_auth, true);
+        print_r($response_auth);
+
+        if (isset($response_auth['access_token']))
+            return $response_auth['access_token'];
+        else
+            throw new VkApiException(json_encode($response_auth));
     }
 
     private function getCURL($url, $post_values = null, $cookie = true) {
