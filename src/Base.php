@@ -40,6 +40,8 @@ class Base
 
     protected function addMedia($media, $selector)
     {
+        if (is_array(current($media)))
+            $media = current($media);
         if ($this->countMedia()+count($media) > 10)
             throw new VkApiException('Вы превысили максимальный лимит в 10 файлов');
         else {
