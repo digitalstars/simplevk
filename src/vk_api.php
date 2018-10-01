@@ -48,6 +48,7 @@ class vk_api {
     }
 
     public function sendOK() {
+        ini_set('display_errors','Off');
         echo 'ok';
         $response_length = ob_get_length();
         // check if fastcgi_finish_request is callable
