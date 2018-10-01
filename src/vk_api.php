@@ -144,20 +144,6 @@ class vk_api {
         }
     }
 
-    public function groupInfo($group_url) {
-        $group_url = preg_replace("!.*?/!", '', $group_url);
-        return current($this->request('groups.getById', ["group_ids" => $group_url]));
-    }
-
-    public function userInfo($user_url = null) {
-        if (isset($user_url)) {
-            $user_url = preg_replace("!.*?/!", '', $user_url);
-            return current($this->request('users.get', ["user_ids" => $user_url]));
-        }
-        else
-            return current($this->request('users.get', []));
-    }
-
     protected function editRequestParams($method, $params) {
         return [$method, $params];
     }
@@ -281,7 +267,7 @@ class vk_api {
         return $this->request('docs.save', ['file' => $file, 'title' => $title]);
     }
 
-    public function createPost($id, $message = null, $props = [], $media = []) {
+    public function createPost($id, $message = [], $props = [], $media = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massive) {
@@ -306,12 +292,12 @@ class vk_api {
         }
         if (count($send_attachment) != 0)
             $send_attachment = ["attachment" => join(',', $send_attachment)];
-        if (isset($message))
+        if (count($message) > 0)
             $message = ['message' => $message];
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
     }
 
-    public function createMessages($id, $message = null, $props = [], $media = [], $keyboard = []) {
+    public function createMessages($id, $message = [], $props = [], $media = [], $keyboard = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massiv) {
@@ -324,7 +310,7 @@ class vk_api {
                     break;
                 case "docs":
                     foreach ($massiv as $document) {
-                        $upload_file = current($this->uploadDocsMessages($id, $document));
+                        $upload_file = current($this->uploadDocsMessages($id, $document['path'], $document['title']));
                         $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
                     }
                     break;
@@ -334,7 +320,7 @@ class vk_api {
         }
         if (count($send_attachment) != 0)
             $send_attachment = ["attachment" => join(',', $send_attachment)];
-        if (isset($message))
+        if (count($message) > 0)
             $message = ['message' => $message];
         if ($keyboard != [])
             $keyboard = ['keyboard' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['one_time'])];
