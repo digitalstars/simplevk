@@ -150,10 +150,27 @@ class vk_api {
     }
 
     public function request($method, $params = []) {
+        sleep(1);
         list($method, $params) = $this->editRequestParams($method, $params);
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
+
+        while (True) {
+            try {
+                return $this->request_core($url, $params);
+            } catch (VkApiException $e) {
+                sleep(1);
+                $exception = json_decode($e->getMessage(), true);
+                if (in_array($exception['error']['error_code'], [6,9,14]))
+                    continue;
+                else
+                    throw new VkApiException($e->getMessage());
+            }
+        }
+    }
+
+    private function request_core($url, $params = []) {
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
