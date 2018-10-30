@@ -11,13 +11,15 @@ class vk_api {
     private $token = '';
     private $version = '';
     private $auth = null;
+    private $request_ignore_error = REQUEST_IGNORE_ERROR;
+    private $try_count_resend_file = COUNT_TRY_SEND_FILE;
 
     public function __construct($token, $version, $also_version = null) {
         if ($token instanceof auth) {
             $this->auth = $token;
             $this->version = $version;
             $this->token = $this->auth->getAccessToken();
-            return ;
+            return;
         }
         if (isset($also_version)) {
             $this->auth = new Auth($token, $version);
@@ -33,7 +35,7 @@ class vk_api {
         return [$this->token, $this->version, $this->auth];
     }
 
-    protected function setAllDataclass($token, $version, $auth){
+    protected function setAllDataclass($token, $version, $auth) {
         $this->token = $token;
         $this->version = $version;
         $this->auth = $auth;
@@ -48,7 +50,7 @@ class vk_api {
     }
 
     public function sendOK() {
-        ini_set('display_errors','Off');
+        ini_set('display_errors', 'Off');
         echo 'ok';
         $response_length = ob_get_length();
         // check if fastcgi_finish_request is callable
@@ -154,8 +156,7 @@ class vk_api {
         if (isset($user_url)) {
             $user_url = preg_replace("!.*?/!", '', $user_url);
             return current($this->request('users.get', ["user_ids" => $user_url]));
-        }
-        else
+        } else
             return current($this->request('users.get', []));
     }
 
@@ -164,7 +165,6 @@ class vk_api {
     }
 
     public function request($method, $params = []) {
-        sleep(1);
         list($method, $params) = $this->editRequestParams($method, $params);
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
@@ -176,7 +176,7 @@ class vk_api {
             } catch (VkApiException $e) {
                 sleep(1);
                 $exception = json_decode($e->getMessage(), true);
-                if (in_array($exception['error']['error_code'], [6,9,14]))
+                if (in_array($exception['error']['error_code'], $this->request_ignore_error))
                     continue;
                 else
                     throw new VkApiException($e->getMessage());
@@ -235,14 +235,21 @@ class vk_api {
             $type => new CURLFile(realpath($local_file_path))
         ];
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Content-Type:multipart/form-data"
-        ]);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
-        $output = curl_exec($ch);
+        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type:multipart/form-data"
+            ]);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+            $output = curl_exec($ch);
+            if ($output != '')
+                break;
+            else
+                sleep(1);
+        }
         if ($output == '')
             throw new VkApiException('Не удалось загрузить файл на сервер');
         return $output;
@@ -250,9 +257,17 @@ class vk_api {
 
     private function uploadImage($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'photo')['upload_url'];
-        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
-        $upload_file = $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
-        return $upload_file;
+        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+            try {
+                $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
+                return $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
+            } catch (VkApiException $e) {
+                sleep(1);
+                $exception = json_decode($e->getMessage(), true);
+                if ($exception['error']['error_code'] != 121)
+                    throw new VkApiException($e->getMessage());
+            }
+        }
     }
 
     public function sendImage($id, $local_file_path) {
@@ -307,8 +322,18 @@ class vk_api {
                 case "images":
                     foreach ($massive as $image) {
                         $upload_url = $this->getWallUploadServer($id);
-                        $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $image, 'photo'), true);
-                        $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+                            try {
+                                $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $image, 'photo'), true);
+                                $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                                break;
+                            } catch (VkApiException $e) {
+                                sleep(1);
+                                $exception = json_decode($e->getMessage(), true);
+                                if ($exception['error']['error_code'] != 121)
+                                    throw new VkApiException($e->getMessage());
+                            }
+                        }
                         $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
                     }
                     break;
@@ -324,7 +349,7 @@ class vk_api {
         }
         if (count($send_attachment) != 0)
             $send_attachment = ["attachment" => join(',', $send_attachment)];
-        if (count($message) > 0)
+        if (is_string($message))
             $message = ['message' => $message];
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
     }
@@ -352,7 +377,7 @@ class vk_api {
         }
         if (count($send_attachment) != 0)
             $send_attachment = ["attachment" => join(',', $send_attachment)];
-        if (count($message) > 0)
+        if (is_string($message))
             $message = ['message' => $message];
         if ($keyboard != [])
             $keyboard = ['keyboard' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['one_time'])];
