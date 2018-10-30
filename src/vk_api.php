@@ -269,6 +269,8 @@ class vk_api {
                     throw new VkApiException($e->getMessage());
             }
         }
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
+        return $this->savePhoto($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash']);
     }
 
     public function sendImage($id, $local_file_path) {
@@ -323,12 +325,14 @@ class vk_api {
                 case "images":
                     foreach ($massive as $image) {
                         $upload_url = $this->getWallUploadServer($id);
-                        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+                        for ($i = 0; $i <= $this->try_count_resend_file; ++$i) {
                             try {
                                 $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $image, 'photo'), true);
                                 $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
                                 break;
                             } catch (VkApiException $e) {
+                                if ($i == $this->try_count_resend_file)
+                                    throw new VkApiException($e->getMessage());
                                 sleep(1);
                                 $exception = json_decode($e->getMessage(), true);
                                 if ($exception['error']['error_code'] != 121)
