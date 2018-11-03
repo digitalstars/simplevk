@@ -46,8 +46,12 @@ class Base {
         else {
             if (is_array($media))
                 foreach ($media as $val) {
-                    if (is_array($val) and $selector != 'docs')
-                        $this->media[$selector] = array_merge($this->media[$selector], $val);
+                    if (is_array($val) and $selector != 'docs') {
+                        if (isset($this->media[$selector]))
+                            $this->media[$selector] = array_merge($this->media[$selector], $val);
+                        else
+                            $this->media[$selector] = $val;
+                    }
                     else
                         $this->media[$selector][] = $val;
                 }
