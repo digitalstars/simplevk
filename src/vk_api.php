@@ -153,12 +153,14 @@ class vk_api {
         return current($this->request('groups.getById', ["group_ids" => $group_url]));
     }
 
-    public function userInfo($user_url = null) {
+    public function userInfo($user_url = null, $scope = []) {
+        if (isset($scope) and count($scope) != 0)
+            $scope = ["fields" => join(",", $scope)];
         if (isset($user_url)) {
             $user_url = preg_replace("!.*?/!", '', $user_url);
-            return current($this->request('users.get', ["user_ids" => $user_url]));
+            return current($this->request('users.get', ["user_ids" => $user_url] + $scope));
         } else
-            return current($this->request('users.get', []));
+            return current($this->request('users.get', [] + $scope));
     }
 
     protected function editRequestParams($method, $params) {
