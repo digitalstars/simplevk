@@ -11,6 +11,7 @@ class vk_api {
 
     private $token = '';
     private $version = '';
+    private $action_version = 0;
     private $auth = null;
     private $request_ignore_error = REQUEST_IGNORE_ERROR;
     private $try_count_resend_file = COUNT_TRY_SEND_FILE;
@@ -20,9 +21,7 @@ class vk_api {
             $this->auth = $token;
             $this->version = $version;
             $this->token = $this->auth->getAccessToken();
-            return;
-        }
-        if (isset($also_version)) {
+        } else if (isset($also_version)) {
             $this->auth = new Auth($token, $version);
             $this->token = $this->auth->getAccessToken();
             $this->version = $also_version;
@@ -30,16 +29,20 @@ class vk_api {
             $this->token = $token;
             $this->version = $version;
         }
+        foreach (DIFFERENCE_VERSIONS_METHOD as $version => $methods) {
+            if ($this->version >= $version) {
+                $this->action_version = $version;
+                break;
+            }
+        }
     }
 
     protected function copyAllDataclass() {
-        return [$this->token, $this->version, $this->auth];
+        return [$this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file];
     }
 
-    protected function setAllDataclass($token, $version, $auth) {
-        $this->token = $token;
-        $this->version = $version;
-        $this->auth = $auth;
+    protected function setAllDataclass($id_vk_vars) {
+        list($this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
     }
 
     public function sendMessage($id, $message) {
@@ -172,6 +175,7 @@ class vk_api {
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
+        $params += $this->differenceVersions($method);
 
         while (True) {
             try {
@@ -346,7 +350,11 @@ class vk_api {
                     break;
                 case "docs":
                     foreach ($massive as $docs) {
-                        $upload_file = current($this->uploadDocsUser($docs));
+                        $upload_file = $this->uploadDocsUser($docs);
+                        if (isset($upload_file['type']))
+                            $upload_file = $upload_file[$upload_file['type']];
+                        else
+                            $upload_file = current($upload_file);
                         $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
                     }
                     break;
@@ -374,7 +382,11 @@ class vk_api {
                     break;
                 case "docs":
                     foreach ($massiv as $document) {
-                        $upload_file = current($this->uploadDocsMessages($id, $document['path'], $document['title']));
+                        $upload_file = $this->uploadDocsMessages($id, $document['path'], $document['title']);
+                        if (isset($upload_file['type']))
+                            $upload_file = $upload_file[$upload_file['type']];
+                        else
+                            $upload_file = current($upload_file);
                         $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
                     }
                     break;
@@ -401,6 +413,31 @@ class vk_api {
         else
             $extended = [];
         return $this->request('groups.get', $id + $props + $extended);
+    }
+
+    public function tryCountResendFile($var) {
+        if (is_integer($var))
+            $this->try_count_resend_file = $var;
+        else
+            throw new VkApiException("Параметр должен быть числовым");
+    }
+
+    public function requestIgnoreError($var) {
+        if (is_array($var))
+            $this->request_ignore_error = $var;
+        else if (is_integer($var))
+            $this->request_ignore_error = [$var];
+        else
+            throw new VkApiException("Параметр должен быть числовым либо массивом");
+    }
+
+    private function differenceVersions($method) {
+        $extra_props = DIFFERENCE_VERSIONS_METHOD[$this->action_version][$method] ?? [];
+        foreach ($extra_props as $key => $value) {
+            if (strpos($value,"%RANDOMIZE_INT32%") !== false)
+                $extra_props[$key] = str_replace("%RANDOMIZE_INT32%", rand(-2147483648, 2147483647), $value);
+        }
+        return $extra_props;
     }
 }
 

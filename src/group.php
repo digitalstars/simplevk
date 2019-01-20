@@ -15,8 +15,7 @@ class group extends vk_api {
 
     public function __construct($groupID, $vk_api) {
         $this->groupID = $groupID;
-        $class_data = $vk_api->copyAllDataclass();
-        parent::setAllDataclass($class_data[0], $class_data[1], $class_data[2]);
+        parent::setAllDataclass($vk_api->copyAllDataclass());
     }
 
     protected function editRequestParams($method, $params) {
