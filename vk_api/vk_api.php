@@ -129,7 +129,7 @@ class vk_api {
         return $result;
     }
 
-    public function getWallUploadServer($id) {
+    private function getWallUploadServer($id) {
         if ($id < 0) {
             $id *= -1;
             return $this->request('photos.getWallUploadServer', ['group_id' => $id]);
@@ -415,14 +415,14 @@ class vk_api {
         return $this->request('groups.get', $id + $props + $extended);
     }
 
-    public function tryCountResendFile($var) {
+    public function setTryCountResendFile($var) {
         if (is_integer($var))
             $this->try_count_resend_file = $var;
         else
             throw new VkApiException("Параметр должен быть числовым");
     }
 
-    public function requestIgnoreError($var) {
+    public function setRequestIgnoreError($var) {
         if (is_array($var))
             $this->request_ignore_error = $var;
         else if (is_integer($var))

@@ -8,18 +8,19 @@
 
 namespace DigitalStar\vk_api;
 require_once('autoload.php');
+require_once('config.php');
 
 
 class Auth {
     private $login = null;
     private $pass = null;
     private $cookie = null;
-    private $useragent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36';
-    private $id_app = '6660888';
+    private $useragent = DEFAULT_USERAGENT;
+    private $id_app = DEFAULT_ID_APP;
     private $access_token = '';
     private $scope = '';
     private $method = '';
-    private $default_scope = "notify,friends,photos,audio,video,stories,pages,status,notes,messages,wall,ads,offline,docs,groups,notifications,stats,email,market";
+    private $default_scope = DEFAULT_SCOPE;
     private $is_auth = 0;
     private $auth_method = 0 ; //0 - mobile, 1 - app
     private $captcha_sid = null;

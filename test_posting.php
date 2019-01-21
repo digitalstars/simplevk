@@ -1,5 +1,5 @@
 <?php
-require_once('src/autoload.php');
+require_once('vk_api/autoload.php');
 use DigitalStar\vk_api\Post as Post;
 use DigitalStar\vk_api\vk_api as vk_api;
 use DigitalStar\vk_api\auth as auth;
@@ -10,8 +10,6 @@ const VK_KEY = "Key"; //ключ авторизации через прилож�
 const VERSION = "5.80"; //ваша версия используемого api
 const VK_USERKEY = "User Key";
 //******************************
-
-$test_button = [["animals" => 'Fish'], "А какие бывают?", "blue"];
 
 try {
 //    $test = new auth('login or cookie', 'pass');
