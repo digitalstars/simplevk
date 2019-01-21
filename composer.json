@@ -2,11 +2,23 @@
     "name": "digitalstars/vk_api",
     "description": "Library for easy work with VK com api",
     "license": "MIT",
+    "minimum-stability": "dev",
     "authors": [
         {
-            "name": "digitalstar-company",
-            "email": "digitalstar.group@yandex.ru"
+            "name": "ZeRoX",
+            "email": "as234zx15@yandex.ru"
+        },
+        {
+            "name": "Runnin",
+            "email": "mr.kirilll12@mail.ru"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Digitalstars\\vk_api\\": "vk_api/"
+        }
+    }
 }
