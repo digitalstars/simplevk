@@ -1,5 +1,5 @@
 # Документация по vk_api
-![Targets](https://camo.githubusercontent.com/d692eac339df33dd67e4e3ae1024fd0ba2077f75/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f7068702d253345253344253230372e312d3838393242462e737667)[![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/)[![](https://img.shields.io/github/issues/digitalstar-company/vk_api.svg)](https://github.com/digitalstar-company/vk/issues)(https://img.shields.io/badge/Chat-Telegram-0F80C1.svg)](https://t.me/VkDotNet)
+![Targets](https://camo.githubusercontent.com/d692eac339df33dd67e4e3ae1024fd0ba2077f75/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f7068702d253345253344253230372e312d3838393242462e737667) [![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/) [![](https://img.shields.io/github/issues/digitalstar-company/vk_api.svg)](https://github.com/digitalstar-company/vk/issues) [![](https://img.shields.io/badge/Chat-Telegram-0F80C1.svg)](https://t.me/VkDotNet)
 
 Библиотека упрощает работу с api vk.com
 > Внимание!
