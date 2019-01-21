@@ -2,7 +2,7 @@
 
 ||Badge|
 |------|:------:|
-|**Зависимости**|[![Targets](https://img.shields.io/badge/.NET%20Standard-2.0-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/standard/net-standard) [![Targets](https://img.shields.io/badge/.NET%20-4.5-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/framework/) [![Targets](https://img.shields.io/badge/.NET%20-4.0-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/framework/)|
+|**Зависимости**|[![Targets](https://camo.githubusercontent.com/d692eac339df33dd67e4e3ae1024fd0ba2077f75/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f7068702d253345253344253230372e312d3838393242462e737667)]
 |**Скачиваний**|[![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/)
 |**Issues**|[![](https://img.shields.io/github/issues/digitalstar-company/vk_api.svg)](https://github.com/digitalstar-company/vk/issues)
 |**Контакты**|[![Telegram Chat](https://img.shields.io/badge/Chat-Telegram-0F80C1.svg)](https://t.me/VkDotNet)|
