@@ -1,0 +1,12 @@
+{
+    "name": "root/vk_api",
+    "description": "Library for easy work with VK com api",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "digitalstar-company",
+            "email": "digitalstar.group@yandex.ru"
+        }
+    ],
+    "require": {}
+}
