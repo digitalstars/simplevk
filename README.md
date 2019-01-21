@@ -2,13 +2,10 @@
 
 ||Badge|
 |------|:------:|
-|**Build Status**|[![Build Status](https://dev.azure.com/VkDotNet/VkNet/_apis/build/status/vknet.vk)](https://dev.azure.com/VkDotNet/VkNet/_build/latest?definitionId=1)
-|**Target Frameworks**|[![Targets](https://img.shields.io/badge/.NET%20Standard-2.0-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/standard/net-standard) [![Targets](https://img.shields.io/badge/.NET%20-4.5-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/framework/) [![Targets](https://img.shields.io/badge/.NET%20-4.0-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/framework/)|
-|**Nuget**|[![](http://img.shields.io/nuget/v/VkNet.svg)](http://www.nuget.org/packages/VkNet)
-|**Downloads**|[![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/)
-|**Issues**|[![](https://img.shields.io/github/issues/VkNet/Vk.svg)](https://github.com/vknet/vk/issues)
-|**Coverity**|[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/6249.svg)](https://scan.coverity.com/projects/vknet)
-|**Contacts**|[![Telegram Chat](https://img.shields.io/badge/Chat-Telegram-0F80C1.svg)](https://t.me/VkDotNet)|
+|**Зависимости**|[![Targets](https://img.shields.io/badge/.NET%20Standard-2.0-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/standard/net-standard) [![Targets](https://img.shields.io/badge/.NET%20-4.5-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/framework/) [![Targets](https://img.shields.io/badge/.NET%20-4.0-green.svg)](https://docs.microsoft.com/ru-ru/dotnet/framework/)|
+|**Скачиваний**|[![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/)
+|**Issues**|[![](https://img.shields.io/github/issues/digitalstar-company/vk_api.svg)](https://github.com/digitalstar-company/vk/issues)
+|**Контакты**|[![Telegram Chat](https://img.shields.io/badge/Chat-Telegram-0F80C1.svg)](https://t.me/VkDotNet)|
 
 Библиотека упрощает работу с api vk.com
 > Внимание!
@@ -264,6 +261,6 @@ const DEFAULT_ID_APP = '6660888';
 В процессе заполнения
 
 ## Помощь проекту
-- [![Яндекс.Деньги](https://money.yandex.ru/)](money.yandex.ru/to/410014638432302)
-- [![Сбербанк](https://sberbank.ru)](2202201272652211)
+- Яндекс.Деньги - <money.yandex.ru/to/410014638432302>
+- Дебетовая карта - 2202201272652211
 - Также вы можете помочь проекту `Pull Request`'ом
