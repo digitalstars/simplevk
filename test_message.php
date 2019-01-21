@@ -1,5 +1,5 @@
 <?php
-require_once('vk_api/autoload.php');
+require_once('src/autoload.php');
 use DigitalStar\vk_api\Message as Message;
 use DigitalStar\vk_api\vk_api as vk_api;
 use DigitalStar\vk_api\VkApiException as VkApiException;
@@ -15,9 +15,9 @@ const VK_USERKEY = "User Key";
 $test_button = [["animals" => 'Fish'], "А какие бывают?", "blue"];
 
 try {
-//    $vk = new vk_api('login', 'pass', VERSION);
-//    $vk = new vk_api(VK_USERKEY, VERSION);
-//    $vk = new vk_api($test, VERSION);
+//    $vk = new src('login', 'pass', VERSION);
+//    $vk = new src(VK_USERKEY, VERSION);
+//    $vk = new src($test, VERSION);
 
     /*------Отправка сообщения от имени пользователя---------*/
 
