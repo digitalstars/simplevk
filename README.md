@@ -1,5 +1,5 @@
 # Документация по vk_api
-![](https://img.shields.io/badge/php-%3E=%207.1-8992bb.svg) ![](https://img.shields.io/badge/vk_api-%3E=%205.80-8992bb.svg) ![](https://img.shields.io/github/last-commit/digitalstar-company/vk_api.svg) [![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/) [![](https://img.shields.io/github/issues/digitalstar-company/vk_api.svg)](https://github.com/digitalstar-company/vk/issues) [![](https://img.shields.io/badge/Чат-vk.com-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
+![](https://img.shields.io/badge/php-%3E=%207.1-8992bb.svg) ![](https://img.shields.io/badge/vk_api-%3E=%205.80-8992bb.svg) ![](https://img.shields.io/github/last-commit/digitalstar-company/vk_api.svg) [![](https://img.shields.io/nuget/dt/VkNet.svg)](https://www.nuget.org/packages/VkNet/) [![](https://img.shields.io/github/issues/digitalstar-company/vk_api.svg)](https://github.com/digitalstar-company/vk/issues) [![](https://img.shields.io/badge/Чат_комьюнити-vk.com-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
 
 Библиотека упрощает работу с api vk.com
 > Внимание!
