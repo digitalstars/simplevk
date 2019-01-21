@@ -18,7 +18,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Digitalstars\\vk_api\\": "vk_api/"
+            "DigitalStar\\vk_api\\": "vk_api/"
         }
     }
 }
