@@ -1,6 +1,6 @@
 <?php
 require_once('vk_api/autoload.php'); //подключение новой библиотеки
-use DigitalStar\vk_api\vk_api as vk_api;
+use DigitalStar\vk_api\VK_api as vk_api;
 
 //**********CONFIG**************
 const VK_KEY = "your_key"; //тот самый длинный ключ доступа сообщества
@@ -14,7 +14,7 @@ const BTN_SALMON = [["animals" => 'Pink_salmon'], "Горбуша", "white"]; //
 const BTN_GOLDFISH = [["animals" => 'Goldfish'], "Золотая рыбка", "blue"]; // Код кнопки 'Золотая рыбка'
 const BTN_PLOTVA = [["animals" => 'Plotva'], "Плотва", "green"]; // Код кнопки 'Плотва'
 
-$vk = new vk_api(VK_KEY, VERSION); // создание экземпляра класса работы с api, принимает ключ и версию api
+$vk = new VK_api(VK_KEY, VERSION); // создание экземпляра класса работы с api, принимает ключ и версию api
 $data = json_decode(file_get_contents('php://input')); //Получает и декодирует JSON пришедший из ВК
 
 if ($data->type == 'confirmation') { //Если vk запрашивает ключ

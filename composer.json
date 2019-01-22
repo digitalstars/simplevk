@@ -3,7 +3,6 @@
     "description": "Library for easy work with VK com api",
     "license": "MIT",
     "minimum-stability": "dev",
-    "version": "*",
     "authors": [
         {
             "name": "ZeRoX",
@@ -15,12 +14,11 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
-        "digitalstar-company/vk_api" : "dev-master"
+        "php": ">=7.1"
     },
     "autoload": {
         "psr-4": {
-            "DigitalStar\\vk_api\\": "vk_api/"
+            "DigitalStar\\vk_api\\": "vk_api"
         }
     }
 }

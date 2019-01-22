@@ -1,8 +1,8 @@
 <?php
 require_once('vk_api/autoload.php');
 use DigitalStar\vk_api\Post as Post;
-use DigitalStar\vk_api\vk_api as vk_api;
-use DigitalStar\vk_api\auth as auth;
+use DigitalStar\vk_api\VK_api as vk_api;
+use DigitalStar\vk_api\Auth as Auth;
 use DigitalStar\vk_api\VkApiException as VkApiException;
 
 //**********CONFIG**************

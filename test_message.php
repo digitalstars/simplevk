@@ -1,9 +1,9 @@
 <?php
 require_once('vk_api/autoload.php'); //подключение новой библиотеки
 use DigitalStar\vk_api\Message as Message;
-use DigitalStar\vk_api\vk_api as vk_api;
+use DigitalStar\vk_api\VK_api as vk_api;
 use DigitalStar\vk_api\VkApiException as VkApiException;
-use DigitalStar\vk_api\group as group;
+use DigitalStar\vk_api\Group as group;
 use DigitalStar\vk_api\Auth as Auth;
 
 //**********CONFIG**************
@@ -15,9 +15,9 @@ const VK_USERKEY = "User_Key"; //ключ доступа пользовател�
 $fish_button = [["animals" => 'Fish'], "А какие бывают?", "blue"]; //инициализация кнопки
 
 try {
-    $vk_user = new vk_api('login', 'pass', VERSION); //авторизация пользователя через логин/пароль
+    $vk_user = new VK_api('login', 'pass', VERSION); //авторизация пользователя через логин/пароль
     //$vk_user = new vk_api(VK_USERKEY, VERSION); //авторизация через ключ пользователя
-    $vk_public = new vk_api(VK_KEY, VERSION); //авторизация через ключ группы
+    $vk_public = new VK_api(VK_KEY, VERSION); //авторизация через ключ группы
 
     /*------Отправка сообщения от имени пользователя---------*/
 
@@ -31,7 +31,7 @@ try {
 
     /*---------Отправка сообщения от имени группы, используя аккаунт пользователя-------------------*/
 
-    $my_group = new group('id_группы', $vk_user); //id группы где вы являетесь админом или создателем
+    $my_group = new Group('id_группы', $vk_user); //id группы где вы являетесь админом или создателем
     $my_msg = new Message($my_group);
     $my_msg->setMessage("Разных рыбин сообщение...");
     $my_msg->addImage('img/pink_salmon.jpg');

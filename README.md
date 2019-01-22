@@ -24,8 +24,8 @@
 ```php
 require_once "vk_api/autoload.php"; //Подключаем библиотеку
 
-use DigitalStar\vk_api\vk_api as vk_api; // Основной класс
-use DigitalStar\vk_api\group as group; // Работа с группами с ключем пользователя
+use DigitalStar\vk_api\VK_api as vk_api; // Основной класс
+use DigitalStar\vk_api\Group as group; // Работа с группами с ключем пользователя
 use DigitalStar\vk_api\Auth as Auth; // Авторизация
 use DigitalStar\vk_api\Post as Post; // Конструктор постов
 use DigitalStar\vk_api\Message as Message; // Конструктор сообщений

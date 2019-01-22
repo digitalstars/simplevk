@@ -7,7 +7,7 @@ use CURLFile;
 require_once('autoload.php');
 require_once('config.php');
 
-class vk_api {
+class VK_api {
 
     private $token = '';
     private $version = '';
