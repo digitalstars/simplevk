@@ -3,6 +3,7 @@
     "description": "Library for easy work with VK com api",
     "license": "MIT",
     "minimum-stability": "dev",
+    "version": "*",
     "authors": [
         {
             "name": "ZeRoX",
