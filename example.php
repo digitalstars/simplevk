@@ -1,5 +1,6 @@
 <?php
-include "vk_api.php"; //Подключаем библиотеку для работы с api vk
+require_once('vk_api/autoload.php'); //подключение новой библиотеки
+use DigitalStar\vk_api\vk_api as vk_api;
 
 //**********CONFIG**************
 const VK_KEY = "your_key"; //тот самый длинный ключ доступа сообщества
