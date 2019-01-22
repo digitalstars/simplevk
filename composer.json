@@ -14,7 +14,8 @@
         }
     ],
     "require": {
-        "php": ">=7.1"
+        "php": ">=7.1",
+        "digitalstar-company/vk_api" : "dev-master"
     },
     "autoload": {
         "psr-4": {
