@@ -1,5 +1,5 @@
 <?php
-require_once('src/autoload.php');
+require_once('vk_api/autoload.php');
 use DigitalStar\vk_api\Post as Post;
 use DigitalStar\vk_api\vk_api as vk_api;
 use DigitalStar\vk_api\auth as auth;
@@ -13,9 +13,9 @@ const VK_USERKEY = "User Key";
 
 try {
 //    $test = new auth('login or cookie', 'pass');
-//    $vk = new src('login or cookie', 'pass', VERSION);
-//    $vk = new src(VK_USERKEY, VERSION);
-//    $vk = new src($test, VERSION);
+//    $vk = new vk_api('login or cookie', 'pass', VERSION);
+//    $vk = new vk_api(VK_USERKEY, VERSION);
+//    $vk = new vk_api($test, VERSION);
 
     $my_post = new Post($vk);
     $my_post->setMessage("Разных рыбин пост...");
