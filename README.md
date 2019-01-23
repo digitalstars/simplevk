@@ -26,7 +26,7 @@
 composer require digitalstars/vk_api
 ```
 ### Вручную
-1. Склонировать репозиторий
+1. Скачать последний релиз
 2. Переместить autoload.php из корня в src
 3. Подключить перемещённый autoload.php
 ```php
