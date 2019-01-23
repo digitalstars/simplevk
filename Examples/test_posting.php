@@ -1,5 +1,5 @@
 <?php
-require_once('vendor/autoload.php');
+require_once('../../../autoload.php');
 use DigitalStar\vk_api\Post as Post;
 use DigitalStar\vk_api\vk_api as vk_api;
 use DigitalStar\vk_api\Auth as auth;

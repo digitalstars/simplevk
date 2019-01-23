@@ -1,5 +1,5 @@
 <?php
-require_once('vendor/autoload.php'); //подключение новой библиотеки
+require_once('../../../autoload.php'); //подключение новой библиотеки
 use DigitalStar\vk_api\vk_api as vk_api;
 
 //**********CONFIG**************
