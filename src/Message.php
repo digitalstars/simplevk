@@ -1,6 +1,5 @@
 <?php
 namespace DigitalStar\vk_api;
-require_once('autoload.php');
 
 class Message extends Base
 {

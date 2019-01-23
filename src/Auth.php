@@ -7,7 +7,6 @@
  */
 
 namespace DigitalStar\vk_api;
-require_once('autoload.php');
 require_once('config.php');
 
 

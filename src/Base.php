@@ -1,7 +1,6 @@
 <?php
 
 namespace DigitalStar\vk_api;
-require_once('autoload.php');
 
 class Base {
     protected $vk_api;
