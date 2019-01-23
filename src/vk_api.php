@@ -431,7 +431,10 @@ class vk_api {
     }
 
     private function differenceVersions($method) {
-        $extra_props = DIFFERENCE_VERSIONS_METHOD[$this->action_version][$method] ?? [];
+        if (array_key_exists($this->action_version, DIFFERENCE_VERSIONS_METHOD) and array_key_exists($method, DIFFERENCE_VERSIONS_METHOD[$this->action_version]))
+            $extra_props = DIFFERENCE_VERSIONS_METHOD[$this->action_version][$method];
+        else
+            $extra_props = [];
         foreach ($extra_props as $key => $value) {
             if (strpos($value,"%RANDOMIZE_INT32%") !== false)
                 $extra_props[$key] = str_replace("%RANDOMIZE_INT32%", rand(-2147483648, 2147483647), $value);

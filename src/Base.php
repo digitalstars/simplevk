@@ -55,7 +55,7 @@ class Base {
                         $this->media[$selector][] = $val;
                 }
             else
-                $this->$selector[] = $media;
+                $this->media[$selector][] = $media;
         }
 
     }
