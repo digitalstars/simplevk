@@ -10,7 +10,7 @@ namespace DigitalStar\vk_api;
 require_once('autoload.php');
 
 
-class Group extends VK_api {
+class Group extends vk_api {
     private $groupID;
 
     public function __construct($groupID, $vk_api) {
