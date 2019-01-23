@@ -25,7 +25,7 @@
 ```
 composer require digitalstars/vk_api:dev-master
 ```
-### В ручную
+### Вручную
 1. Склонировать репозиторий
 2. Переместить autoload.php из Examples в src
 3. Подключить перемещённый autoload.php
