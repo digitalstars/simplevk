@@ -23,7 +23,7 @@
 ## Подключение
 ### Используя composer
 ```
-composer require digitalstars/vk_api:dev-master
+composer require digitalstars/vk_api
 ```
 ### Вручную
 1. Склонировать репозиторий
