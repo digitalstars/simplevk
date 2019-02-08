@@ -52,7 +52,7 @@ class vk_api {
         }
     }
 
-    public function sendOK() {
+    public static function sendOK() {
         ini_set('display_errors', 'Off');
         echo 'ok';
         $response_length = ob_get_length();
