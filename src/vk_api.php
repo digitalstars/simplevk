@@ -11,7 +11,6 @@ class vk_api
 
     private $token = '';
     private $version = '';
-    private $confirm = '';
     private $debug_mode = 0;
     private $data = [];
     private $action_version = 0;
@@ -59,8 +58,9 @@ class vk_api
 
     public function setConfirm($str)
     {
-        $this->confirm = $str;
-        return $this;
+        if ($this->data->type == 'confirmation') { //Если vk запрашивает ключ
+            exit($str); //Завершаем скрипт отправкой ключа
+        }
     }
 
     /**
@@ -68,7 +68,6 @@ class vk_api
      */
     public function initVars($selectors, &...$args)
     {
-        $this->checkConfirm();
         if (!$this->debug_mode)
             $this->sendOK();
         $data = $this->data;
@@ -77,6 +76,7 @@ class vk_api
             'user_id' => $data->object->from_id ?? null,
             'message' => $data->object->text ?? null,
             'payload' => $data->object->payload ?? null,
+            'type' => $this->data->type ?? null,
             'all' => $data,
         ];
         $selectors = explode(',', $selectors);
@@ -188,7 +188,6 @@ class vk_api
 
     public function debug()
     {
-        $this->checkConfirm();
         ini_set('error_reporting', E_ALL);
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
@@ -324,6 +323,9 @@ class vk_api
         return [$method, $params];
     }
 
+    /**
+     * @throws Unknow_error
+     */
     public function request($method, $params = [])
     {
         list($method, $params) = $this->editRequestParams($method, $params);
@@ -600,13 +602,6 @@ class vk_api
             $this->request_ignore_error = [$var];
         else
             throw new VkApiException("Параметр должен быть числовым либо массивом");
-    }
-
-    private function checkConfirm()  // Автоподтверждение скрипта
-    {
-        if ($this->data->type == 'confirmation') { //Если vk запрашивает ключ
-            exit($this->confirm); //Завершаем скрипт отправкой ключа
-        }
     }
 
     private function differenceVersions($method)
