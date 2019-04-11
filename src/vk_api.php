@@ -602,7 +602,7 @@ class vk_api
             throw new VkApiException("Параметр должен быть числовым либо массивом");
     }
 
-    private function checkConfirm()
+    private function checkConfirm()  // Автоподтверждение скрипта
     {
         if ($this->data->type == 'confirmation') { //Если vk запрашивает ключ
             exit($this->confirm); //Завершаем скрипт отправкой ключа
