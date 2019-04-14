@@ -71,6 +71,10 @@ class vk_api
         if (!$this->debug_mode)
             $this->sendOK();
         $data = $this->data;
+        
+        if(isset($data->object->payload))
+            $data->object->payload = json_decode($data->object->payload, true);
+        
         $init = [
             'id' => $data->object->peer_id ?? null,
             'user_id' => $data->object->from_id ?? null,
