@@ -4,7 +4,7 @@ namespace DigitalStar\vk_api;
 
 use CURLFile;
 
-require_once('config.php');
+include('config_library.php');
 
 class vk_api
 {
