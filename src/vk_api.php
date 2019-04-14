@@ -4,15 +4,15 @@ namespace DigitalStar\vk_api;
 
 use CURLFile;
 
-include('config_library.php');
+require_once('config_library.php');
 
 class vk_api
 {
 
     private $token = '';
-    private $version = '';
+    protected $version = '';
     private $debug_mode = 0;
-    private $data = [];
+    protected $data = [];
     private $action_version = 0;
     private $auth = null;
     private $request_ignore_error = REQUEST_IGNORE_ERROR;

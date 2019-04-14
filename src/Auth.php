@@ -7,7 +7,7 @@
  */
 
 namespace DigitalStar\vk_api;
-include('config_library.php');
+require_once('config_library.php');
 
 
 class Auth {
