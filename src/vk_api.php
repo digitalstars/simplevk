@@ -15,6 +15,7 @@ class vk_api
     protected $data = [];
     private $action_version = 0;
     private $auth = null;
+    protected $auth_type = '';
     private $request_ignore_error = REQUEST_IGNORE_ERROR;
     private $try_count_resend_file = COUNT_TRY_SEND_FILE;
 
@@ -31,11 +32,13 @@ class vk_api
             $this->token = $this->auth->getAccessToken();
         } else if (isset($also_version)) {
             $this->auth = new Auth($token, $version);
+            $this->auth_type = 'user';
             $this->token = $this->auth->getAccessToken();
             $this->version = $also_version;
         } else {
             $this->token = $token;
             $this->version = $version;
+            $this->auth_type = 'group';
         }
         foreach (DIFFERENCE_VERSIONS_METHOD as $version => $methods) {
             if ($this->version >= $version) {
