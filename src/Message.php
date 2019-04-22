@@ -1,4 +1,5 @@
 <?php
+
 namespace DigitalStar\vk_api;
 
 /**
@@ -25,20 +26,20 @@ class Message extends Base
     }
 
     /**
+     * @return array
+     */
+    public function getKeyboard()
+    {
+        return $this->keyboard;
+    }
+
+    /**
      * @param array $keyboard
      * @param bool $one_time
      */
     public function setKeyboard($keyboard = [], $one_time = false)
     {
         $this->keyboard = ['keyboard' => $keyboard, 'one_time' => $one_time];
-    }
-
-    /**
-     * @return array
-     */
-    public function getKeyboard()
-    {
-        return $this->keyboard;
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 namespace DigitalStar\vk_api;
 
 /**
