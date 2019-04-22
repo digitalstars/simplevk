@@ -63,7 +63,7 @@ if (isset($data->type) and $data->type == 'message_new') { //Проверяем,
    	}
   
 	if (isset($payload['command']) or strtolower($message) == 'начать') { //Если нажата кнопка начать или << назад
-            $vk->sendButton($peer_id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]);
+		$vk->sendButton($peer_id, 'Хочешь посмотреть на рыбок?', [[BTN_FISH]]); //Отправляем кнопку пользователю
 	} else {
 		if ($payload != null) { // если payload существует
 			switch ($payload['animals']) { //Смотрим что в payload кнопках
