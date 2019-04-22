@@ -100,9 +100,10 @@ class vk_api
      */
     public function setConfirm($str)
     {
-        if ($this->data->type == 'confirmation') { //Если vk запрашивает ключ
+        if (isset($this->data->type) & $this->data->type == 'confirmation') { //Если vk запрашивает ключ
             exit($str); //Завершаем скрипт отправкой ключа
         }
+        return $this;
     }
 
     /**
