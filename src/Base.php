@@ -2,25 +2,59 @@
 
 namespace DigitalStar\vk_api;
 
+/**
+ * Class Base
+ * @package DigitalStar\vk_api
+ */
 class Base {
+    /**
+     * @var
+     */
     protected $vk_api;
+    /**
+     * @var array
+     */
     protected $message = [];
+    /**
+     * @var array
+     */
     protected $media = [];
+    /**
+     * @var array
+     */
     protected $props = [];
+    /**
+     * @var array
+     */
     protected $prop_list = [];
 
+    /**
+     * Base constructor.
+     * @param $vk_api
+     */
     protected function __construct($vk_api) {
         $this->vk_api = $vk_api;
     }
 
+    /**
+     * @throws VkApiException
+     */
     public function addImage() {
         $this->addMedia(func_get_args(), 'images');
     }
 
+    /**
+     * @param $message
+     */
     public function setMessage($message) {
         $this->message = $message;
     }
 
+    /**
+     * @param $prop
+     * @param $value
+     * @return int
+     */
     public function addProp($prop, $value) {
         if (!in_array($prop, $this->prop_list))
             return 0;
@@ -28,6 +62,11 @@ class Base {
         return $prop;
     }
 
+    /**
+     * @param $docs
+     * @param null $title
+     * @throws VkApiException
+     */
     public function addDocs($docs, $title = null) {
         if (is_string($docs))
             $docs = [0 => ['path' => $docs, 'title' => $title]];
@@ -39,6 +78,11 @@ class Base {
         $this->addMedia($docs, 'docs');
     }
 
+    /**
+     * @param $media
+     * @param $selector
+     * @throws VkApiException
+     */
     protected function addMedia($media, $selector) {
         if ($this->countMedia() + count($media) > 10)
             throw new VkApiException('Вы превысили максимальный лимит в 10 файлов');
@@ -60,6 +104,11 @@ class Base {
 
     }
 
+    /**
+     * @param $media
+     * @param $selector
+     * @return int
+     */
     private function removeMedia($media, $selector) {
         $search = array_search($media, $this->media[$selector]);
         if ($search) {
@@ -75,14 +124,26 @@ class Base {
         return 0;
     }
 
+    /**
+     * @param $images
+     * @return int
+     */
     public function removeImages($images) {
         return $this->removeMedia($images, 'images');
     }
 
+    /**
+     * @param $docs
+     * @return int
+     */
     public function removeDocs($docs) {
         return $this->removeMedia($docs, 'docs');
     }
 
+    /**
+     * @param $prop
+     * @return int|mixed
+     */
     public function removeProp($prop) {
         $search = array_search($prop, $this->props);
         if ($search) {
@@ -98,6 +159,9 @@ class Base {
         return 0;
     }
 
+    /**
+     * @return int
+     */
     private function countMedia() {
         $count = 0;
         foreach ($this->media as $kye => $var) {
@@ -106,16 +170,25 @@ class Base {
         return $count;
     }
 
+    /**
+     * @return array
+     */
     public function getMedia() {
         if (isset($this->media))
             return $this->media;
         else return [];
     }
 
+    /**
+     * @return array
+     */
     public function getMessage() {
         return $this->message;
     }
 
+    /**
+     * @return array
+     */
     public function getProps() {
         return $this->props;
     }

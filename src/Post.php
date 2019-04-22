@@ -1,9 +1,17 @@
 <?php
 namespace DigitalStar\vk_api;
 
+/**
+ * Class Post
+ * @package DigitalStar\vk_api
+ */
 class Post extends Base
 {
 
+    /**
+     * Post constructor.
+     * @param $vk_api
+     */
     public function __construct($vk_api)
     {
         $this->prop_list = ['friends_only', 'from_group', 'services', 'signed', 'publish_date', 'lat', 'long', 'place_id',
@@ -11,6 +19,12 @@ class Post extends Base
         parent::__construct($vk_api);
     }
 
+    /**
+     * @param $id
+     * @param null $publish_date
+     * @return mixed
+     * @throws VkApiException
+     */
     public function send($id, $publish_date = null)
     {
         if ($publish_date >= time())

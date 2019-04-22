@@ -4,12 +4,20 @@ use DigitalStar\vk_api\Message as Message;
 use DigitalStar\vk_api\vk_api as vk_api;
 use DigitalStar\vk_api\VkApiException as VkApiException;
 use DigitalStar\vk_api\Group as group;
-use DigitalStar\vk_api\Auth as Auth;
 
 //**********CONFIG**************
-const VK_KEY = "Key"; //ключ авторизации через приложение
-const VERSION = "5.80"; //ваша версия используемого api
-const VK_USERKEY = "User_Key"; //ключ доступа пользователя
+/**
+ * ключ авторизации через приложение
+ */
+const VK_KEY = "Key";
+/**
+ * ваша версия используемого api
+ */
+const VERSION = "5.80";
+/**
+ * ключ доступа пользователя
+ */
+const VK_USERKEY = "User_Key";
 //******************************
 
 $fish_button = [["animals" => 'Fish'], "А какие бывают?", "blue"]; //инициализация кнопки
