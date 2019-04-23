@@ -112,10 +112,13 @@ class LongPoll extends vk_api
      */
     public function getData()
     {
-        $params = [];
-        if($this->vk->auth_type == 'user')
+        $defult_params = ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' => 25];
+        if($this->vk->auth_type == 'user') {
             $params = ['mode' => 32, 'version' => 3];
-        $data = $this->request_core($this->server.'?', ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' => 25] + $params);
+            $data = $this->request_core('https://' . $this->server . '?', $defult_params + $params);
+        } else {
+            $data = $this->request_core($this->server . '?', $defult_params);
+        }
         return $data;
     }
 
