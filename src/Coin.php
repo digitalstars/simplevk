@@ -82,7 +82,7 @@ class Coin
             } catch (VkApiException $e) {
                 sleep(1);
                 $exception = json_decode($e->getMessage(), true);
-                if (in_array($exception['error']['error_code'], $this->request_ignore_error))
+                if (isset($exception['error']['error_code']) & in_array($exception['error']['error_code'], $this->request_ignore_error))
                     continue;
                 else
                     throw new VkApiException($e->getMessage());
