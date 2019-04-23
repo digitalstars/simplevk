@@ -7,7 +7,7 @@
  */
 namespace DigitalStar\vk_api;
 // массив кодов ошибок ВК, при которых сообщение об ошибке игнорируется и отправляется повторный запрос к api
-const REQUEST_IGNORE_ERROR = [6,9,14];
+const REQUEST_IGNORE_ERROR = [1,6,9,10,14];
 // максимальное количество попыток загрузки файла
 const COUNT_TRY_SEND_FILE = 5;
     // Auth
