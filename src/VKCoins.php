@@ -24,7 +24,7 @@ class VKCoins
     /**
      * @var array
      */
-    private $request_ignore_error = REQUEST_IGNORE_ERROR;
+    private $request_ignore_error = [500,422];
     /**
      * @var string
      */
