@@ -41,7 +41,7 @@ require_once "src/autoload.php"; //Подключаем библиотеку
 ### Подключение всех классов
 ```php
 use DigitalStar\vk_api\VK_api as vk_api; // Основной класс
-use DigitalStar\vk_api\VKCoins as VKCoins; // работа с vkcoins
+use DigitalStar\vk_api\VkCoin as VkCoin; // работа с vkcoins
 use DigitalStar\vk_api\LongPoll as LongPoll; //работа с longpoll
 use DigitalStar\vk_api\Group as group; // Работа с группами с ключем пользователя
 use DigitalStar\vk_api\Auth as Auth; // Авторизация
