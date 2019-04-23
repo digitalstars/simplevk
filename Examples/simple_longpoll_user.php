@@ -1,7 +1,7 @@
 <?php
 require_once('../../../autoload.php');
-use DigitalStar\vk_api\vk_api as vk_api;
-use DigitalStar\vk_api\LongPoll as LongPoll;
+use DigitalStar\vk_api\vk_api;
+use DigitalStar\vk_api\LongPoll;
 
 $vk = vk_api::create('login', 'password', '5.95');
 $vk = new LongPoll($vk);
