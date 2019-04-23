@@ -27,31 +27,29 @@
 ```
 composer require digitalstars/vk_api
 ```
-Подключение autoload.php, если vendor находится в той же папке, что и скрипт:
 ```php
 require_once "vendor/autoload.php"; //Подключаем библиотеку
-
-use DigitalStar\vk_api\VK_api as vk_api; // Основной класс
-use DigitalStar\vk_api\Group as group; // Работа с группами с ключем пользователя
-use DigitalStar\vk_api\Auth as Auth; // Авторизация
-use DigitalStar\vk_api\Post as Post; // Конструктор постов
-use DigitalStar\vk_api\Message as Message; // Конструктор сообщений
-use DigitalStar\vk_api\VkApiException as VkApiException; // Обработка ошибок
 ```
 ### Вручную
 1. Скачать последний релиз
 2. Переместить autoload.php из корня в src
 3. Подключить перемещённый autoload.php
+Подключение autoload.php, если vendor находится в той же папке, что и скрипт:
 ```php
 require_once "src/autoload.php"; //Подключаем библиотеку
-
+```
+### Подключение всех классов
+```
 use DigitalStar\vk_api\VK_api as vk_api; // Основной класс
+use DigitalStar\vk_api\VKCoins as VKCoins; // работа с vkcoins
+use DigitalStar\vk_api\LongPoll as LongPoll; //работа с longpoll
 use DigitalStar\vk_api\Group as group; // Работа с группами с ключем пользователя
 use DigitalStar\vk_api\Auth as Auth; // Авторизация
 use DigitalStar\vk_api\Post as Post; // Конструктор постов
 use DigitalStar\vk_api\Message as Message; // Конструктор сообщений
 use DigitalStar\vk_api\VkApiException as VkApiException; // Обработка ошибок
 ```
+
 ## Доступные классы
 ### Класс vk_api
 #### Инициализация класса
