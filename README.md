@@ -166,9 +166,9 @@ $vk->listen(function()use($vk){ //longpoll для пользователя
 ### Класс VkCoin
 #### Инициализация класса
 * `$coin = new Coin(COIN_API_KEY, COIN_API_ID);`
-*`$vk = VkCoin::create(COIN_API_KEY, COIN_API_ID);`
-`COIN_API_KEY` - Ключ вашего магазина
-`COIN_API_ID` - идентификатор владельца магазина.
+* `$vk = VkCoin::create(COIN_API_KEY, COIN_API_ID);`
+    * `COIN_API_KEY` - Ключ вашего магазина
+    * `COIN_API_ID` - идентификатор владельца магазина.
 #### Методы класса
 * `sendTransfer($user_id, $amount)` - отправка платежа.
 * `getBalance($user_ids = [])` - получение баланса. Если не задан `$user_ids`, вернет баланс магазина.
