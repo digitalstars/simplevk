@@ -40,14 +40,14 @@ require_once "src/autoload.php"; //Подключаем библиотеку
 ```
 ### Подключение всех классов
 ```php
-use DigitalStar\vk_api\VK_api as vk_api; // Основной класс
-use DigitalStar\vk_api\Coin as Coin; // работа с vkcoins
-use DigitalStar\vk_api\LongPoll as LongPoll; //работа с longpoll
-use DigitalStar\vk_api\Group as group; // Работа с группами с ключем пользователя
-use DigitalStar\vk_api\Auth as Auth; // Авторизация
-use DigitalStar\vk_api\Post as Post; // Конструктор постов
-use DigitalStar\vk_api\Message as Message; // Конструктор сообщений
-use DigitalStar\vk_api\VkApiException as VkApiException; // Обработка ошибок
+use DigitalStar\vk_api\vk_api; // Основной класс
+use DigitalStar\vk_api\Coin; // работа с vkcoins
+use DigitalStar\vk_api\LongPoll; //работа с longpoll
+use DigitalStar\vk_api\Group; // Работа с группами с ключем пользователя
+use DigitalStar\vk_api\Auth; // Авторизация
+use DigitalStar\vk_api\Post; // Конструктор постов
+use DigitalStar\vk_api\Message; // Конструктор сообщений
+use DigitalStar\vk_api\VkApiException; // Обработка ошибок
 ```
 
 ## Доступные классы
@@ -139,8 +139,8 @@ use DigitalStar\vk_api\VkApiException as VkApiException; // Обработка �
 #### Подключение
 ```php
 require_once('vendor/autoload.php'); //подключаем библу
-use DigitalStar\vk_api\vk_api as vk_api;
-use DigitalStar\vk_api\LongPoll as LongPoll;
+use DigitalStar\vk_api\vk_api;
+use DigitalStar\vk_api\LongPoll;
 ```
 #### Получения событий в группе
 ```php
@@ -171,8 +171,8 @@ $vk->listen(function()use($vk){ //longpoll для пользователя
 #### Подключение
 ```php
 require_once('vendor/autoload.php'); //подключаем библу
-use DigitalStar\vk_api\vk_api as vk_api;
-use DigitalStar\vk_api\Coin as Coin;
+use DigitalStar\vk_api\vk_api;
+use DigitalStar\vk_api\Coin;
 ```
 #### Инициализация класса
 * `$coin = new Coin(COIN_API_KEY, COIN_API_ID);`
