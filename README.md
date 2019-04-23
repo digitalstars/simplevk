@@ -138,6 +138,12 @@ use DigitalStar\vk_api\VkApiException as VkApiException; // Обработка �
 ******************
 ### Класс LongPoll
 Класс позволяет работать LongPoll
+#### Подключение
+```php
+require_once('vendor/autoload.php'); //подключаем библу
+use DigitalStar\vk_api\vk_api as vk_api;
+use DigitalStar\vk_api\LongPoll as LongPoll;
+```
 #### Получения событий в группе
 ```php
 $vk = vk_api::create(TOKEN, '5.95');
@@ -164,6 +170,12 @@ $vk->listen(function()use($vk){ //longpoll для пользователя
 Все методы [vk_api](#Класс-vk_api)
 ******************
 ### Класс VkCoin
+#### Подключение
+```php
+require_once('vendor/autoload.php'); //подключаем библу
+use DigitalStar\vk_api\vk_api as vk_api;
+use DigitalStar\vk_api\VkCoin as VkCoin;
+```
 #### Инициализация класса
 * `$coin = new Coin(COIN_API_KEY, COIN_API_ID);`
 * `$vk = VkCoin::create(COIN_API_KEY, COIN_API_ID);`
