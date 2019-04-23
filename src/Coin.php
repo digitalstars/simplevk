@@ -12,10 +12,10 @@ namespace DigitalStar\vk_api;
 require_once('config_library.php');
 
 /**
- * Class VKCoins
+ * Class Coin
  * @package DigitalStar\vk_api
  */
-class VKCoins
+class Coin
 {
     /**
      * @var string
@@ -24,7 +24,7 @@ class VKCoins
     /**
      * @var array
      */
-    private $request_ignore_error = [500,422];
+    private $request_ignore_error = [500, 422];
     /**
      * @var string
      */
@@ -44,7 +44,7 @@ class VKCoins
     /**
      * @param $token
      * @param $merchant_id
-     * @return VKCoins
+     * @return Coin
      */
     public static function create($token, $merchant_id)
     {
@@ -57,9 +57,11 @@ class VKCoins
      * @return array|bool
      * @throws VkApiException
      */
-    public function sendTransfer($user_id, $amount)
+    public function sendCoins($user_id, $amount)
     {
-        return $this->request('send', ['amount' => $amount, 'toId' => $user_id]);
+        $request = $this->request('send', ['amount' => $amount * 1e3, 'toId' => $user_id]);
+        $this->_toCoin($request);
+        return $request;
     }
 
     /**
@@ -88,7 +90,7 @@ class VKCoins
         }
         return false;
     }
-    
+
     /**
      * @param $url
      * @param array $params
@@ -125,17 +127,35 @@ class VKCoins
     }
 
     /**
-    * @param array $user_ids
-    * @return array|bool
-    * @throws VkApiException
-    */
+     * @param $request
+     * @param string $param
+     */
+    private function _toCoin(&$request, $param = 'amount')
+    {
+        $to_coin = function (&$item, $key) use (&$param) {
+            if ($key == $param)
+                $item = (float)($item / 1e3);
+        };
+        array_walk_recursive($request, $to_coin);
+    }
+
+    /**
+     * @param array $user_ids
+     * @return array|bool
+     * @throws VkApiException
+     */
     public function getBalance($user_ids = [])
     {
         $user_ids = ['userIds' => empty($user_ids) ? [$this->merchant_id] : $user_ids];
-        if(count($user_ids['userIds']) > 1)
-            return $this->request('score', $user_ids);
-        else
-            return current($this->request('score', $user_ids));
+        $request = $this->request('score', $user_ids);
+        if (count($user_ids['userIds']) > 1) {
+            $this->_toCoin($request);
+        } else {
+            $this->_toCoin($request, $this->merchant_id);
+            $request = end($request);
+        }
+        return $request;
+
     }
 
     /**
@@ -143,7 +163,7 @@ class VKCoins
      * @return array|bool
      * @throws VkApiException
      */
-    public function setStoreName($name)
+    public function setName($name)
     {
         return $this->request('set', ['name' => $name]);
     }
@@ -164,7 +184,7 @@ class VKCoins
      * @return array|bool
      * @throws VkApiException
      */
-    public function unsetCallBack()
+    public function deleteCallBack()
     {
         return $this->request('set', ['callback' => null]);
     }
@@ -174,7 +194,7 @@ class VKCoins
      * @return array|bool
      * @throws VkApiException
      */
-    public function getCallBackLogs()
+    public function getLogs()
     {
         return $this->request('set', ['status' => 1]);
     }
@@ -186,10 +206,12 @@ class VKCoins
      * @param bool $to_hex
      * @return string
      */
-    public function getPaymentLink($sum, $payload = 0, $fixed_sum = true, $to_hex = true)
+    public function getLink($sum, $payload = 0, $fixed_sum = true, $to_hex = true)
     {
-        $payload = $payload ? $payload : rand(-2000000000, 2000000000);
 
+        $payload = $payload ? $payload : rand(-2000000000, 2000000000);
+        if ($sum != 0)
+            $sum /= 1e3;
         if ($to_hex) {
             $merchant_id = dechex($this->merchant_id);
             $sum = dechex($sum);
@@ -207,18 +229,20 @@ class VKCoins
      * @return array|bool
      * @throws VkApiException
      */
-    public function getTransactions($tx_type = 1, $last_tx = -228)
+    public function getStory($tx_type = 1, $last_tx = -228)
     {
         $tx_type = ['tx' => [$tx_type]];
         $last_tx = ($last_tx != -228) ? ['lastTx' => $last_tx] : [];
-        return $this->request('tx', $tx_type + $last_tx);
+        $request = $this->request('tx', $tx_type + $last_tx);
+        $this->_toCoin($request);
+        return $request;
     }
 
     /**
      * @param object|array $data
      * @return bool
      */
-    public function isKeysCorrespond($data)
+    public function verifyKeys($data)
     {
         if (is_object($data) && isset($data->id) && isset($data->from_id) && isset($data->amount) && isset($data->payload) && isset($data->key)) {
             $key = md5($data->id . ';' . $data->from_id . ';' . $data->amount . ';' . $data->payload . ';' . $this->merchant_key);
