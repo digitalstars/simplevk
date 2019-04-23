@@ -131,11 +131,11 @@ class VKCoins
     */
     public function getBalance($user_ids = [])
     {
-    $user_ids = ['userIds' => empty($user_ids) ? [$this->merchant_id] : $user_ids];
-    if(count($user_ids['userIds']) > 1)
-        return $this->request('score', $user_ids);
-    else
-        return current($this->request('score', $user_ids));
+        $user_ids = ['userIds' => empty($user_ids) ? [$this->merchant_id] : $user_ids];
+        if(count($user_ids['userIds']) > 1)
+            return $this->request('score', $user_ids);
+        else
+            return current($this->request('score', $user_ids));
     }
 
     /**
