@@ -1,7 +1,7 @@
 <?php
 require_once('../../../autoload.php');
-use DigitalStar\vk_api\Post as Post;
-use DigitalStar\vk_api\VkApiException as VkApiException;
+use DigitalStar\vk_api\Post;
+use DigitalStar\vk_api\VkApiException;
 //**********CONFIG**************
 const VK_KEY = "Key";//ключ авторизации через приложение
 const VERSION = "5.80";//ваша версия используемого api
