@@ -1,7 +1,7 @@
 <?php
 require_once('../../../autoload.php');
-use DigitalStar\vk_api\vk_api as vk_api;
-use DigitalStar\vk_api\LongPoll as LongPoll;
+use DigitalStar\vk_api\vk_api;
+use DigitalStar\vk_api\LongPoll;
 
 //**********CONFIG**************
 const VK_KEY = ""; //ключ авторизации сообщества, который вы получили
