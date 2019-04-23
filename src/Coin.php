@@ -59,9 +59,7 @@ class Coin
      */
     public function sendCoins($user_id, $amount)
     {
-        $request = $this->request('send', ['amount' => $amount * 1e3, 'toId' => $user_id]);
-        $this->_toCoin($request);
-        return $request;
+        $request = $this->request('send', ['amount' => $amount * 1000, 'toId' => $user_id]);
     }
 
     /**
@@ -82,10 +80,10 @@ class Coin
             } catch (VkApiException $e) {
                 sleep(1);
                 $exception = json_decode($e->getMessage(), true);
-                if (isset($exception['error']['error_code']) & in_array($exception['error']['error_code'], $this->request_ignore_error))
-                    continue;
+                if (in_array($exception['error']['code'], $this->request_ignore_error))
+                    exit(print_r($exception, 1));
                 else
-                    throw new VkApiException($e->getMessage());
+                    exit($e->getMessage());
             }
         }
         return false;
@@ -127,16 +125,17 @@ class Coin
     }
 
     /**
-     * @param $request
+     * @param $results
      * @param string $param
      */
-    private function _toCoin(&$request, $param = 'amount')
+    private function _toCoin(&$results)
     {
-        $to_coin = function (&$item, $key) use (&$param) {
-            if ($key == $param)
-                $item = (float)($item / 1e3);
-        };
-        array_walk_recursive($request, $to_coin);
+        foreach ($results as $key => $value) {
+            if(is_array($value))
+                $results[$key]['amount'] = (float)($value['amount'] / 1000);
+            else
+                $results[$key] = (float)($value / 1000);
+        }
     }
 
     /**
@@ -146,16 +145,15 @@ class Coin
      */
     public function getBalance($user_ids = [])
     {
-        $user_ids = ['userIds' => empty($user_ids) ? [$this->merchant_id] : $user_ids];
-        $request = $this->request('score', $user_ids);
-        if (count($user_ids['userIds']) > 1) {
-            $this->_toCoin($request);
-        } else {
-            $this->_toCoin($request, $this->merchant_id);
-            $request = end($request);
-        }
-        return $request;
+        if(!is_array($user_ids))
+            $ids = empty($user_ids) ? [$this->merchant_id] : [$user_ids];
+        $results = $this->request('score', ['userIds' => isset($ids) ? $ids : $user_ids]);
+        $this->_toCoin($results);
 
+        if(count($results) == 1)
+            return $results[empty($user_ids) ? $this->merchant_id : $user_ids];
+        else
+            return $results;
     }
 
     /**
