@@ -59,9 +59,7 @@ class VKCoins
      */
     public function sendTransfer($user_id, $amount)
     {
-        $amount = ['amount' => $amount];
-        $user_id = ['toId' => $user_id];
-        return $this->request('send', $amount + $user_id);
+        return $this->request('send', ['amount' => $amount, 'toId' => $user_id]);
     }
 
     /**
@@ -75,7 +73,6 @@ class VKCoins
         $params['merchantId'] = $this->merchant_id;
         $params['key'] = $this->merchant_key;
 
-        list($method, $params) = $this->editRequestParams($method, $params);
         $url = 'https://coin-without-bugs.vkforms.ru/merchant/' . $method . '/';
         while (True) {
             try {
@@ -91,17 +88,7 @@ class VKCoins
         }
         return false;
     }
-
-    /**
-     * @param $method
-     * @param $params
-     * @return array
-     */
-    protected function editRequestParams($method, $params)
-    {
-        return [$method, $params];
-    }
-
+    
     /**
      * @param $url
      * @param array $params
@@ -221,7 +208,7 @@ class VKCoins
     public function getTransactions($tx_type = 1, $last_tx = -228)
     {
         $tx_type = ['tx' => [$tx_type]];
-        $last_tx = $last_tx != -228 ? ['lastTx' => $last_tx] : [];
+        $last_tx = ($last_tx != -228) ? ['lastTx' => $last_tx] : [];
         return $this->request('tx', $tx_type + $last_tx);
     }
 
