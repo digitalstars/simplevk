@@ -10,7 +10,7 @@
 * [Описание классов и их методов](#Доступные-классы)
     * Класс [vk_api](#Класс-vk_api)
     * Класс [LongPoll](#Класс-LongPoll)
-    * Класс [VkCoin](#Класс-VkCoin)
+    * Класс [Coin](#Класс-Coin)
     * Класс [group](#Класс-group)
     * Класс [Auth](#Класс-Auth)
     * Класс [Post](#Класс-Post)
@@ -41,7 +41,7 @@ require_once "src/autoload.php"; //Подключаем библиотеку
 ### Подключение всех классов
 ```php
 use DigitalStar\vk_api\VK_api as vk_api; // Основной класс
-use DigitalStar\vk_api\VkCoin as VkCoin; // работа с vkcoins
+use DigitalStar\vk_api\Coin as Coin; // работа с vkcoins
 use DigitalStar\vk_api\LongPoll as LongPoll; //работа с longpoll
 use DigitalStar\vk_api\Group as group; // Работа с группами с ключем пользователя
 use DigitalStar\vk_api\Auth as Auth; // Авторизация
@@ -167,28 +167,29 @@ $vk->listen(function()use($vk){ //longpoll для пользователя
 #### Методы класса
 Все методы [vk_api](#Класс-vk_api)
 ******************
-### Класс VkCoin
+### Класс Coin
 #### Подключение
 ```php
 require_once('vendor/autoload.php'); //подключаем библу
 use DigitalStar\vk_api\vk_api as vk_api;
-use DigitalStar\vk_api\VkCoin as VkCoin;
+use DigitalStar\vk_api\Coin as Coin;
 ```
 #### Инициализация класса
 * `$coin = new Coin(COIN_API_KEY, COIN_API_ID);`
-* `$vk = VkCoin::create(COIN_API_KEY, COIN_API_ID);`
+* или
+* `$сoin = Coin::create(COIN_API_KEY, COIN_API_ID);`
     * `COIN_API_KEY` - Ключ вашего магазина
     * `COIN_API_ID` - идентификатор владельца магазина.
 #### Методы класса
-* `sendTransfer($user_id, $amount)` - отправка платежа.
+* `sendCoins($user_id, $amount)` - отправка платежа.
 * `getBalance($user_ids = [])` - получение баланса. Если не задан `$user_ids`, вернет баланс магазина.
-* `setStoreName($name)` - установка имени магазина.
+* `setName($name)` - установка имени магазина.
 * `setCallBack($url = null)` - Установка callBack-сервера для примема платежей через специальную ссылку.
-* `unsetCallBack()` -  удаление callBack-сервера.
-* `getCallBackLogs()` - получение списка ошибок и изменений в настройках callBack.
-* `isKeysCorrespond($data)` - Сверка ключей callBack.
-* `getPaymentLink($sum, $payload = 0, $fixed_sum = true, $use_hex_link = true)` - Получение специальной платежной ссылки.
-* `getTransactions($tx_type = 1, $last_tx = -1)` - получение списка переводов. `$tx_type = 1` - Переводы по специальной ссылке. `$tx_type = 2` - последние 100 переводов\списаний магазина.
+* `deleteCallBack()` -  удаление callBack-сервера.
+* `getLogs()` - получение списка ошибок и изменений в настройках callBack.
+* `verifyKeys($data)` - Сверка ключей callBack.
+* `getLink($sum, $payload = 0, $fixed_sum = true, $use_hex_link = true)` - Получение специальной платежной ссылки.
+* `getStory($tx_type = 1, $last_tx = -1)` - получение списка переводов. `$tx_type = 1` - Переводы по специальной ссылке. `$tx_type = 2` - последние 100 переводов\списаний магазина.
  ******************
 ### Класс group
 
