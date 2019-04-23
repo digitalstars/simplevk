@@ -45,12 +45,12 @@ class LongPoll extends vk_api
             $this->user_id = $vk->userInfo()['id'];
         } else {
             $this->group_id = $this->vk->request('groups.getById', [])[0]['id'];
-            $this->vk->request('groups.setLongPollSettings', [
+            /*$this->vk->request('groups.setLongPollSettings', [
                 'group_id' => $this->group_id,
                 'enabled' => 1,
                 'api_version' => $this->vk->version,
                 'message_new' => 1
-            ]);
+            ]);*/
         }
         $this->getLongPollServer();
     }
@@ -64,16 +64,21 @@ class LongPoll extends vk_api
             $data = $this->vk->request('messages.getLongPollServer', ['need_pts' => 1, 'lp_version' => 3]);
         else
             $data = $this->vk->request('groups.getLongPollServer', ['group_id' => $this->group_id]);
+        unset($this->key);
+        unset($this->server);
+        unset($this->ts);
         list($this->key, $this->server, $this->ts) = [$data['key'], $data['server'], $data['ts']];
     }
 
     /**
      * @param $anon
+     * @throws VkApiException
      */
     public function listen($anon)
     {
         while ($data = $this->processingData())
             foreach ($data->updates as $event) {
+                unset($this->data);
                 $this->data = $event;
                 $anon($event);
             }
@@ -81,30 +86,37 @@ class LongPoll extends vk_api
 
     /**
      * @return mixed
+     * @throws VkApiException
      */
     public function processingData()
     {
         $data = $this->getData();
         if (isset($data->failed)) {
-            if ($data->failed == 1)
+            if ($data->failed == 1) {
+                unset($this->ts);
                 $this->ts = $data->ts;
+            }
             else {
                 $this->getLongPollServer();
                 $this->getData();
             }
         }
+        unset($this->ts);
         $this->ts = $data->ts;
         return $data;
     }
 
     /**
      * @return mixed
+     * @throws VkApiException
      */
     public function getData()
     {
-        $str = "{$this->server}?act=a_check&key={$this->key}&ts={$this->ts}&wait=25";
-        $data = ($this->vk->auth_type == 'user') ? file_get_contents('https://' . $str . '&mode=32&version=3') : file_get_contents($str);
-        return json_decode($data);
+        $params = [];
+        if($this->vk->auth_type == 'user')
+            $params = ['mode' => 32, 'version' => 3];
+        $data = $this->request_core($this->server.'?', ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' => 25] + $params);
+        return $data;
     }
 
     /**
@@ -161,5 +173,33 @@ class LongPoll extends vk_api
             throw new VkApiException('Разное количество аргументов и переменных при инициализации');
         foreach ($selectors as $key => $val)
             $args[$key] = $init[trim($val)];
+    }
+
+    /**
+     * @param $url
+     * @param array $params
+     * @return mixed
+     * @throws VkApiException
+     */
+    private function request_core($url, $params = [])
+    {
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url.http_build_query($params));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $result = json_decode(curl_exec($ch));
+            curl_close($ch);
+        } else {
+            $result = json_decode(file_get_contents($url, true, stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'content' => http_build_query($params)
+                ]
+            ])));
+        }
+        if (!isset($result) or isset($result->error))
+            throw new VkApiException(json_encode($result));
+        return $result;
     }
 }
