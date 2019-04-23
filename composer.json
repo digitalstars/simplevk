@@ -2,7 +2,6 @@
     "name": "digitalstars/vk_api",
     "description": "Library for easy work with VK com api",
     "license": "MIT",
-    "minimum-stability": "dev",
     "authors": [
         {
             "name": "ZeRoX",
