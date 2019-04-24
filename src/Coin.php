@@ -87,9 +87,8 @@ class Coin
             if (in_array($exception['error']['code'], $this->request_ignore_error))
                 throw new VkApiException($exception['error']['message']);
             else
-                $e->getMessage();
+                throw new VkApiException($e->getMessage());
         }
-        return false;
     }
 
     /**
