@@ -59,7 +59,12 @@ class Coin
      */
     public function sendCoins($user_id, $amount)
     {
-        $request = $this->request('send', ['amount' => $amount * 1000, 'toId' => $user_id]);
+        $amount = $this->request('send', ['amount' => $amount * 1000, 'toId' => $user_id]);
+        if (isset($amount['amount']) && isset($amount['current'])) {
+            $amount['amount'] /= 1e3;
+            $amount['current'] /= 1e3;
+        }
+        return $amount;
     }
 
     /**
@@ -74,17 +79,15 @@ class Coin
         $params['key'] = $this->merchant_key;
 
         $url = 'https://coin-without-bugs.vkforms.ru/merchant/' . $method . '/';
-        while (True) {
-            try {
-                return $this->request_core($url, $params);
-            } catch (VkApiException $e) {
-                sleep(1);
-                $exception = json_decode($e->getMessage(), true);
-                if (in_array($exception['error']['code'], $this->request_ignore_error))
-                    exit(print_r($exception, 1));
-                else
-                    exit($e->getMessage());
-            }
+        try {
+            return $this->request_core($url, $params);
+        } catch (VkApiException $e) {
+            sleep(1);
+            $exception = json_decode($e->getMessage(), true);
+            if (in_array($exception['error']['code'], $this->request_ignore_error))
+                throw new VkApiException($exception['error']['message']);
+            else
+                $e->getMessage();
         }
         return false;
     }
@@ -125,35 +128,38 @@ class Coin
     }
 
     /**
-     * @param $results
-     * @param string $param
-     */
-    private function _toCoin(&$results)
-    {
-        foreach ($results as $key => $value) {
-            if(is_array($value))
-                $results[$key]['amount'] = (float)($value['amount'] / 1000);
-            else
-                $results[$key] = (float)($value / 1000);
-        }
-    }
-
-    /**
      * @param array $user_ids
      * @return array|bool
      * @throws VkApiException
      */
     public function getBalance($user_ids = [])
     {
-        if(!is_array($user_ids))
-            $ids = empty($user_ids) ? [$this->merchant_id] : [$user_ids];
-        $results = $this->request('score', ['userIds' => isset($ids) ? $ids : $user_ids]);
+        if (is_array($user_ids))
+            $user_ids = empty($user_ids) ? [$this->merchant_id] : $user_ids;
+        else
+            $user_ids = [$user_ids];
+        $results = $this->request('score', ['userIds' => $user_ids]);
         $this->_toCoin($results);
-
-        if(count($results) == 1)
-            return $results[empty($user_ids) ? $this->merchant_id : $user_ids];
+        if (is_array($user_ids) && count($user_ids) == 1)
+            return $results[current($user_ids)];
         else
             return $results;
+    }
+
+    /**
+     * @param $results
+     */
+    private function _toCoin(&$results)
+    {
+        if (is_array($results))
+            foreach ($results as $key => $value) {
+                if (is_array($value) && isset($results[$key]['amount']))
+                    @$results[$key]['amount'] = is_int($results[$key]['amount']) ?
+                        (float)($value['amount'] / 1000) :
+                        $results[$key]['amount'];
+                else
+                    $results[$key] = (float)($value / 1000);
+            }
     }
 
     /**
@@ -204,12 +210,14 @@ class Coin
      * @param bool $to_hex
      * @return string
      */
-    public function getLink($sum, $payload = 0, $fixed_sum = true, $to_hex = true)
+    public function getLink($sum = 0, $payload = 0, $fixed_sum = true, $to_hex = true)
     {
 
-        $payload = $payload ? $payload : rand(-2000000000, 2000000000);
+        $payload = $payload !== 0 ? $payload : rand(-2000000000, 2000000000);
         if ($sum != 0)
-            $sum /= 1e3;
+            $sum *= 1e3;
+        else
+            return 'vk.com/coin#t' . $this->merchant_id;
         if ($to_hex) {
             $merchant_id = dechex($this->merchant_id);
             $sum = dechex($sum);
