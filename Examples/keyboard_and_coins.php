@@ -5,7 +5,7 @@
  * Date: 22.04.2019
  * Time: 21:06
  */
-require_once('../vendor/autoload.php'); //подключаем библу
+require_once('../../../autoload.php'); //подключаем библу
 
 use DigitalStar\vk_api\Coin;
 use DigitalStar\vk_api\vk_api;
