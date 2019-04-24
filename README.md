@@ -108,16 +108,16 @@ use DigitalStar\vk_api\VkApiException; // Обработка ошибок
 * `initVars($selectors, &...$args)` - вносит некоторые данные callback в переменные
     * `$selectors` - строка с необходимыми переменными. Возможные значения: _id, user_id, message, payload, type, all_
     * `&...$args` - переменные через запятую, в которые будут вносится значения переменных из 1 параметра. Должно быть одинаковое количество аргументов, порядок важен.
-* `sendWallComment($owner_id, $post_id, $message)` - отправляет комментарий под постом
-    * `$owner_id` - id пользователя
-    * `$post_id` - id поста
-    * `$message` - сообщение
   ```php
   //пример кода  
   $vk = vk_api::create(TOKEN, VERSION)->setConfirm(CONFIRM_STR);  
   $vk->initVars('id, message, payload, all', $id, $message, $payload, $data); //в $data содержится весь прилетевший callback
   $vk->reply($message); //отвечает пользователю или в беседу
   ```
+* `sendWallComment($owner_id, $post_id, $message)` - отправляет комментарий под постом
+    * `$owner_id` - id пользователя
+    * `$post_id` - id поста
+    * `$message` - сообщение
 * `getAlias($id, $n = null);` - возвращает обращение к пользователю или группе в виде строки по типу @id123 или @public123
     * `$id` - id пользователя или группы, так же можно указать короткий адрес
     * `$n` - принимает 3 параметра или можно не указывать
