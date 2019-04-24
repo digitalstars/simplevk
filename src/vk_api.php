@@ -730,6 +730,20 @@ class vk_api
             $message = ['message' => $message];
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
     }
+    /**
+     * @param $owner_id, $post_id, $message
+     * @return mixed
+     * @throws VkApiException
+     */
+    public function sendWallComment($owner_id, $post_id, $message)
+    {
+        if ($owner_id!=0 && $owner_id!='0')
+        {
+            return $this->request('wall.createComment', ['owner_id'=>$owner_id,'post_id'=>$post_id, 'message'=>$message]);
+        }
+        else
+            return true;
+    }
 
     /**
      * @param $id
