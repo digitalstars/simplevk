@@ -1,5 +1,13 @@
 # Документация по vk_api
-![](https://img.shields.io/badge/php-%3E=%205.6-8992bb.svg) ![](https://img.shields.io/badge/vk_api-%3E=%205.80-8992bb.svg) ![](https://img.shields.io/github/last-commit/digitalstars/vk_api.svg) [![](https://img.shields.io/packagist/dt/digitalstars/vk_api.svg)](https://packagist.org/packages/digitalstars/vk_api/) [![](https://img.shields.io/github/issues/digitalstars/vk_api.svg)](https://github.com/digitalstars/vk_api/issues) [![](https://img.shields.io/badge/Чат_комьюнити-vk.com-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
+![PHP from Packagist](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
+![](https://img.shields.io/badge/VK_API-%3E=%205.80-8992bb.svg)
+![](https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green)
+![](https://img.shields.io/github/last-commit/digitalstars/vk_api.svg)
+![](https://img.shields.io/github/repo-size/digitalstars/vk_api.svg?color=green)
+![](https://img.shields.io/github/commit-activity/m/digitalstars/vk_api.svg)
+[![](https://img.shields.io/packagist/dt/digitalstars/vk_api.svg)](https://packagist.org/packages/digitalstars/vk_api/)
+[![](https://img.shields.io/github/issues/digitalstars/vk_api.svg)](https://github.com/digitalstars/vk_api/issues)
+[![](https://img.shields.io/badge/Чат_комьюнити-vk.com-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
 
 Библиотека упрощает работу с api vk.com
 > Внимание!
