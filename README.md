@@ -1,5 +1,5 @@
 # Документация по vk_api
-![PHP from Packagist](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
+![](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
 ![](https://img.shields.io/badge/VK_API-%3E=%205.80-8992bb.svg)
 ![](https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green)
 ![](https://img.shields.io/github/last-commit/digitalstars/vk_api.svg)
