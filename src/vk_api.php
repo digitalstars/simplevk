@@ -88,6 +88,7 @@ class vk_api
      * @param $version
      * @param null $also_version
      * @return vk_api
+     *
      * @throws VkApiException
      */
     public static function create($token, $version, $also_version = null)
@@ -97,10 +98,11 @@ class vk_api
 
     /**
      * @param $str
+     * @return vk_api
      */
     public function setConfirm($str)
     {
-        if (isset($this->data->type) & $this->data->type == 'confirmation') { //Если vk запрашивает ключ
+        if (isset($this->data->type) && $this->data->type == 'confirmation') { //Если vk запрашивает ключ
             exit($str); //Завершаем скрипт отправкой ключа
         }
         return $this;
@@ -388,6 +390,7 @@ class vk_api
      * @param $id
      * @param $message
      * @return bool|mixed
+     * @throws VkApiException
      */
     public function sendMessage($id, $message)
     {
@@ -416,6 +419,7 @@ class vk_api
      * @param array $buttons
      * @param bool $one_time
      * @return mixed
+     * @throws VkApiException
      */
     public function sendButton($user_id, $message, $buttons = [], $one_time = False)
     {
@@ -587,6 +591,7 @@ class vk_api
      * @param $local_file_path
      * @param null $title
      * @return mixed
+     *
      * @throws VkApiException
      */
     public function uploadDocsGroup($groupID, $local_file_path, $title = null)
@@ -763,6 +768,7 @@ class vk_api
      * @param $local_file_path
      * @param null $title
      * @return mixed
+     *
      * @throws VkApiException
      */
     public function uploadDocsUser($local_file_path, $title = null)
@@ -876,12 +882,6 @@ class vk_api
         list($this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
     }
 }
-
-
-
-
-
-
 
 
 
