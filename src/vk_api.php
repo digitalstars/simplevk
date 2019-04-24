@@ -737,12 +737,7 @@ class vk_api
      */
     public function sendWallComment($owner_id, $post_id, $message)
     {
-        if ($owner_id!=0 && $owner_id!='0')
-        {
-            return $this->request('wall.createComment', ['owner_id'=>$owner_id,'post_id'=>$post_id, 'message'=>$message]);
-        }
-        else
-            return true;
+        return $this->request('wall.createComment', ['owner_id'=>$owner_id,'post_id'=>$post_id, 'message'=>$message]);
     }
 
     /**
