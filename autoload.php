@@ -1,6 +1,6 @@
 <?php
 namespace DigitalStar\vk_api;
-$path_dir =  __DIR__;
+$path_dir =  __DIR__.'/src';
 require_once($path_dir.'/Base.php');
 require_once($path_dir.'/Message.php');
 require_once($path_dir.'/Post.php');
