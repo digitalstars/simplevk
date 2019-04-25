@@ -2,11 +2,8 @@
 ![](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
 ![](https://img.shields.io/badge/VK_API-%3E=%205.80-8992bb.svg)
 ![](https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green)
-![](https://img.shields.io/github/last-commit/digitalstars/vk_api.svg)
-![](https://img.shields.io/github/repo-size/digitalstars/vk_api.svg?color=green)
 ![](https://img.shields.io/github/commit-activity/m/digitalstars/vk_api.svg)
 [![](https://img.shields.io/packagist/dt/digitalstars/vk_api.svg)](https://packagist.org/packages/digitalstars/vk_api/)
-[![](https://img.shields.io/github/issues/digitalstars/vk_api.svg)](https://github.com/digitalstars/vk_api/issues)
 [![](https://img.shields.io/badge/Чат_комьюнити-vk.com-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
 
 Библиотека упрощает работу с api vk.com
@@ -40,11 +37,10 @@ require_once "vendor/autoload.php"; //Подключаем библиотеку
 ```
 ### Вручную
 1. Скачать последний релиз
-2. Переместить autoload.php из корня в src
-3. Подключить перемещённый autoload.php
-Подключение autoload.php, если vendor находится в той же папке, что и скрипт:
+2. Подключить перемещённый autoload.php
+Подключение autoload.php, если ваш скрипт находится в той же папке, что и папка vk_api-master
 ```php
-require_once "src/autoload.php"; //Подключаем библиотеку
+require_once "vk_api-master/src/autoload.php"; //Подключаем библиотеку
 ```
 ### Подключение всех классов
 ```php
