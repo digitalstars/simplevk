@@ -269,7 +269,9 @@ class vk_api
                 ]
             ])), true);
         }
-        if (!isset($result) or isset($result['error']))
+        if (!isset($result))
+            $this->request_core($url, $params);
+        if (isset($result['error']))
             throw new VkApiException(json_encode($result));
         if (isset($result['response']))
             return $result['response'];
