@@ -11,8 +11,7 @@ require_once('config_library.php');
  * Class vk_api
  * @package DigitalStar\vk_api
  */
-class vk_api
-{
+class vk_api {
 
     /**
      * @var string
@@ -49,7 +48,7 @@ class vk_api
     /**
      * @var int
      */
-    private $try_count_resend_file = COUNT_TRY_SEND_FILE;
+    protected $try_count_resend_file = COUNT_TRY_SEND_FILE;
 
     /**
      * vk_api constructor.
@@ -58,8 +57,7 @@ class vk_api
      * @param null $also_version
      * @throws VkApiException
      */
-    public function __construct($token, $version, $also_version = null)
-    {
+    public function __construct($token, $version, $also_version = null) {
         if ($token instanceof auth) {
             $this->auth = $token;
             $this->version = $version;
@@ -91,8 +89,7 @@ class vk_api
      *
      * @throws VkApiException
      */
-    public static function create($token, $version, $also_version = null)
-    {
+    public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
     }
 
@@ -100,8 +97,7 @@ class vk_api
      * @param $str
      * @return vk_api
      */
-    public function setConfirm($str)
-    {
+    public function setConfirm($str) {
         if (isset($this->data->type) && $this->data->type == 'confirmation') { //Если vk запрашивает ключ
             exit($str); //Завершаем скрипт отправкой ключа
         }
@@ -113,8 +109,7 @@ class vk_api
      * @param array $args
      * @throws VkApiException
      */
-    public function initVars($selectors, &...$args)
-    {
+    public function initVars($selectors, &...$args) {
         if (!$this->debug_mode)
             $this->sendOK();
         $data = $this->data;
@@ -140,8 +135,7 @@ class vk_api
     /**
      * @return bool
      */
-    public static function sendOK()
-    {
+    public static function sendOK() {
         ini_set('display_errors', 'Off');
         echo 'ok';
         $response_length = ob_get_length();
@@ -177,8 +171,7 @@ class vk_api
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function reply($message)
-    {
+    public function reply($message) {
         if ($this->data != []) {
             return $this->request('messages.send', ['message' => $message, 'peer_id' => $this->data->object->peer_id]);
         } else {
@@ -192,8 +185,7 @@ class vk_api
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function request($method, $params = [])
-    {
+    public function request($method, $params = []) {
         list($method, $params) = $this->editRequestParams($method, $params);
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
@@ -220,8 +212,7 @@ class vk_api
      * @param $params
      * @return array
      */
-    protected function editRequestParams($method, $params)
-    {
+    protected function editRequestParams($method, $params) {
         return [$method, $params];
     }
 
@@ -229,8 +220,7 @@ class vk_api
      * @param $method
      * @return array
      */
-    private function differenceVersions($method)
-    {
+    private function differenceVersions($method) {
         if (array_key_exists($this->action_version, DIFFERENCE_VERSIONS_METHOD) and array_key_exists($method, DIFFERENCE_VERSIONS_METHOD[$this->action_version]))
             $extra_props = DIFFERENCE_VERSIONS_METHOD[$this->action_version][$method];
         else
@@ -248,8 +238,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function request_core($url, $params = [])
-    {
+    private function request_core($url, $params = []) {
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -281,8 +270,7 @@ class vk_api
      * @param $message
      * @throws VkApiException
      */
-    public function sendAllDialogs($message)
-    {
+    public function sendAllDialogs($message) {
         $ids = [];
         for ($count_all = 1, $offset = 0; $offset <= $count_all; $offset += 200) {
             $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset]);
@@ -316,8 +304,7 @@ class vk_api
      * @return string
      * @throws VkApiException
      */
-    public function getAlias($id, $n = null)
-    { //получить обращение к юзеру или группе
+    public function getAlias($id, $n = null) { //получить обращение к юзеру или группе
         if (!is_numeric($id)) { //если короткая ссылка
             $obj = $this->request('utils.resolveScreenName', ['screen_name' => $id]); //узнаем, кому принадлежит, сообществу или юзеру
             $id = ($obj["type"] == 'group') ? -$obj['object_id'] : $obj['object_id'];
@@ -355,8 +342,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function userInfo($user_url = null, $scope = [])
-    {
+    public function userInfo($user_url = null, $scope = []) {
         if (isset($scope) and count($scope) != 0)
             $scope = ["fields" => join(",", $scope)];
         if (isset($user_url)) {
@@ -372,8 +358,7 @@ class vk_api
      * @return bool|null|string
      * @throws VkApiException
      */
-    public function isAdmin($chat_id, $user_id)
-    { //возвращает привелегию по id
+    public function isAdmin($chat_id, $user_id) { //возвращает привелегию по id
         try {
             $members = $this->request('messages.getConversationMembers', ['peer_id' => $chat_id])['items'];
         } catch (\Exception $e) {
@@ -392,20 +377,16 @@ class vk_api
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function sendMessage($id, $message)
-    {
-        if ($id != 0 and $id != '0') {
-            return $this->request('messages.send', ['message' => $message, 'peer_id' => $id]);
-        } else {
-            return true;
-        }
+    public function sendMessage($id, $message) {
+        if ($id < 1)
+            return;
+        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id]);
     }
 
     /**
      *
      */
-    public function debug()
-    {
+    public function debug() {
         ini_set('error_reporting', E_ALL);
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
@@ -421,8 +402,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function sendButton($user_id, $message, $buttons = [], $one_time = False)
-    {
+    public function sendButton($user_id, $message, $buttons = [], $one_time = False) {
         $keyboard = $this->generateKeyboard($buttons, $one_time);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $user_id, 'keyboard' => $keyboard]);
     }
@@ -432,8 +412,7 @@ class vk_api
      * @param bool $one_time
      * @return array|false|string
      */
-    private function generateKeyboard($buttons = [], $one_time = False)
-    {
+    protected function generateKeyboard($buttons = [], $one_time = False) {
         $keyboard = [];
         $i = 0;
         foreach ($buttons as $button_str) {
@@ -459,8 +438,7 @@ class vk_api
      * @param $color
      * @return string
      */
-    private function replaceColor($color)
-    {
+    private function replaceColor($color) {
         switch ($color) {
             case 'red':
                 $color = 'negative';
@@ -483,8 +461,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function groupInfo($group_url)
-    {
+    public function groupInfo($group_url) {
         $group_url = preg_replace("!.*?/!", '', $group_url);
         return current($this->request('groups.getById', ["group_ids" => $group_url]));
     }
@@ -495,8 +472,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function sendImage($id, $local_file_path)
-    {
+    public function sendImage($id, $local_file_path) {
         $upload_file = $this->uploadImage($id, $local_file_path);
         return $this->request('messages.send', ['attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id]);
     }
@@ -507,8 +483,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function uploadImage($id, $local_file_path)
-    {
+    private function uploadImage($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'photo')['upload_url'];
         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
             try {
@@ -531,8 +506,7 @@ class vk_api
      * @return mixed|null
      * @throws VkApiException
      */
-    private function getUploadServerMessages($peer_id, $selector = 'doc')
-    {
+    private function getUploadServerMessages($peer_id, $selector = 'doc') {
         $result = null;
         if ($selector == 'doc')
             $result = $this->request('docs.getMessagesUploadServer', ['type' => 'doc', 'peer_id' => $peer_id]);
@@ -548,8 +522,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function sendFiles($url, $local_file_path, $type = 'file')
-    {
+    protected function sendFiles($url, $local_file_path, $type = 'file') {
         $post_fields = [
             $type => new CURLFile(realpath($local_file_path))
         ];
@@ -581,8 +554,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function savePhoto($photo, $server, $hash)
-    {
+    private function savePhoto($photo, $server, $hash) {
         return $this->request('photos.saveMessagesPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash]);
     }
 
@@ -594,8 +566,7 @@ class vk_api
      *
      * @throws VkApiException
      */
-    public function uploadDocsGroup($groupID, $local_file_path, $title = null)
-    {
+    public function uploadDocsGroup($groupID, $local_file_path, $title = null) {
         return $this->uploadDocs($groupID, $local_file_path, $title);
     }
 
@@ -606,8 +577,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function uploadDocs($id, $local_file_path, $title = null)
-    {
+    private function uploadDocs($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerPost($id)['upload_url'];
@@ -621,8 +591,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function getUploadServerPost($peer_id = [])
-    {
+    private function getUploadServerPost($peer_id = []) {
         if ($peer_id < 0)
             $peer_id = ['group_id' => $peer_id * -1];
         else
@@ -637,8 +606,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function saveDocuments($file, $title)
-    {
+    private function saveDocuments($file, $title) {
         return $this->request('docs.save', ['file' => $file, 'title' => $title]);
     }
 
@@ -649,8 +617,7 @@ class vk_api
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function sendDocMessage($id, $local_file_path, $title = null)
-    {
+    public function sendDocMessage($id, $local_file_path, $title = null) {
         $upload_file = current($this->uploadDocsMessages($id, $local_file_path, $title));
         if ($id != 0 and $id != '0') {
             return $this->request('messages.send', ['attachment' => "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'], 'peer_id' => $id]);
@@ -666,8 +633,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function uploadDocsMessages($id, $local_file_path, $title = null)
-    {
+    private function uploadDocsMessages($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerMessages($id)['upload_url'];
@@ -684,8 +650,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function createPost($id, $message = [], $props = [], $media = [])
-    {
+    public function createPost($id, $message = [], $props = [], $media = []) {
         $send_attachment = [];
 
         foreach ($media as $selector => $massive) {
@@ -736,8 +701,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function getWallUploadServer($id)
-    {
+    private function getWallUploadServer($id) {
         if ($id < 0) {
             $id *= -1;
             return $this->request('photos.getWallUploadServer', ['group_id' => $id]);
@@ -754,8 +718,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    private function savePhotoWall($photo, $server, $hash, $id)
-    {
+    private function savePhotoWall($photo, $server, $hash, $id) {
         if ($id < 0) {
             $id *= -1;
             return $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'group_id' => $id]);
@@ -771,8 +734,7 @@ class vk_api
      *
      * @throws VkApiException
      */
-    public function uploadDocsUser($local_file_path, $title = null)
-    {
+    public function uploadDocsUser($local_file_path, $title = null) {
         return $this->uploadDocs([], $local_file_path, $title);
     }
 
@@ -785,8 +747,9 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function createMessages($id, $message = [], $props = [], $media = [], $keyboard = [])
-    {
+    public function createMessages($id, $message = [], $props = [], $media = [], $keyboard = []) {
+        if ($id < 1)
+            return;
         $send_attachment = [];
 
         foreach ($media as $selector => $massiv) {
@@ -827,8 +790,7 @@ class vk_api
      * @return mixed
      * @throws VkApiException
      */
-    public function getGroupsUser($id = [], $extended = 1, $props = [])
-    {
+    public function getGroupsUser($id = [], $extended = 1, $props = []) {
         if (is_numeric($id))
             $id = ['user_id' => $id];
         if (!is_array($props))
@@ -844,8 +806,7 @@ class vk_api
      * @param $var
      * @throws VkApiException
      */
-    public function setTryCountResendFile($var)
-    {
+    public function setTryCountResendFile($var) {
         if (is_integer($var))
             $this->try_count_resend_file = $var;
         else
@@ -856,8 +817,7 @@ class vk_api
      * @param $var
      * @throws VkApiException
      */
-    public function setRequestIgnoreError($var)
-    {
+    public function setRequestIgnoreError($var) {
         if (is_array($var))
             $this->request_ignore_error = $var;
         else if (is_integer($var))
@@ -869,16 +829,14 @@ class vk_api
     /**
      * @return array
      */
-    protected function copyAllDataclass()
-    {
+    protected function copyAllDataclass() {
         return [$this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file];
     }
 
     /**
      * @param $id_vk_vars
      */
-    protected function setAllDataclass($id_vk_vars)
-    {
+    protected function setAllDataclass($id_vk_vars) {
         list($this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
     }
 }

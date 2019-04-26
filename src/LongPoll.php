@@ -76,12 +76,16 @@ class LongPoll extends vk_api
      */
     public function listen($anon)
     {
-        while ($data = $this->processingData())
+        while ($data = $this->processingData()) {
             foreach ($data->updates as $event) {
                 unset($this->data);
                 $this->data = $event;
                 $anon($event);
             }
+            if ($this->vk instanceof Execute) {
+                $this->vk->exec();
+            }
+        }
     }
 
     /**
