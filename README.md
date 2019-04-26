@@ -4,7 +4,7 @@
 ![](https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green)
 ![](https://img.shields.io/github/commit-activity/m/digitalstars/vk_api.svg)
 [![](https://img.shields.io/packagist/dt/digitalstars/vk_api.svg)](https://packagist.org/packages/digitalstars/vk_api/)
-[![](https://img.shields.io/badge/Чат_комьюнити-vk.com-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
+[![](https://img.shields.io/badge/Чат_vk-Вступить-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
 
 Библиотека упрощает работу с api vk.com
 > Внимание!
