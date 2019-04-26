@@ -149,22 +149,6 @@ class Coin {
     }
 
     /**
-     * @param $tx
-     * @param array $last_tx
-     * @return bool|mixed
-     * @throws VkApiException
-     */
-    private function getTransaction($tx, $last_tx = []) {
-        if (!empty($last_tx))
-            $last_tx = ['lastTx' => $last_tx];
-        if (!is_array($tx))
-            $tx = [$tx];
-        $request = $this->request('tx', ['tx' => $tx] + $last_tx);
-        $this->_toCoin($request);
-        return $request;
-    }
-
-    /**
      * @param array $last_tx
      * @return bool|mixed
      * @throws VkApiException
@@ -178,11 +162,11 @@ class Coin {
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function getInfoTransactions($transaction) {
-        if (is_array($transaction))
-            return $this->getTransaction($transaction);
-        else if (is_numeric($transaction))
-            return $this->getTransaction([$transaction]);
+    public function getInfoTransactions($id_transaction) {
+        if (is_array($id_transaction))
+            return $this->getTransaction($id_transaction);
+        else if (is_numeric($id_transaction))
+            return $this->getTransaction([$id_transaction]);
         return 0;
     }
 
@@ -213,7 +197,7 @@ class Coin {
     /**
      * @return bool
      */
-    public function verifyKeys() {
+    private function verifyKeys() {
         $parameters = [
             $this->data_request->id,
             $this->data_request->from_id,
@@ -223,6 +207,22 @@ class Coin {
         ];
         $key = md5(implode(';', $parameters));
         return $this->data_request->key === $key;
+    }
+    
+    /**
+     * @param $tx
+     * @param array $last_tx
+     * @return bool|mixed
+     * @throws VkApiException
+     */
+    private function getTransaction($tx, $last_tx = []) {
+        if (!empty($last_tx))
+            $last_tx = ['lastTx' => $last_tx];
+        if (!is_array($tx))
+            $tx = [$tx];
+        $request = $this->request('tx', ['tx' => $tx] + $last_tx);
+        $this->_toCoin($request);
+        return $request;
     }
 
     /**
