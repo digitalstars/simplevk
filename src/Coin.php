@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Назым
- * Date: 22.04.2019
- * Time: 20:54
- */
 
 namespace DigitalStar\vk_api;
-
 
 require_once('config_library.php');
 
@@ -15,16 +8,15 @@ require_once('config_library.php');
  * Class Coin
  * @package DigitalStar\vk_api
  */
-class Coin
-{
+class Coin {
     /**
      * @var string
      */
     protected $merchant_id = '';
     /**
-     * @var array
+     * @var object | null
      */
-    private $request_ignore_error = [500, 422];
+    private $data_request = null;
     /**
      * @var string
      */
@@ -35,8 +27,7 @@ class Coin
      * @param $token
      * @param $merchant_id
      */
-    public function __construct($token, $merchant_id)
-    {
+    public function __construct($token, $merchant_id) {
         $this->merchant_key = $token;
         $this->merchant_id = $merchant_id;
     }
@@ -46,8 +37,7 @@ class Coin
      * @param $merchant_id
      * @return Coin
      */
-    public static function create($token, $merchant_id)
-    {
+    public static function create($token, $merchant_id) {
         return new self($token, $merchant_id);
     }
 
@@ -57,14 +47,197 @@ class Coin
      * @return array|bool
      * @throws VkApiException
      */
-    public function sendCoins($user_id, $amount)
-    {
+    public function sendCoins($user_id, $amount) {
         $amount = $this->request('send', ['amount' => $amount * 1000, 'toId' => $user_id]);
         if (isset($amount['amount']) && isset($amount['current'])) {
-            $amount['amount'] /= 1e3;
-            $amount['current'] /= 1e3;
+            $amount['amount'] /= 1000;
+            $amount['current'] /= 1000;
         }
         return $amount;
+    }
+
+
+    /**
+     * @param array $user_ids
+     * @return array|bool
+     * @throws VkApiException
+     */
+    public function getBalance($user_ids = []) {
+        if (empty($user_ids) or !is_array($user_ids))
+            $user_ids = empty($user_ids) ? [$this->merchant_id] : [$user_ids];
+        $results = $this->request('score', ['userIds' => $user_ids]);
+        if (count($results) < count($user_ids)) {
+            $nonexistent_id = join(',', (array_diff($user_ids, array_keys($results))));
+            throw new VkApiException("Попытка получить баланс следущих несуществующих пользователей:\n$nonexistent_id");
+        }
+        $this->_toCoin($results);
+        $results = array_combine($user_ids, array_values($results));
+        if (is_array($user_ids) && count($user_ids) == 1)
+            return $results[current($user_ids)];
+        else
+            return $results;
+    }
+
+    /**
+     * @param string $name
+     * @return array|bool
+     * @throws VkApiException
+     */
+    public function setName($name) {
+        return $this->request('set', ['name' => $name]);
+    }
+
+
+    /**
+     * @param string $url
+     * @return array|bool
+     * @throws VkApiException
+     */
+    public function setCallBack($url = null) {
+        return $this->request('set', ['callback' => $url]);
+    }
+
+
+    /**
+     * @return array|bool
+     * @throws VkApiException
+     */
+    public function deleteCallBack() {
+        return $this->request('set', ['callback' => null]);
+    }
+
+
+    /**
+     * @return array|bool
+     * @throws VkApiException
+     */
+    public function getLogs() {
+        return $this->request('set', ['status' => 1]);
+    }
+
+    /**
+     * @param int $sum
+     * @param int $payload
+     * @param bool $fixed_sum
+     * @param bool $to_hex
+     * @return array|string
+     */
+    public function getLink($sum = 0, $fixed_sum = true, $payload = 0, $to_hex = false) {
+        $payload = ($payload !== 0) ? $payload : rand(-2000000000, 2000000000);
+        $fixed_sum = $fixed_sum ? '' : '_1';
+        if ($sum === 0)
+            return 'vk.com/coin#t' . $this->merchant_id;
+        $sum = (int)($sum * 1000);
+        if ($to_hex) {
+            $merchant_id = dechex($this->merchant_id);
+            $sum = dechex($sum);
+            $payload = dechex($payload);
+            return ['url' => "vk.com/coin#m{$merchant_id}_{$sum}_{$payload}{$fixed_sum}", 'payload' => $payload];
+        } else {
+            $merchant_id = $this->merchant_id;
+            return ['url' => "vk.com/coin#x{$merchant_id}_{$sum}_{$payload}{$fixed_sum}", 'payload' => $payload];
+        }
+    }
+
+    /**
+     * @param array $last_tx
+     * @return bool|mixed
+     * @throws VkApiException
+     */
+    public function getStoryShop($last_tx = []) {
+        return $this->getTransaction(1, $last_tx);
+    }
+
+    /**
+     * @param $tx
+     * @param array $last_tx
+     * @return bool|mixed
+     * @throws VkApiException
+     */
+    private function getTransaction($tx, $last_tx = []) {
+        if (!empty($last_tx))
+            $last_tx = ['lastTx' => $last_tx];
+        if (!is_array($tx))
+            $tx = [$tx];
+        $request = $this->request('tx', ['tx' => $tx] + $last_tx);
+        $this->_toCoin($request);
+        return $request;
+    }
+
+    /**
+     * @param array $last_tx
+     * @return bool|mixed
+     * @throws VkApiException
+     */
+    public function getStoryAccount($last_tx = []) {
+        return $this->getTransaction(2, $last_tx);
+    }
+
+    /**
+     * @param array $transaction
+     * @return bool|mixed
+     * @throws VkApiException
+     */
+    public function getInfoTransactions($transaction) {
+        if (is_array($transaction))
+            return $this->getTransaction($transaction);
+        else if (is_numeric($transaction))
+            return $this->getTransaction([$transaction]);
+        return 0;
+    }
+
+    /**
+     * @param $from_id
+     * @param $amount
+     * @param $payloadа
+     * @param $verify
+     * @param $data
+     */
+    public function initVars(&$from_id, &$amount, &$payload, &$verify, &$data) {
+        print 'OK';
+        $data_request = json_decode(file_get_contents('php://input'));
+        $data = $this->data_request = $data_request;
+        if (is_object($this->data_request) &&
+            isset($this->data_request->id) &&
+            isset($this->data_request->from_id) &&
+            isset($this->data_request->amount) &&
+            isset($this->data_request->payload) &&
+            isset($this->data_request->key)) {
+            $from_id = $data_request->from_id;
+            $payload = $data_request->payload;
+            $amount = $data_request->amount;
+            $verify = $this->verifyKeys();
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function verifyKeys() {
+        $parameters = [
+            $this->data_request->id,
+            $this->data_request->from_id,
+            $this->data_request->amount,
+            $this->data_request->payload,
+            $this->data_request->merchant_key,
+        ];
+        $key = md5(implode(';', $parameters));
+        return $this->data_request->key === $key;
+    }
+
+    /**
+     * @param $results
+     */
+    private function _toCoin(&$results) {
+        if (is_array($results))
+            foreach ($results as $key => $value) {
+                if (is_array($value) && isset($results[$key]['amount']))
+                    @$results[$key]['amount'] = is_int($results[$key]['amount']) ?
+                        (float)($value['amount'] / 1000) :
+                        $results[$key]['amount'];
+                else
+                    $results[$key] = (float)($value / 1000);
+            }
     }
 
     /**
@@ -73,8 +246,7 @@ class Coin
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function request($method, $params = [])
-    {
+    private function request($method, $params = []) {
         $params['merchantId'] = $this->merchant_id;
         $params['key'] = $this->merchant_key;
 
@@ -82,9 +254,8 @@ class Coin
         try {
             return $this->request_core($url, $params);
         } catch (VkApiException $e) {
-            sleep(1);
             $exception = json_decode($e->getMessage(), true);
-            if (in_array($exception['error']['code'], $this->request_ignore_error))
+            if (in_array($exception['error']['code'], [500, 422]))
                 throw new VkApiException($exception['error']['message']);
             else
                 throw new VkApiException($e->getMessage());
@@ -97,12 +268,11 @@ class Coin
      * @return mixed
      * @throws VkApiException
      */
-    private function request_core($url, $params = [])
-    {
+    private function request_core($url, $params = []) {
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/json"
+                'Content-Type: application/json'
             ]);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -119,140 +289,10 @@ class Coin
             ])), true);
         }
         if (!isset($result) or isset($result['error']))
-            throw new VkApiException(json_encode($result));
+            throw new VkApiException('Вк вернул ошибку:' . json_encode($result));
         if (isset($result['response']))
             return $result['response'];
         else
             return $result;
-    }
-
-    /**
-     * @param array $user_ids
-     * @return array|bool
-     * @throws VkApiException
-     */
-    public function getBalance($user_ids = [])
-    {
-        if (is_array($user_ids))
-            $user_ids = empty($user_ids) ? [$this->merchant_id] : $user_ids;
-        else
-            $user_ids = [$user_ids];
-        $results = $this->request('score', ['userIds' => $user_ids]);
-        $this->_toCoin($results);
-        if (is_array($user_ids) && count($user_ids) == 1)
-            return $results[current($user_ids)];
-        else
-            return $results;
-    }
-
-    /**
-     * @param $results
-     */
-    private function _toCoin(&$results)
-    {
-        if (is_array($results))
-            foreach ($results as $key => $value) {
-                if (is_array($value) && isset($results[$key]['amount']))
-                    @$results[$key]['amount'] = is_int($results[$key]['amount']) ?
-                        (float)($value['amount'] / 1000) :
-                        $results[$key]['amount'];
-                else
-                    $results[$key] = (float)($value / 1000);
-            }
-    }
-
-    /**
-     * @param string $name
-     * @return array|bool
-     * @throws VkApiException
-     */
-    public function setName($name)
-    {
-        return $this->request('set', ['name' => $name]);
-    }
-
-
-    /**
-     * @param string $url
-     * @return array|bool
-     * @throws VkApiException
-     */
-    public function setCallBack($url = null)
-    {
-        return $this->request('set', ['callback' => $url]);
-    }
-
-
-    /**
-     * @return array|bool
-     * @throws VkApiException
-     */
-    public function deleteCallBack()
-    {
-        return $this->request('set', ['callback' => null]);
-    }
-
-
-    /**
-     * @return array|bool
-     * @throws VkApiException
-     */
-    public function getLogs()
-    {
-        return $this->request('set', ['status' => 1]);
-    }
-
-    /**
-     * @param int $sum
-     * @param int $payload
-     * @param bool $fixed_sum
-     * @param bool $to_hex
-     * @return string
-     */
-    public function getLink($sum = 0, $payload = 0, $fixed_sum = true, $to_hex = true)
-    {
-
-        $payload = $payload !== 0 ? $payload : rand(-2000000000, 2000000000);
-        if ($sum != 0)
-            $sum *= 1e3;
-        else
-            return 'vk.com/coin#t' . $this->merchant_id;
-        if ($to_hex) {
-            $merchant_id = dechex($this->merchant_id);
-            $sum = dechex($sum);
-            $payload = dechex($payload);
-            return 'vk.com/coin#m' . $merchant_id . '_' . $sum . '_' . $payload . ($fixed_sum ? '' : '_1');
-        } else {
-            $merchant_id = $this->merchant_id;
-            return 'vk.com/coin#x' . $merchant_id . '_' . $sum . '_' . $payload . ($fixed_sum ? '' : '_1');
-        }
-    }
-
-    /**
-     * @param int $tx_type
-     * @param int $last_tx
-     * @return array|bool
-     * @throws VkApiException
-     */
-    public function getStory($tx_type = 1, $last_tx = -228)
-    {
-        $tx_type = ['tx' => [$tx_type]];
-        $last_tx = ($last_tx != -228) ? ['lastTx' => $last_tx] : [];
-        $request = $this->request('tx', $tx_type + $last_tx);
-        $this->_toCoin($request);
-        return $request;
-    }
-
-    /**
-     * @param object|array $data
-     * @return bool
-     */
-    public function verifyKeys($data)
-    {
-        if (is_object($data) && isset($data->id) && isset($data->from_id) && isset($data->amount) && isset($data->payload) && isset($data->key)) {
-            $key = md5($data->id . ';' . $data->from_id . ';' . $data->amount . ';' . $data->payload . ';' . $this->merchant_key);
-            return $data->key === $key;
-        }
-        return false;
     }
 }
