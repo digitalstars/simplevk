@@ -45,12 +45,13 @@ class LongPoll extends vk_api
             $this->user_id = $vk->userInfo()['id'];
         } else {
             $this->group_id = $this->vk->request('groups.getById', [])[0]['id'];
-            /*$this->vk->request('groups.setLongPollSettings', [
+            $this->vk->request('groups.setLongPollSettings', [
                 'group_id' => $this->group_id,
                 'enabled' => 1,
                 'api_version' => $this->vk->version,
-                'message_new' => 1
-            ]);*/
+                'message_new' => 1,
+                'message_deny' => 1
+            ]);
         }
         $this->getLongPollServer();
     }

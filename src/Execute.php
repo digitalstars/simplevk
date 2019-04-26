@@ -178,8 +178,6 @@ while (query_message[count] != null) {
 return data_result;';
         $this->messages = [];
         $this->constructors_messages = [];
-        $res = $this->request("execute", ["code" => $code]);
-        print_r($res);
-        return $res;
+        return $this->request("execute", ["code" => $code]);
     }
 }
