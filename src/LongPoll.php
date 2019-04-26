@@ -102,7 +102,7 @@ class LongPoll extends vk_api
             }
             else {
                 $this->getLongPollServer();
-                $this->getData();
+                $data = $this->getData();
             }
         }
         unset($this->ts);

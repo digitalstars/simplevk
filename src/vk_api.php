@@ -258,7 +258,9 @@ class vk_api {
                 ]
             ])), true);
         }
-        if (!isset($result) or isset($result['error']))
+        if (!isset($result))
+            $this->request_core($url, $params);
+        if (isset($result['error']))
             throw new VkApiException(json_encode($result));
         if (isset($result['response']))
             return $result['response'];
@@ -694,6 +696,15 @@ class vk_api {
         if (is_string($message))
             $message = ['message' => $message];
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
+    }
+    /**
+     * @param $owner_id, $post_id, $message
+     * @return mixed
+     * @throws VkApiException
+     */
+    public function sendWallComment($owner_id, $post_id, $message)
+    {
+        return $this->request('wall.createComment', ['owner_id'=>$owner_id,'post_id'=>$post_id, 'message'=>$message]);
     }
 
     /**
