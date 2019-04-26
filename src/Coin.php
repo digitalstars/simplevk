@@ -162,11 +162,11 @@ class Coin {
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function getInfoTransactions($id_transaction) {
-        if (is_array($id_transaction))
-            return $this->getTransaction($id_transaction);
-        else if (is_numeric($id_transaction))
-            return $this->getTransaction([$id_transaction]);
+    public function getInfoTransactions($id_transactions) {
+        if (is_array($id_transactions))
+            return $this->getTransaction($id_transactions);
+        else if (is_numeric($id_transactions))
+            return $this->getTransaction([$id_transactions]);
         return 0;
     }
 
