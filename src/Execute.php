@@ -128,14 +128,6 @@ class Execute extends vk_api {
             $this->exec();
     }
 
-    public function execTest() {
-        echo json_encode($this->constructors_messages, JSON_UNESCAPED_UNICODE);
-    }
-
-    public function starter($code) {
-        return $this->request("execute", ["code" => $code]);
-    }
-
     public function exec() {
         if ($this->counter == 0)
             return false;
