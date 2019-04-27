@@ -1,3 +1,4 @@
+<?php
 //require_once('../vendor/autoload.php'); //подключаем библу ЧЕРЕЗ COMPOSER
 require_once('../autoload.php'); //подключаем библу
 use DigitalStar\vk_api\Coin;
