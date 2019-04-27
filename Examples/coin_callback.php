@@ -8,7 +8,7 @@ const COIN_API_KEY = ''; //Ключ магазина, можно получит�
 const COIN_API_MERCHANT = 89846036;//id страницы, чей ключ используется
 //******************************
 
-$coin = Coin:create(COIN_API_KEY, COIN_API_MERCHANT);
+$coin = Coin::create(COIN_API_KEY, COIN_API_MERCHANT);
 $coin->initVars($from_id, $amount, $payload, $verify, $data);
 if($verify)
   echo "Пользователь с id $from_id отправил вам $amount Coin";
