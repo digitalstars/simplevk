@@ -247,6 +247,9 @@ use DigitalStar\vk_api\Coin;
 * `initVars($from_id, $amount, $payload, $verify, $data)` - инициализирует переменные, которые есть в callback транзакции
     * `$data` - здесь находится все данные калбэка. На случай, если вам нужны переменные которые не задаются в функции
     * `$verify` - содержит true или false. Защита, если кто-то вдруг найдет путь до вашего callback скрипта
+#### Примеры использования
+* [Настройка магазина](https://github.com/digitalstars/vk_api/blob/master/Examples/setting_coin.php)
+* [Прием платежей](https://github.com/digitalstars/vk_api/blob/master/Examples/coin_callback.php)
  ******************
 ### Класс Group
 
