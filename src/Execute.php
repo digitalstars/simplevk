@@ -16,6 +16,10 @@ class Execute extends vk_api {
         $this->vk = $vk;
     }
 
+    public function __destruct() {
+        $this->exec();
+    }
+
     public function sendMessage($id, $message, $props = []) {
         $this->messages[] = ['peer_id' => $id, 'message' => $message, "random_id" => 0] + $props;
         $this->counter += 1;
@@ -27,6 +31,14 @@ class Execute extends vk_api {
         $this->messages[] = ['message' => $message, 'peer_id' => $user_id, 'keyboard' => $keyboard, "random_id" => 0];
         $this->counter += 1;
         $this->checkExec();
+    }
+
+    public function reply($message) {
+        if ($this->vk->data != []) {
+            return $this->sendMessage($this->vk->data->object->peer_id, $message);
+        } else {
+            throw new VkApiException('Вк не прислал callback, возможно вы пытаетесь запустить скрипт с локалки');
+        }
     }
 
     private function generateUrlPhotos($id, $count) {

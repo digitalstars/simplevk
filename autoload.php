@@ -10,3 +10,4 @@ require_once($path_dir.'/Auth.php');
 require_once($path_dir.'/Group.php');
 require_once($path_dir.'/LongPoll.php');
 require_once($path_dir.'/Coin.php');
+require_once($path_dir.'/Execute.php');
