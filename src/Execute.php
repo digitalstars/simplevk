@@ -162,11 +162,18 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"result": resul
 
     public function sendAllDialogs($message) {
         $ids = [];
-        $members = $this->getConversations();
 
-        foreach ($members as $user)
+        $exec_result = $this->getConversationsExec(0);
+        foreach ($exec_result['result'] as $user)
             if ($user['conversation']["can_write"]["allowed"] == true)
                 $ids [] = $user['conversation']['peer']['id'];
+        while ($exec_result['count'] > $exec_result['offset_ok']) {
+            $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
+            foreach ($exec_result['result'] as $user)
+                if ($user['conversation']["can_write"]["allowed"] == true)
+                    $ids [] = $user['conversation']['peer']['id'];
+        }
+
         $ids = array_chunk($ids, 100);
         foreach ($ids as $ids_chunk) {
             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => 0];
