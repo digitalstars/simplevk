@@ -163,10 +163,10 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"result": resul
     public function sendAllDialogs($message) {
         $ids = [];
 
-        $exec_result = $this->getConversationsExec(0);
-        foreach ($exec_result['result'] as $user)
-            if ($user['conversation']["can_write"]["allowed"] == true)
-                $ids [] = $user['conversation']['peer']['id'];
+        $exec_result = [
+            "count" => 1,
+            "offset_ok" => 0
+        ];
         while ($exec_result['count'] > $exec_result['offset_ok']) {
             $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
             foreach ($exec_result['result'] as $user)
