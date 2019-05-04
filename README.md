@@ -39,7 +39,7 @@ require_once "vendor/autoload.php"; //Подключаем библиотеку
 ### Вручную
 1. Скачать последний релиз
 2. Подключить перемещённый autoload.php
-\ Подключение autoload.php, если ваш скрипт находится в той же папке, что и папка vk_api-master
+* Подключение autoload.php, если ваш скрипт находится в той же папке, что и папка vk_api-master
 ```php
 require_once "vk_api-master/autoload.php"; //Подключаем библиотеку
 ```
