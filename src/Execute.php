@@ -7,7 +7,7 @@ namespace DigitalStar\vk_api;
 class Execute extends vk_api {
     private $vk;
     private $counter = 0;
-    static private $max_counter = 25;
+    static private $max_counter = 10; // 25;
     private $messages = [];
     private $constructors_messages = [];
 
@@ -133,6 +133,51 @@ class Execute extends vk_api {
         $this->constructors_messages[] = $object;
         $this->checkExec();
         return true;
+    }
+
+    private function getConversationsExec($offset) {
+        $code = 'var count = API.messages.getConversations({"count": 200, "offset": 0})["count"];
+var start_offset = '.$offset.';
+var temp_count = 0;
+var count_apis = 1;
+var result = [];
+while ((temp_count + start_offset) < count && count_apis < 25) {
+	result = result + API.messages.getConversations({"count": 200, "offset": (temp_count + start_offset)})["items"];
+	temp_count = temp_count + 200;
+	count_apis = count_apis + 1;
+}
+return {"count": count, "offset_ok": (temp_count + start_offset),"result": result};';
+        return $this->request("execute", ["code" => $code]);
+    }
+
+    public function getConversations() {
+        $exec_result = $this->getConversationsExec(0);
+        $result = $exec_result['result'];
+        while ($exec_result['count'] > $exec_result['offset_ok']) {
+            $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
+            if (!is_array($exec_result['result'])) {
+                echo "Не массив!\n";
+                print_r($exec_result);
+                exit(0);
+            }
+            $result = array_merge($result, $exec_result['result']);
+        }
+        return $result;
+    }
+
+    public function sendAllDialogs($message) {
+        $ids = [];
+        $members = $this->getConversations();
+
+        foreach ($members as $user)
+            if ($user['conversation']["can_write"]["allowed"] == true)
+                $ids [] = $user['conversation']['peer']['id'];
+        $ids = array_chunk($ids, 100);
+        foreach ($ids as $ids_chunk) {
+            $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => 0];
+            $this->counter += 1;
+            $this->checkExec();
+        }
     }
 
     private function checkExec() {

@@ -272,8 +272,7 @@ class vk_api {
      * @param $message
      * @throws VkApiException
      */
-    public function sendAllDialogs($message)
-    {
+    public function sendAllDialogs($message) {
         $ids = [];
         for ($count_all = 1, $offset = 0; $offset <= $count_all; $offset += 200) {
             $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset]); //'filter' => 'unread'
@@ -282,8 +281,8 @@ class vk_api {
             $count_all = $members['count'];
 
             foreach ($members["items"] as $user)
-                if($user['conversation']["can_write"]["allowed"] == true)
-                    $ids []= $user['conversation']['peer']['id'];
+                if ($user['conversation']["can_write"]["allowed"] == true)
+                    $ids [] = $user['conversation']['peer']['id'];
         }
         $ids = array_chunk($ids, 100);
         foreach ($ids as $ids_chunk)
@@ -687,14 +686,14 @@ class vk_api {
             $message = ['message' => $message];
         return $this->request('wall.post', ['owner_id' => $id] + $message + $props + $send_attachment);
     }
+
     /**
-     * @param $owner_id, $post_id, $message
+     * @param $owner_id , $post_id, $message
      * @return mixed
      * @throws VkApiException
      */
-    public function sendWallComment($owner_id, $post_id, $message)
-    {
-        return $this->request('wall.createComment', ['owner_id'=>$owner_id,'post_id'=>$post_id, 'message'=>$message]);
+    public function sendWallComment($owner_id, $post_id, $message) {
+        return $this->request('wall.createComment', ['owner_id' => $owner_id, 'post_id' => $post_id, 'message' => $message]);
     }
 
     /**
