@@ -272,32 +272,22 @@ class vk_api {
      * @param $message
      * @throws VkApiException
      */
-    public function sendAllDialogs($message) {
+    public function sendAllDialogs($message)
+    {
         $ids = [];
         for ($count_all = 1, $offset = 0; $offset <= $count_all; $offset += 200) {
-            $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset]);
+            $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset]); //'filter' => 'unread'
             if ($count_all != 1)
                 $offset += $members['count'] - $count_all;
-
             $count_all = $members['count'];
 
-            foreach ($members["items"] as $id) {
-                $ids [] = $id['conversation']['peer']['id'];
-                if (count($ids) == 100) {
-                    try {
-                        $this->request('messages.send', ['user_ids' => join(',', $ids), 'message' => $message]);
-                    } catch (Exception $e) {
-                    }
-                    $ids = [];
-                }
-            }
-            if ($ids != []) {
-                try {
-                    $this->request('messages.send', ['user_ids' => join(',', $ids), 'message' => $message]);
-                } catch (Exception $e) {
-                }
-            }
+            foreach ($members["items"] as $user)
+                if($user['conversation']["can_write"]["allowed"] == true)
+                    $ids []= $user['conversation']['peer']['id'];
         }
+        $ids = array_chunk($ids, 100);
+        foreach ($ids as $ids_chunk)
+            $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message]);
     }
 
     /**
