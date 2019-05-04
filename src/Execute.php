@@ -155,11 +155,6 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"result": resul
         $result = $exec_result['result'];
         while ($exec_result['count'] > $exec_result['offset_ok']) {
             $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
-            if (!is_array($exec_result['result'])) {
-                echo "Не массив!\n";
-                print_r($exec_result);
-                exit(0);
-            }
             $result = array_merge($result, $exec_result['result']);
         }
         return $result;
