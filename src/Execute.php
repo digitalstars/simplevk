@@ -137,30 +137,25 @@ class Execute extends vk_api {
 
     private function getConversationsExec($offset) {
         $code = 'var count = API.messages.getConversations({"count": 200, "offset": 0})["count"];
-var start_offset = '.$offset.';
+var start_offset = '. $offset .';
 var temp_count = 0;
 var count_apis = 1;
 var result = [];
+var write_allowed = [];
+var ids = [];
 while ((temp_count + start_offset) < count && count_apis < 25) {
-	result = result + API.messages.getConversations({"count": 200, "offset": (temp_count + start_offset)})["items"];
+	result = API.messages.getConversations({"count": 200, "offset": (temp_count + start_offset)})["items"]@.conversation;
+	write_allowed = write_allowed + result@.can_write@.allowed;
+	ids = ids + result@.peer@.id;
 	temp_count = temp_count + 200;
 	count_apis = count_apis + 1;
 }
-return {"count": count, "offset_ok": (temp_count + start_offset),"result": result};';
+return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed": write_allowed, "ids": ids};';
+//        $code = 'return API.messages.getConversations({"count": 200, "offset": 0})["count"];';
         return $this->request("execute", ["code" => $code]);
     }
 
-    public function getConversations() {
-        $exec_result = $this->getConversationsExec(0);
-        $result = $exec_result['result'];
-        while ($exec_result['count'] > $exec_result['offset_ok']) {
-            $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
-            $result = array_merge($result, $exec_result['result']);
-        }
-        return $result;
-    }
-
-    public function sendAllDialogs($message) {
+    public function getConversationsIds() {
         $ids = [];
 
         $exec_result = [
@@ -169,11 +164,15 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"result": resul
         ];
         while ($exec_result['count'] > $exec_result['offset_ok']) {
             $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
-            foreach ($exec_result['result'] as $user)
-                if ($user['conversation']["can_write"]["allowed"] == true)
-                    $ids [] = $user['conversation']['peer']['id'];
+            foreach ($exec_result['write_allowed'] as $key => $var)
+                if ($var)
+                    $ids [] = $exec_result['ids'][$key];
         }
+        return $ids;
+    }
 
+    public function sendAllDialogs($message) {
+        $ids = $this->getConversationsIds();
         $ids = array_chunk($ids, 100);
         foreach ($ids as $ids_chunk) {
             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => 0];
