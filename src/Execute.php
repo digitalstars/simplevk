@@ -155,7 +155,7 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
         return $this->request("execute", ["code" => $code]);
     }
 
-    public function getConversationsIds() {
+    private function getConversationsIds() {
         $ids = [];
 
         $exec_result = [
@@ -175,16 +175,16 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
         return $ids;
     }
 
-    public function sendAllDialogs($message) {
-        $ids = $this->getConversationsIds();
-        $ids = array_chunk($ids, 100);
-        foreach ($ids as $ids_chunk) {
-            $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => 0];
-            $this->counter += 1;
-            $this->checkExec();
-        }
-        echo "COUNT = ".$this->counter."\n";
-    }
+//     public function sendAllDialogs($message) {
+//         $ids = $this->getConversationsIds();
+//         $ids = array_chunk($ids, 100);
+//         foreach ($ids as $ids_chunk) {
+//             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => 0];
+//             $this->counter += 1;
+//             $this->checkExec();
+//         }
+//         echo "COUNT = ".$this->counter."\n";
+//     }
 
     private function checkExec() {
         if ($this->counter >= Execute::$max_counter)
