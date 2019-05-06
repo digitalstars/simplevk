@@ -79,8 +79,8 @@ class LongPoll extends vk_api
     {
         while ($data = $this->processingData()) {
             foreach ($data->updates as $event) {
-                unset($this->data);
-                $this->data = $event;
+                unset($this->vk->data);
+                $this->vk->data = $event;
                 $anon($event);
             }
             if ($this->vk instanceof Execute) {
