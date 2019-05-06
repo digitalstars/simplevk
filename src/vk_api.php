@@ -286,7 +286,11 @@ class vk_api {
         }
         $ids = array_chunk($ids, 100);
         foreach ($ids as $ids_chunk)
-            $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message]);
+            try {
+                $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message]);
+            } catch (Exception $e) {
+                continue;
+            }
     }
 
     /**
