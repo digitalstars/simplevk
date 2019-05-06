@@ -164,10 +164,14 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
         ];
         while ($exec_result['count'] > $exec_result['offset_ok']) {
             $exec_result = $this->getConversationsExec($exec_result['offset_ok']);
+            echo "{$exec_result['offset_ok']} / {$exec_result['count']}, ";
             foreach ($exec_result['write_allowed'] as $key => $var)
                 if ($var)
                     $ids [] = $exec_result['ids'][$key];
         }
+        $count = count($ids);
+        $ids = array_unique($ids);
+        echo "Complete!\nВсего id:  ".$count."\nДубликатов: ".($count - count($ids))."\n";
         return $ids;
     }
 
@@ -179,6 +183,7 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
             $this->counter += 1;
             $this->checkExec();
         }
+        echo "COUNT = ".$this->counter."\n";
     }
 
     private function checkExec() {
