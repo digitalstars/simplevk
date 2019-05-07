@@ -134,7 +134,7 @@ class LongPoll extends vk_api
     public function on($type, $anon)
     {
         $summands = [];
-        $data = json_decode(json_encode($this->data), true);
+        $data = json_decode(json_encode($this->vk->data), true);
         switch ($type) {
             case 'new_message':
                 {
@@ -144,10 +144,10 @@ class LongPoll extends vk_api
                                 $summands[] = $key;
                         }
                         if (!in_array(2, $summands)) { //только входящие сообщения
-                            $this->data = [];
-                            $this->data['object']['peer_id'] = $data[3];
-                            $this->data['object']['text'] = $data[5];
-                            $this->data = json_decode(json_encode($this->data));
+                            $this->vk->data = [];
+                            $this->vk->data['object']['peer_id'] = $data[3];
+                            $this->vk->data['object']['text'] = $data[5];
+                            $this->vk->data = json_decode(json_encode($this->vk->data));
                             $anon($data);
                         }
                     }
@@ -163,7 +163,7 @@ class LongPoll extends vk_api
      */
     public function initVars($selectors, &...$args)
     {
-        $data = $this->data;
+        $data = $this->vk->data;
 
         if (isset($data->object->payload))
             $data->object->payload = json_decode($data->object->payload, true);
