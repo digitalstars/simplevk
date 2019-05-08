@@ -182,6 +182,10 @@ class LongPoll extends vk_api
         foreach ($selectors as $key => $val)
             $args[$key] = $init[trim($val)];
     }
+    
+    public function reply($message) {
+        return $this->vk->request('messages.send', ['message' => $message, 'peer_id' => $this->vk->data->object->peer_id]);
+    }
 
     /**
      * @param $url
