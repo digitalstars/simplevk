@@ -407,7 +407,7 @@ class vk_api {
      * @param bool $one_time
      * @return array|false|string
      */
-    protected function generateKeyboard($buttons = [], $one_time = False) {
+    public function generateKeyboard($buttons = [], $one_time = False) {
         $keyboard = [];
         $i = 0;
         foreach ($buttons as $button_str) {
