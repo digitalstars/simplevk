@@ -173,7 +173,7 @@ class LongPoll extends vk_api
             'user_id' => isset($data->object->from_id) ? $data->object->from_id : null,
             'message' => isset($data->object->text) ? $data->object->text : null,
             'payload' => isset($data->object->payload) ? $data->object->payload : null,
-            'type' => isset($data->type) ? $this->data->type : null,
+            'type' => isset($data->type) ? $data->type : null,
             'all' => $data,
         ];
         $selectors = explode(',', $selectors);
