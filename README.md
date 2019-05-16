@@ -103,20 +103,24 @@ use DigitalStar\vk_api\VkApiException; // Обработка ошибок
     
 * `debug()` - включает режим вывода ошибок
     
-* `initVars($selectors, &...$args)` - вносит некоторые данные callback в переменные
-    * `$selectors` - строка с необходимыми переменными. Возможные значения: _id, user_id, message, payload, type, all_
-    * `&...$args` - переменные через запятую, в которые будут вносится значения переменных из 1 параметра. Должно быть одинаковое количество аргументов, порядок важен.
+* `initVars($id, $message, $payload, $user_id, $type, $data)` - инициализирует переменные
+> Вы можете назвать переменные по другому, но важно сохранить их порядок. Так же вы можете только часть переменных, например $id, $message а остальные не указывать. Но вы НЕ можете сделать так initVars($id, $type), нужно указать все переменные стоящие до $type.
+> Так же функция возвращает $data(весь json от вк в виде объекта), поэтому можно писать так:
+```php
+$data = initVars($id, $message);
+$time = $data->object->date;
+```
   ```php
   //пример кода  
   $vk = vk_api::create(TOKEN, VERSION)->setConfirm(CONFIRM_STR);  
-  $vk->initVars('id, message, payload, all', $id, $message, $payload, $data); //в $data содержится весь прилетевший callback
+  initVars($id, $message, $payload, $user_id, $type, $data);
   $vk->reply($message); //отвечает пользователю или в беседу
   ```
 * `sendWallComment($owner_id, $post_id, $message)` - отправляет комментарий под постом
     * `$owner_id` - id пользователя
     * `$post_id` - id поста
     * `$message` - сообщение
-* `getAlias($id, $n = null);` - возвращает обращение к пользователю или группе в виде строки по типу @id123 или$coin->getLink(100, true)['url']; @public123
+* `getAlias($id, $n = null);` - возвращает обращение к пользователю или группе в виде строки по типу @id123 или @public123
     * `$id` - id пользователя или группы, так же можно указать короткий адрес
     * `$n` - принимает 3 параметра или можно не указывать
         * `если не указать` - вернет обращение в виде id
