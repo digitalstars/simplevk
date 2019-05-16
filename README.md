@@ -107,13 +107,13 @@ use DigitalStar\vk_api\VkApiException; // Обработка ошибок
 > Вы можете назвать переменные по другому, но важно сохранить их порядок. Так же вы можете только часть переменных, например $id, $message а остальные не указывать. Но вы НЕ можете сделать так initVars($id, $type), нужно указать все переменные стоящие до $type.
 > Так же функция возвращает $data(весь json от вк в виде объекта), поэтому можно писать так:
 ```php
-$data = initVars($id, $message);
+$data = $vk->initVars($id, $message);
 $time = $data->object->date;
 ```
   ```php
   //пример кода  
   $vk = vk_api::create(TOKEN, VERSION)->setConfirm(CONFIRM_STR);  
-  initVars($id, $message, $payload, $user_id, $type, $data);
+  $vk->initVars($id, $message, $payload, $user_id, $type, $data);
   $vk->reply($message); //отвечает пользователю или в беседу
   ```
 * `sendWallComment($owner_id, $post_id, $message)` - отправляет комментарий под постом
