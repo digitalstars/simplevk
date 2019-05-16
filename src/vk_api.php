@@ -105,31 +105,25 @@ class vk_api {
     }
 
     /**
-     * @param $selectors
-     * @param array $args
-     * @throws VkApiException
+     * @param null $id
+     * @param null $message
+     * @param null $payload
+     * @param null $user_id
+     * @param null $type
+     * @param null $data
+     * @return array|mixed|null
      */
-    public function initVars($selectors, &...$args) {
+    public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null, &$data = null) {
         if (!$this->debug_mode)
             $this->sendOK();
+
         $data = $this->data;
-
-        if (isset($data->object->payload))
-            $data->object->payload = json_decode($data->object->payload, true);
-
-        $init = [
-            'id' => isset($data->object->peer_id) ? $data->object->peer_id : null,
-            'user_id' => isset($data->object->from_id) ? $data->object->from_id : null,
-            'message' => isset($data->object->text) ? $data->object->text : null,
-            'payload' => isset($data->object->payload) ? $data->object->payload : null,
-            'type' => isset($this->data->type) ? $this->data->type : null,
-            'all' => $data,
-        ];
-        $selectors = explode(',', $selectors);
-        if (count($selectors) != count($args))
-            throw new VkApiException('Разное количество аргументов и переменных при инициализации');
-        foreach ($selectors as $key => $val)
-            $args[$key] = $init[trim($val)];
+        $id = isset($data->object->peer_id) ? $data->object->peer_id : null;
+        $message = isset($data->object->text) ? $data->object->text : null;
+        $payload = isset($data->object->payload) ? json_decode($data->object->payload, true) : null;
+        $user_id = isset($data->object->from_id) ? $data->object->from_id : null;
+        $type = isset($data->type) ? $data->type : null;
+        return $data;
     }
 
     /**
