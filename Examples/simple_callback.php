@@ -16,4 +16,4 @@ const VERSION = "5.95"; //ваша версия используемого api
 $vk = vk_api::create(VK_KEY, VERSION)->setConfirm(CONFIRM_STR);
 $vk->debug();
 $vk->initVars($id, $message); //инициализация переменных
-$vk->reply('Секретная информация'); //отвечает пользователю или в беседу
+$vk->reply($message); //отвечает пользователю или в беседу
