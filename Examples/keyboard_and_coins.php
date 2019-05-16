@@ -1,4 +1,8 @@
 <?php
+/** данные подключения правильные только в том случае,
+* если вы запускаете скрипт из папки Examples  из только что установленой либы. 
+* Иначе путь до autoload будет другой
+*/
 //require_once('../vendor/autoload.php'); //подключаем библу ЧЕРЕЗ COMPOSER
 require_once('../autoload.php'); //подключаем библу
 
@@ -19,10 +23,10 @@ try {
     $coin = Coin::create(COIN_API_KEY, COIN_ID_VK);
 
     $vk->debug();
-    $vk->initVars('id, message, payload, user_id', $id, $message, $payload, $user_id); //инициализация переменных
+    $vk->initVars($id, $message, $payload, $user_id); //инициализация переменных
 
     if ($payload) { //если пришел payload
-        if ($payload == 'mymoney') {
+        if ($payload['command'] == 'mymoney') {
             $vk->reply('Твой баланс: ' . $coin->getBalance($user_id) . ' VKC');
         }
     } else
