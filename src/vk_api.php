@@ -501,7 +501,20 @@ class vk_api {
             $result = $this->request('docs.getMessagesUploadServer', ['type' => 'doc', 'peer_id' => $peer_id]);
         else if ($selector == 'photo')
             $result = $this->request('photos.getMessagesUploadServer', ['peer_id' => $peer_id]);
+        else if ($selector == 'audio_message')
+            $result = $this->request('docs.getMessagesUploadServer', ['type' => 'audio_message', 'peer_id' => $peer_id]);
         return $result;
+    }
+
+    private function uploadVoice($id, $local_file_path) {
+        $upload_url = $this->getUploadServerMessages($id, 'audio_message')['upload_url'];
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'file'), true);
+        return $this->saveDocuments($answer_vk['file'], 'voice');
+    }
+
+    public function sendVoice($id, $local_file_path) {
+        $upload_file = $this->uploadVoice($id, $local_file_path);
+        return $this->request('messages.send', ['attachment' => "doc" . $upload_file['audio_message']['owner_id'] . "_" . $upload_file['audio_message']['id'], 'peer_id' => $id]);
     }
 
     /**
