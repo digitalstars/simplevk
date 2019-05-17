@@ -188,6 +188,7 @@ class vk_api {
 
         while (True) {
             try {
+//                echo "Попытка отправить запрос...\n";
                 return $this->request_core($url, $params);
             } catch (VkApiException $e) {
                 sleep(1);
@@ -779,6 +780,12 @@ class vk_api {
                         else
                             $upload_file = current($upload_file);
                         $send_attachment[] = "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
+                    }
+                    break;
+                case "voice":
+                    foreach ($massiv as $voice) {
+                        $upload_file = $this->uploadVoice($id, $voice);
+                        $send_attachment[] = "doc" . $upload_file['audio_message']['owner_id'] . "_" . $upload_file['audio_message']['id'];
                     }
                     break;
                 case "other":

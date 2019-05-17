@@ -128,7 +128,7 @@ class Base
      * @param $selector
      * @return int
      */
-    private function removeMedia($media, $selector)
+    protected function removeMedia($media, $selector)
     {
         $search = array_search($media, $this->media[$selector]);
         if ($search) {

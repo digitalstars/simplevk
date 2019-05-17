@@ -34,8 +34,8 @@ class Execute extends vk_api {
     }
 
     public function reply($message) {
-        if ($this->data != []) {
-            return $this->sendMessage($this->data->object->peer_id, $message);
+        if ($this->vk->data != []) {
+            return $this->sendMessage($this->vk->data->object->peer_id, $message);
         } else {
             throw new VkApiException('Вк не прислал callback, возможно вы пытаетесь запустить скрипт с локалки');
         }
@@ -188,7 +188,8 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
 
     private function checkExec() {
         if ($this->counter >= Execute::$max_counter)
-            $this->exec();
+            return $this->exec();
+        return false;
     }
 
     public function exec() {

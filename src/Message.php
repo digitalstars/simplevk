@@ -42,6 +42,16 @@ class Message extends Base
         $this->keyboard = ['keyboard' => $keyboard, 'one_time' => $one_time];
     }
 
+    public function addVoice()
+    {
+        $this->addMedia(func_get_args(), 'voice');
+    }
+
+    public function removeVoice($voice)
+    {
+        return $this->removeMedia($voice, 'voice');
+    }
+
     /**
      * @param $id
      * @return mixed
