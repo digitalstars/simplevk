@@ -45,15 +45,18 @@ class Coin {
      * @param $user_id
      * @param int $amount
      * @return array|bool
-     * @throws VkApiException
      */
     public function sendCoins($user_id, $amount) {
-        $amount = $this->request('send', ['amount' => $amount * 1000, 'toId' => $user_id]);
-        if (isset($amount['amount']) && isset($amount['current'])) {
-            $amount['amount'] /= 1000;
-            $amount['current'] /= 1000;
+        try {
+            $amount = $this->request('send', ['amount' => $amount * 1000, 'toId' => $user_id]);
+            if (isset($amount['amount']) && isset($amount['current'])) {
+                $amount['amount'] /= 1000;
+                $amount['current'] /= 1000;
+            }
+            return 1;
+        } catch (VkApiException $e) {
+            return 0;
         }
-        return $amount;
     }
 
 
