@@ -165,7 +165,7 @@ $vk = vk_api::create(TOKEN, '5.95');
 $vk = new LongPoll($vk);
 
 $vk->listen(function($data)use($vk){ //в $data содержится все данные события, можно убрать, если не нужен
-    $vk->initVars('id, message', $id, $message);
+    $vk->initVars($id, $message);
     $vk->reply($message);
 });
 ```
@@ -176,7 +176,7 @@ $vk = new LongPoll($vk);
 
 $vk->listen(function()use($vk){ //longpoll для пользователя
     $vk->on('new_message', function($data)use($vk) {
-        $vk->initVars('id, message', $id, $message);
+        $vk->initVars($id, $message);
         $vk->reply($message);
     });
 });
