@@ -111,7 +111,7 @@ class Execute extends vk_api {
                     foreach ($massiv as $key => $document) {
                         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
                             try {
-                                $title = $document['title'] ?? preg_replace("!.*?/!", '', $document);
+                                $title = isset($document['title']) ? $document['title'] : preg_replace("!.*?/!", '', $document);
                                 $answer_vk = json_decode($this->sendFiles($doc_urls[$key]['upload_url'], $document['path']), true);
                                 $object['docs_content'][] = ['file' => $answer_vk['file'], 'title' => $title];
                                 $this->counter += 1;
