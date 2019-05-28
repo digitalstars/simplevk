@@ -61,6 +61,7 @@ class vk_api {
         if ($token instanceof auth) {
             $this->auth = $token;
             $this->version = $version;
+            $this->auth_type = 'user';
             $this->token = $this->auth->getAccessToken();
         } else if (isset($also_version)) {
             $this->auth = new Auth($token, $version);
@@ -70,7 +71,10 @@ class vk_api {
         } else {
             $this->token = $token;
             $this->version = $version;
-            $this->auth_type = 'group';
+            if ($this->userInfo())
+                $this->auth_type = 'user';
+            else
+                $this->auth_type = 'group';
         }
         foreach (DIFFERENCE_VERSIONS_METHOD as $version => $methods) {
             if ($this->version >= $version) {
