@@ -32,7 +32,7 @@ class vk_api {
     /**
      * @var int
      */
-    private $debug_mode = 0;
+    protected $debug_mode = 0;
     /**
      * @var int|string
      */
