@@ -19,6 +19,27 @@ class Execute extends vk_api {
     public function __destruct() {
         $this->exec();
     }
+	
+	/**
+     * @param null $id
+     * @param null $message
+     * @param null $payload
+     * @param null $user_id
+     * @param null $type
+     * @param null $data
+     * @return array|mixed|null
+     */
+    public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null, &$data = null) {
+        if (!$this->vk->debug_mode)
+            $this->vk->sendOK();
+        $data = $this->vk->data;
+        $id = isset($data->object->peer_id) ? $data->object->peer_id : null;
+        $message = isset($data->object->text) ? $data->object->text : null;
+        $payload = isset($data->object->payload) ? json_decode($data->object->payload, true) : null;
+        $user_id = isset($data->object->from_id) ? $data->object->from_id : null;
+        $type = isset($data->type) ? $data->type : null;
+        return $data;
+    }
 
     public function sendMessage($id, $message, $props = []) {
         $this->messages[] = ['peer_id' => $id, 'message' => $message, "random_id" => 0] + $props;
