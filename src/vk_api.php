@@ -179,13 +179,13 @@ class vk_api {
         $i = 0;
         $count = 0;
         print "Начинаю перебор всех бесед...\n";
-        while(true) {
-            print(++$i." ");
+        while (true) {
+            print(++$i . " ");
             try {
-                $this->sendMessage(2000000000+$i, $text, $params);
+                $this->sendMessage(2000000000 + $i, $text, $params);
                 $count++;
             } catch (VkApiException $e) {
-                if($e->getCode() == 10) {
+                if ($e->getCode() == 10) {
                     print "\nВсего было разослано в $count бесед";
                     break;
                 }
@@ -418,6 +418,34 @@ class vk_api {
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
 
+    public function buttonLocation($payload = null) {
+        return ['location', $payload];
+    }
+
+    public function buttonPayToGroup($aid, $group_id, $amount, $description = null, $data = null, $payload = null) {
+        return ['vkpay', $payload, 'pay-to-group', $aid, $group_id, $amount, $description, $data];
+    }
+
+    public function buttonPayToUser($aid, $user_id, $amount, $description = null, $payload = null) {
+        return ['vkpay', $payload, 'pay-to-user', $aid, $user_id, $amount, $description];
+    }
+
+    public function buttonDonateToGroup($aid, $group_id, $payload = null) {
+        return ['vkpay', $payload, 'transfer-to-group', $aid, $group_id];
+    }
+
+    public function buttonDonateToUser($aid, $user_id, $payload = null) {
+        return ['vkpay', $payload, 'transfer-to-user', $aid, $user_id];
+    }
+
+    public function buttonApp($text, $app_id, $owner_id = null, $hash = null, $payload = null) {
+        return ['open_app', $payload, $text, $app_id, $owner_id, $hash];
+    }
+
+    public function buttonText($text, $color, $payload = null) {
+        return ['text', $payload, $text, $color];
+    }
+
     /**
      * @param array $buttons
      * @param bool $one_time
@@ -429,19 +457,42 @@ class vk_api {
         foreach ($buttons as $button_str) {
             $j = 0;
             foreach ($button_str as $button) {
-                $color = $this->replaceColor($button[2]);
-                $keyboard[$i][$j]["action"]["type"] = "text";
-                if ($button[0] != null)
-                    $keyboard[$i][$j]["action"]["payload"] = json_encode($button[0], JSON_UNESCAPED_UNICODE);
-                $keyboard[$i][$j]["action"]["label"] = $button[1];
-                $keyboard[$i][$j]["color"] = $color;
+                $keyboard[$i][$j]["action"]["type"] = $button[0];
+                if ($button[1] != null)
+                    $keyboard[$i][$j]["action"]["payload"] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
+                switch ($button[0]) {
+                    case 'text': {
+                        $color = $this->replaceColor($button[3]);
+                        $keyboard[$i][$j]["color"] = $color;
+                        $keyboard[$i][$j]["action"]["label"] = $button[2];
+                        break;
+                    }
+                    case 'vkpay': {
+                        $keyboard[$i][$j]["action"]["hash"] = "action={$button[2]}";
+                        $keyboard[$i][$j]["action"]["hash"] .= "&aid={$button[3]}";
+                        $keyboard[$i][$j]["action"]["hash"] .= ($button[4] < 0) ? "&group_id=".$button[4]*-1 : "&user_id={$button[4]}";
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[5])) ? "&amount={$button[5]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[6])) ? "&description={$button[6]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[7])) ? "&data={$button[7]}" : '';
+                        break;
+                    }
+                    case 'open_app': {
+                        $keyboard[$i][$j]["action"]["label"] = $button[2];
+                        $keyboard[$i][$j]["action"]["app_id"] = $button[3];
+                        if(isset($button[4]))
+                            $keyboard[$i][$j]["action"]["owner_id"] = $button[4];
+                        if(isset($button[5]))
+                            $keyboard[$i][$j]["action"]["hash"] = $button[5];
+                        break;
+                    }
+                }
                 $j++;
             }
             $i++;
         }
-        $keyboard = ["one_time" => $one_time,
-            "buttons" => $keyboard];
+        $keyboard = ["one_time" => $one_time, "buttons" => $keyboard];
         $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
+        print_r($keyboard);
         return $keyboard;
     }
 
