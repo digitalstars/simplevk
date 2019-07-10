@@ -18,8 +18,3 @@ const DEFAULT_USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.
     // ID приложения ВК по умолчанию
 const DEFAULT_ID_APP = '6660888';
 /*-----Массив разницы версий--------*/
-const DIFFERENCE_VERSIONS_METHOD = [
-    '5.9' => [
-        'messages.send' => ['random_id' => "%RANDOMIZE_INT32%"]
-    ]
-];

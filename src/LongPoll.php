@@ -176,8 +176,9 @@ class LongPoll extends vk_api
         return $data;
     }
     
-    public function reply($message) {
-        return $this->vk->request('messages.send', ['message' => $message, 'peer_id' => $this->vk->data->object->peer_id]);
+    public function reply($message, $params = []) {
+        $message = $this->vk->placeholders($this->vk->data->object->peer_id, $message);
+        return $this->vk->request('messages.send', ['message' => $message, 'peer_id' => $this->vk->data->object->peer_id] + $params);
     }
 
     /**

@@ -42,21 +42,23 @@ class Execute extends vk_api {
     }
 
     public function sendMessage($id, $message, $props = []) {
-        $this->messages[] = ['peer_id' => $id, 'message' => $message, "random_id" => 0] + $props;
+        $message = $this->vk->placeholders($id, $message);
+        $this->messages[] = ['peer_id' => $id, 'message' => $message, "random_id" => rand(-2147483648, 2147483647)] + $props;
         $this->counter += 1;
         $this->checkExec();
     }
 
-    public function sendButton($user_id, $message, $buttons = [], $one_time = False) {
+    public function sendButton($id, $message, $buttons = [], $one_time = False, $params = []) {
         $keyboard = $this->generateKeyboard($buttons, $one_time);
-        $this->messages[] = ['message' => $message, 'peer_id' => $user_id, 'keyboard' => $keyboard, "random_id" => 0];
+        $message = $this->vk->placeholders($id, $message);
+        $this->messages[] = ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard, "random_id" => rand(-2147483648, 2147483647)] + $params;
         $this->counter += 1;
         $this->checkExec();
     }
 
-    public function reply($message) {
+    public function reply($message, $params = []) {
         if ($this->vk->data != []) {
-            return $this->sendMessage($this->vk->data->object->peer_id, $message);
+            return $this->sendMessage($this->vk->data->object->peer_id, $message, $params);
         } else {
             throw new VkApiException('Вк не прислал callback, возможно вы пытаетесь запустить скрипт с локалки');
         }
@@ -200,7 +202,7 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
 //         $ids = $this->getConversationsIds();
 //         $ids = array_chunk($ids, 100);
 //         foreach ($ids as $ids_chunk) {
-//             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => 0];
+//             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => rand(-2147483648, 2147483647)];
 //             $this->counter += 1;
 //             $this->checkExec();
 //         }

@@ -34,10 +34,6 @@ class vk_api {
      */
     protected $debug_mode = 0;
     /**
-     * @var int|string
-     */
-    private $action_version = 0;
-    /**
      * @var Auth|null
      */
     private $auth = null;
@@ -75,12 +71,6 @@ class vk_api {
                 $this->auth_type = 'user';
             else
                 $this->auth_type = 'group';
-        }
-        foreach (DIFFERENCE_VERSIONS_METHOD as $version => $methods) {
-            if ($this->version >= $version) {
-                $this->action_version = $version;
-                break;
-            }
         }
         $this->data = json_decode(file_get_contents('php://input'));
     }
@@ -166,15 +156,53 @@ class vk_api {
 
     /**
      * @param $message
+     * @param array $params
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function reply($message) {
+    public function reply($message, $params = []) {
         if ($this->data != []) {
-            return $this->request('messages.send', ['message' => $message, 'peer_id' => $this->data->object->peer_id]);
+            $message = $this->placeholders($this->data->object->peer_id, $message);
+            return $this->request('messages.send', ['message' => $message, 'peer_id' => $this->data->object->peer_id] + $params);
         } else {
             throw new VkApiException('Вк не прислал callback, возможно вы пытаетесь запустить скрипт с локалки');
         }
+    }
+
+    public function forward($id, $id_messages, $params = []) {
+        $forward_messages = (is_array($id_messages)) ? join(',', $id_messages) : $id_messages;
+        return $this->request('messages.send', ['peer_id' => $id, 'forward_messages' => $forward_messages] + $params);
+    }
+
+    public function sendAllChats($text, $params = []) {
+        unset($this->request_ignore_error[array_search(10, $this->request_ignore_error)]); //убираем код 10 из исключений
+        $i = 0;
+        $count = 0;
+        print "Начинаю перебор всех бесед...\n";
+        while(true) {
+            print(++$i." ");
+            try {
+                $this->sendMessage(2000000000+$i, $text, $params);
+                $count++;
+            } catch (VkApiException $e) {
+                if($e->getCode() == 10) {
+                    print "\nВсего было разослано в $count бесед";
+                    break;
+                }
+            }
+        }
+    }
+
+    protected function placeholders($id, $message) {
+        if (strpos($message, '%') !== false) {
+            $data = $this->userInfo($id);
+            $f = $data['first_name'];
+            $l = $data['last_name'];
+            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
+            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
+            return str_replace($tag, $replace, $message);
+        } else
+            return $message;
     }
 
     /**
@@ -188,19 +216,17 @@ class vk_api {
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
-        $params += $this->differenceVersions($method);
+        $params['random_id'] = rand(-2147483648, 2147483647);
 
         while (True) {
             try {
-//                echo "Попытка отправить запрос...\n";
                 return $this->request_core($url, $params);
             } catch (VkApiException $e) {
                 sleep(1);
-                $exception = json_decode($e->getMessage(), true);
-                if (in_array($exception['error']['error_code'], $this->request_ignore_error))
+                if (in_array($e->getCode(), $this->request_ignore_error))
                     continue;
                 else
-                    throw new VkApiException($e->getMessage());
+                    throw new VkApiException($e->getMessage(), $e->getCode());
             }
         }
         return false;
@@ -213,22 +239,6 @@ class vk_api {
      */
     protected function editRequestParams($method, $params) {
         return [$method, $params];
-    }
-
-    /**
-     * @param $method
-     * @return array
-     */
-    private function differenceVersions($method) {
-        if (array_key_exists($this->action_version, DIFFERENCE_VERSIONS_METHOD) and array_key_exists($method, DIFFERENCE_VERSIONS_METHOD[$this->action_version]))
-            $extra_props = DIFFERENCE_VERSIONS_METHOD[$this->action_version][$method];
-        else
-            $extra_props = [];
-        foreach ($extra_props as $key => $value) {
-            if (strpos($value, "%RANDOMIZE_INT32%") !== false)
-                $extra_props[$key] = str_replace("%RANDOMIZE_INT32%", rand(-2147483648, 2147483647), $value);
-        }
-        return $extra_props;
     }
 
     /**
@@ -259,8 +269,9 @@ class vk_api {
         }
         if (!isset($result))
             $this->request_core($url, $params);
-        if (isset($result['error']))
-            throw new VkApiException(json_encode($result));
+        if (isset($result['error'])) {
+            throw new VkApiException(json_encode($result), $result['error']['error_code']);
+        }
         if (isset($result['response']))
             return $result['response'];
         else
@@ -269,12 +280,14 @@ class vk_api {
 
     /**
      * @param $message
+     * @param null $filter
+     * @param array $params
      * @throws VkApiException
      */
-    public function sendAllDialogs($message) {
+    public function sendAllDialogs($message, $filter = 'all', $params = []) {
         $ids = [];
         for ($count_all = 1, $offset = 0; $offset <= $count_all; $offset += 200) {
-            $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset]); //'filter' => 'unread'
+            $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset, 'filter' => $filter]);//'filter' => 'unread'
             if ($count_all != 1)
                 $offset += $members['count'] - $count_all;
             $count_all = $members['count'];
@@ -286,7 +299,7 @@ class vk_api {
         $ids = array_chunk($ids, 100);
         foreach ($ids as $ids_chunk)
             try {
-                $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message]);
+                $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message] + $params);
             } catch (Exception $e) {
                 continue;
             }
@@ -368,13 +381,15 @@ class vk_api {
     /**
      * @param $id
      * @param $message
+     * @param array $params
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function sendMessage($id, $message) {
+    public function sendMessage($id, $message, $params = []) {
         if ($id < 1)
             return;
-        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id]);
+        $message = $this->placeholders($id, $message);
+        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
     }
 
     /**
@@ -393,12 +408,14 @@ class vk_api {
      * @param $message
      * @param array $buttons
      * @param bool $one_time
+     * @param array $params
      * @return mixed
      * @throws VkApiException
      */
-    public function sendButton($user_id, $message, $buttons = [], $one_time = False) {
+    public function sendButton($id, $message, $buttons = [], $one_time = False, $params = []) {
         $keyboard = $this->generateKeyboard($buttons, $one_time);
-        return $this->request('messages.send', ['message' => $message, 'peer_id' => $user_id, 'keyboard' => $keyboard]);
+        $message = $this->placeholders($id, $message);
+        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
 
     /**
@@ -463,12 +480,13 @@ class vk_api {
     /**
      * @param $id
      * @param $local_file_path
+     * @param array $params
      * @return mixed
      * @throws VkApiException
      */
-    public function sendImage($id, $local_file_path) {
+    public function sendImage($id, $local_file_path, $params = []) {
         $upload_file = $this->uploadImage($id, $local_file_path);
-        return $this->request('messages.send', ['attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id]);
+        return $this->request('messages.send', ['attachment' => "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'], 'peer_id' => $id] + $params);
     }
 
     /**
@@ -487,7 +505,7 @@ class vk_api {
                 sleep(1);
                 $exception = json_decode($e->getMessage(), true);
                 if ($exception['error']['error_code'] != 121)
-                    throw new VkApiException($e->getMessage());
+                    throw new VkApiException($e->getMessage(), $exception['error']['error_code']);
             }
         }
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
@@ -517,9 +535,9 @@ class vk_api {
         return $this->saveDocuments($answer_vk['file'], 'voice');
     }
 
-    public function sendVoice($id, $local_file_path) {
+    public function sendVoice($id, $local_file_path, $params = []) {
         $upload_file = $this->uploadVoice($id, $local_file_path);
-        return $this->request('messages.send', ['attachment' => "doc" . $upload_file['audio_message']['owner_id'] . "_" . $upload_file['audio_message']['id'], 'peer_id' => $id]);
+        return $this->request('messages.send', ['attachment' => "doc" . $upload_file['audio_message']['owner_id'] . "_" . $upload_file['audio_message']['id'], 'peer_id' => $id] + $params);
     }
 
     /**
@@ -621,13 +639,14 @@ class vk_api {
      * @param $id
      * @param $local_file_path
      * @param null $title
+     * @param array $params
      * @return bool|mixed
      * @throws VkApiException
      */
-    public function sendDocMessage($id, $local_file_path, $title = null) {
+    public function sendDocMessage($id, $local_file_path, $title = null, $params = []) {
         $upload_file = current($this->uploadDocsMessages($id, $local_file_path, $title));
         if ($id != 0 and $id != '0') {
-            return $this->request('messages.send', ['attachment' => "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'], 'peer_id' => $id]);
+            return $this->request('messages.send', ['attachment' => "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'], 'peer_id' => $id] + $params);
         } else {
             return true;
         }
@@ -672,11 +691,11 @@ class vk_api {
                                 break;
                             } catch (VkApiException $e) {
                                 if ($i == $this->try_count_resend_file)
-                                    throw new VkApiException($e->getMessage());
+                                    throw new VkApiException($e->getMessage(), $e->getCode());
                                 sleep(1);
                                 $exception = json_decode($e->getMessage(), true);
                                 if ($exception['error']['error_code'] != 121)
-                                    throw new VkApiException($e->getMessage());
+                                    throw new VkApiException($e->getMessage(), $e->getCode());
                             }
                         }
                         $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
@@ -705,6 +724,8 @@ class vk_api {
 
     /**
      * @param $owner_id , $post_id, $message
+     * @param $post_id
+     * @param $message
      * @return mixed
      * @throws VkApiException
      */
@@ -846,6 +867,19 @@ class vk_api {
             $this->request_ignore_error = [$var];
         else
             throw new VkApiException("Параметр должен быть числовым либо массивом");
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function dateRegistration($id) {
+        $site = file_get_contents("https://vk.com/foaf.php?id={$id}");
+        preg_match('<ya:created dc:date="(.*?)">', $site, $data);
+        $data = explode('T', $data[1]);
+        $date = date("d.m.Y", strtotime($data[0]));
+        $time = mb_substr($data[1], 0, 8);
+        return "$date $time";
     }
 
     /**

@@ -7,8 +7,8 @@ use Throwable;
 class VkApiException extends Exception {
 
     public function __construct($message = "", $code = 0, Throwable $previous = null) {
+        //echo "\n".$this->__toString()."\n";
         parent::__construct($message, $code, $previous);
-        echo "\n".$this->__toString()."\n";
     }
 
     public function __toString() {
