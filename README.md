@@ -6,7 +6,7 @@
 [![](https://img.shields.io/packagist/dt/digitalstars/vk_api.svg)](https://packagist.org/packages/digitalstars/vk_api/)
 [![](https://img.shields.io/badge/Чат_vk-Вступить-blue.svg)](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
 
-Библиотека упрощает работу с api vk.com
+Библиотека упрощает работу с api vk.com  
 Чат разработчиков ботов и техническая поддержка по данной библиотеке в этой беседе: https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt
 > ВНИМАНИЕ!
 >* Поддержка бесед работает только если выбрана версия callBack api старше 5.8
