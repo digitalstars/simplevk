@@ -280,11 +280,12 @@ class vk_api {
 
     /**
      * @param $message
-     * @param null $filter
+     * @param null $keyboard
+     * @param string $filter
      * @param array $params
      * @throws VkApiException
      */
-    public function sendAllDialogs($message, $filter = 'all', $params = []) {
+    public function sendAllDialogs($message, $keyboard = null, $filter = 'all', $params = []) {
         $ids = [];
         for ($count_all = 1, $offset = 0; $offset <= $count_all; $offset += 200) {
             $members = $this->request('messages.getConversations', ['count' => 200, 'offset' => $offset, 'filter' => $filter]);//'filter' => 'unread'
@@ -297,12 +298,13 @@ class vk_api {
                     $ids [] = $user['conversation']['peer']['id'];
         }
         $ids = array_chunk($ids, 100);
-        foreach ($ids as $ids_chunk)
+        foreach ($ids as $ids_chunk) {
             try {
-                $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message] + $params);
+                $this->request('messages.send', ['user_ids' => join(',', $ids_chunk), 'message' => $message, 'keyboard' => $keyboard] + $params);
             } catch (Exception $e) {
                 continue;
             }
+        }
     }
 
     /**
@@ -387,7 +389,7 @@ class vk_api {
      */
     public function sendMessage($id, $message, $params = []) {
         if ($id < 1)
-            return;
+            return 0;
         $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
     }
@@ -404,7 +406,7 @@ class vk_api {
     }
 
     /**
-     * @param $user_id
+     * @param $id
      * @param $message
      * @param array $buttons
      * @param bool $one_time
@@ -422,20 +424,20 @@ class vk_api {
         return ['location', $payload];
     }
 
-    public function buttonPayToGroup($aid, $group_id, $amount, $description = null, $data = null, $payload = null) {
-        return ['vkpay', $payload, 'pay-to-group', $aid, $group_id, $amount, $description, $data];
+    public function buttonPayToGroup($group_id, $amount, $description = null, $data = null, $payload = null) {
+        return ['vkpay', $payload, 'pay-to-group', $group_id, $amount, $description, $data];
     }
 
-    public function buttonPayToUser($aid, $user_id, $amount, $description = null, $payload = null) {
-        return ['vkpay', $payload, 'pay-to-user', $aid, $user_id, $amount, $description];
+    public function buttonPayToUser($user_id, $amount, $description = null, $payload = null) {
+        return ['vkpay', $payload, 'pay-to-user', $user_id, $amount, $description];
     }
 
-    public function buttonDonateToGroup($aid, $group_id, $payload = null) {
-        return ['vkpay', $payload, 'transfer-to-group', $aid, $group_id];
+    public function buttonDonateToGroup($group_id, $payload = null) {
+        return ['vkpay', $payload, 'transfer-to-group', $group_id];
     }
 
-    public function buttonDonateToUser($aid, $user_id, $payload = null) {
-        return ['vkpay', $payload, 'transfer-to-user', $aid, $user_id];
+    public function buttonDonateToUser($user_id, $payload = null) {
+        return ['vkpay', $payload, 'transfer-to-user', $user_id];
     }
 
     public function buttonApp($text, $app_id, $owner_id = null, $hash = null, $payload = null) {
@@ -469,11 +471,11 @@ class vk_api {
                     }
                     case 'vkpay': {
                         $keyboard[$i][$j]["action"]["hash"] = "action={$button[2]}";
-                        $keyboard[$i][$j]["action"]["hash"] .= "&aid={$button[3]}";
-                        $keyboard[$i][$j]["action"]["hash"] .= ($button[4] < 0) ? "&group_id=".$button[4]*-1 : "&user_id={$button[4]}";
-                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[5])) ? "&amount={$button[5]}" : '';
-                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[6])) ? "&description={$button[6]}" : '';
-                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[7])) ? "&data={$button[7]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id={$button[3]}";
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[5])) ? "&description={$button[5]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[6])) ? "&data={$button[6]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= "&aid=1";
                         break;
                     }
                     case 'open_app': {
@@ -492,7 +494,6 @@ class vk_api {
         }
         $keyboard = ["one_time" => $one_time, "buttons" => $keyboard];
         $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
-        print_r($keyboard);
         return $keyboard;
     }
 
@@ -739,6 +740,7 @@ class vk_api {
                             try {
                                 $answer_vk = json_decode($this->sendFiles($upload_url['upload_url'], $image, 'photo'), true);
                                 $upload_file = $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+                                $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
                                 break;
                             } catch (VkApiException $e) {
                                 if ($i == $this->try_count_resend_file)
@@ -749,7 +751,6 @@ class vk_api {
                                     throw new VkApiException($e->getMessage(), $e->getCode());
                             }
                         }
-                        $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
                     }
                     break;
                 case "docs":
@@ -837,7 +838,7 @@ class vk_api {
      */
     public function createMessages($id, $message = [], $props = [], $media = [], $keyboard = []) {
         if ($id < 1)
-            return;
+            return 0;
         $send_attachment = [];
 
         foreach ($media as $selector => $massiv) {
@@ -930,21 +931,21 @@ class vk_api {
         $data = explode('T', $data[1]);
         $date = date("d.m.Y", strtotime($data[0]));
         $time = mb_substr($data[1], 0, 8);
-        return "$date $time";
+        return "$time $date";
     }
 
     /**
      * @return array
      */
     protected function copyAllDataclass() {
-        return [$this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file];
+        return [$this->token, $this->version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file];
     }
 
     /**
      * @param $id_vk_vars
      */
     protected function setAllDataclass($id_vk_vars) {
-        list($this->token, $this->version, $this->action_version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
+        list($this->token, $this->version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
     }
 }
 
