@@ -1,5 +1,5 @@
 {
-    "name": "digitalstars/vk_api",
+    "name": "digitalstars/simplevk",
     "description": "Library for easy work with VK com api",
     "license": "MIT",
     "minimum-stability": "stable",
