@@ -1,6 +1,7 @@
 <p align="center">
-  <img alt="SimpleVK logo" title="SimpleVK это PHP библиотека быстрой разработки ботов для VK.COM" src="http://www.imageup.ru/img198/thumb/logozaru13427561.jpg" width="300"/>
+  <img alt="SimpleVK logo" title="SimpleVK это PHP библиотека быстрой разработки ботов для VK.COM" src="https://imgur.com/a/R2GE3FK"/>
 </p>
+
 # Документация по vk_api
 ![](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
 ![](https://img.shields.io/badge/VK_API-%3E=%205.101-8992bb.svg)
