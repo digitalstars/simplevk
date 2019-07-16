@@ -174,7 +174,7 @@ class vk_api {
         return $this->request('messages.send', ['peer_id' => $id, 'forward_messages' => $forward_messages] + $params);
     }
 
-    public function sendAllChats($text, $params = []) {
+    public function sendAllChats($message, $params = []) {
         unset($this->request_ignore_error[array_search(10, $this->request_ignore_error)]); //убираем код 10 из исключений
         $i = 0;
         $count = 0;
@@ -182,7 +182,7 @@ class vk_api {
         while (true) {
             print(++$i . " ");
             try {
-                $this->sendMessage(2000000000 + $i, $text, $params);
+                $this->sendMessage(2000000000 + $i, $message, $params);
                 $count++;
             } catch (VkApiException $e) {
                 if ($e->getCode() == 10) {
