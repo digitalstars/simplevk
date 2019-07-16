@@ -3,11 +3,11 @@
 </p>
 
 <p align="center">
-<a href=""><img src="https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61" alt="php version"></a>
-<a href=""><img src="https://img.shields.io/badge/VK_API-%3E=%205.101-8992bb.svg" alt="VK api version"></a>
-<a href=""><img src="https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green" alt="Latest Stable Version"></a>
+<img src="https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61" alt="php version">
+<img src="https://img.shields.io/badge/VK_API-%3E=%205.101-8992bb.svg" alt="VK api version">
+<img src="https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green" alt="Latest Stable Version">
 <a href="https://packagist.org/packages/digitalstars/vk_api/"><img src="https://img.shields.io/packagist/dt/digitalstars/vk_api.svg" alt="VK api version"></a>
-<a href=""><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
+<img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License">
 </p>
 
 # SimpleVK
