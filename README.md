@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="SimpleVK logo" title="SimpleVK это PHP библиотека быстрой разработки ботов для VK.COM" src="https://imgur.com/a/R2GE3FK"/>
+  <img alt="SimpleVK logo" title="SimpleVK это PHP библиотека быстрой разработки ботов для VK.COM" src="https://s8.hostingkartinok.com/uploads/images/2019/07/ff2d2cd125e54aa4f9169cd1ea98afce.png"/>
 </p>
 
 # Документация по vk_api
