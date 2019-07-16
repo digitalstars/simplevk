@@ -1,16 +1,18 @@
 <p align="center">
   <img alt="SimpleVK logo" title="SimpleVK это PHP библиотека быстрой разработки ботов для VK.COM" src="http://images.vfl.ru/ii/1563283715/1c6a23fb/27226348.png"/>
-
-![](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
-![](https://img.shields.io/badge/VK_API-%3E=%205.101-8992bb.svg)
-![](https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green)
-[![](https://img.shields.io/packagist/dt/digitalstars/vk_api.svg)](https://packagist.org/packages/digitalstars/vk_api/)
 </p>
 
-| [Беседа VK](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Документация на русском](https://simplevk.scripthub.ru) |
-| ------------------------------------------| -------------|
+<p align="center">
+<a href=""><img src="https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61" alt="php version"></a>
+<a href=""><img src="https://img.shields.io/badge/VK_API-%3E=%205.101-8992bb.svg" alt="VK api version"></a>
+<a href=""><img src="https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/digitalstars/vk_api/"><img src="https://img.shields.io/packagist/dt/digitalstars/vk_api.svg" alt="VK api version"></a>
+<a href=""><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
+</p>
 
 # SimpleVK
+| [Беседа VK](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Документация на русском](https://simplevk.scripthub.ru) |
+| ------------------------------------------| -------------|
 ### Почему SimpleVK?  
 Для создания бота потребуется минимум кода, за счёт реализации большинства методов vk api в виде удобных функций.  
 Также есть готовые модули, которые облегчают разработку: 
@@ -49,7 +51,7 @@ const VK_KEY = ''; //токен сообщества или пользовате
 const CONFIRM_STR = ''; //ключ авторизации сообщества, который вы получили
 const VERSION = '5.101'; //ваша версия используемого api
 ```
-### Простой Callback бот для бесед и сообщества
+#### Простой Callback бот для бесед и сообщества
 ```php
 require_once('vendor/autoload.php');
 use DigitalStar\vk_api\vk_api;
@@ -63,7 +65,7 @@ if ($payload) {
 } else
     $vk->sendButton($id, 'Видишь кнопку? Нажми на нее!', [[INFO]]); //отправляем клавиатуру с сообщением
 ```
-### Простой LongPoll бот для юзера 
+#### Простой LongPoll бот для юзера 
 ```php
 require_once('vendor/autoload.php');
 use DigitalStar\vk_api\vk_api;
@@ -77,7 +79,7 @@ $vk->listen(function()use($vk){ //longpoll для пользователя
     });
 });
 ```
-### Простой LongPoll бот для сообщества
+#### Простой LongPoll бот для сообщества
 ```php
 require_once('vendor/autoload.php');
 use DigitalStar\vk_api\vk_api;
@@ -89,7 +91,7 @@ $vk->listen(function($data)use($vk){ //в $data содержится все да
     $vk->reply($message);
 });
 ```
-### Callback + Execute
+#### Callback + Execute
 Используется, когда callback скрипт во время выполнения много раз обращается к api, а вам нужно экономить запросы, чтобы не привышать лимит(высоконагруженные боты)
 ```php
 require_once('vendor/autoload.php');
@@ -101,7 +103,7 @@ $vk->debug();
 $vk->initVars($id, $message); //инициализация переменных
 $vk->reply($message); //отвечает пользователю или в беседу
 ```
-### LongPoll + Execute
+#### LongPoll + Execute
 Лучшая связка для высоконагруженных ботов. Но если вы делаете высоконагруженного бота, лучше посмотрите в сторону NodeJS, он справляется с этим намного лучше за счет асинхронности и многопоточности из коробки.
 ```php
 require_once('vendor/autoload.php');
@@ -127,7 +129,7 @@ $vk->listen(function($data)use($vk){ //в $data содержится все да
 - Полностью переписать библиотеку на 3.0
 - Мобильное приложение с копией сайта, для оффлайн просмота
 
-####Далекое будущее (до 1 года)
+#### Далекое будущее (до 1 года)
 - работа с audio
 - работа с историями
 - модуль работы с основными платежными системами
