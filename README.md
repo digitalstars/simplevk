@@ -11,7 +11,7 @@
 </p> 
 
 # SimpleVK
-| [Беседа VK💬](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Документация на русском📚](https://simplevk.scripthub.ru) | [Блог со статьями](https://scripthub.ru) | [Бот на заказ](vk.me/scripthub) |
+| [Документация на русском📚](https://simplevk.scripthub.ru) | [Беседа VK💬](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Блог со статьями](https://scripthub.ru) | [Разработка ботов на заказ](https://vk.me/scripthub) |
 | ------------------------------------------| -------------| -------------| -------------|
 ### Оглавление
 - [Обзор SimpleVK](#SimpleVK)
