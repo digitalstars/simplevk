@@ -1,3 +1,4 @@
+![Лого SimpleVK](http://www.imageup.ru/img198/thumb/logozaru13427561.jpg)
 # Документация по vk_api
 ![](https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61)
 ![](https://img.shields.io/badge/VK_API-%3E=%205.101-8992bb.svg)
