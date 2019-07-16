@@ -8,7 +8,7 @@
 <img src="https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green" alt="Latest Stable Version">
 <a href="https://packagist.org/packages/digitalstars/vk_api/"><img src="https://img.shields.io/packagist/dt/digitalstars/vk_api.svg" alt="VK api version"></a>
 <img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License">
-</p>
+</p> 
 
 # SimpleVK
 | [💬Беседа VK](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [📚Документация на русском](https://simplevk.scripthub.ru) |
