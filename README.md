@@ -11,8 +11,11 @@
 </p> 
 
 # SimpleVK
-| [Документация на русском📚](https://simplevk.scripthub.ru) | [Беседа VK💬](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Блог со статьями](https://scripthub.ru) | [Разработка ботов на заказ](https://vk.me/scripthub) |
-| ------------------------------------------| -------------| -------------| -------------|
+[Документация на русском](https://simplevk.scripthub.ru) | [Беседа VK](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt)
+--- | --- |
+
+[Блог со статьями](https://scripthub.ru) | [Разработка ботов на заказ](https://vk.me/scripthub)
+--- | --- |
 ### Оглавление
 - [Обзор SimpleVK](#SimpleVK)
 - [Подключение](#Подключение)
@@ -80,7 +83,7 @@ use DigitalStar\vk_api\LongPoll;
 $vk = vk_api::create('login', 'password', VERSION);//или используйте токен вместо лог/пас
 $vk = new LongPoll($vk);
 $vk->listen(function()use($vk){ //longpoll для пользователя
-    $vk->on('new_message', function($data)use($vk) { //обработка входящих сообщений
+    $vk->on('message_new', function($data)use($vk) { //обработка входящих сообщений
         $vk->initVars($id, $message);
         $vk->reply($message);
     });
@@ -146,5 +149,3 @@ $vk->listen(function($data)use($vk){ //в $data содержится все да
 - Яндекс.Деньги - [money.yandex.ru/to/410014638432302]()
 - Дебетовая карта - 2202201272652211
 - Также вы можете помочь проекту `Pull Request`'ом
-
-<github-button href="https://github.com/digitalstars/simplevk" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star digitalstars/simplevk on GitHub">Star</github-button>
