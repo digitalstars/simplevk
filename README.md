@@ -20,6 +20,7 @@
 - [План развития проекта](#План-развития-проекта)
 - [Помощь проекту](#Помощь-проекту)
 ### Почему SimpleVK?  
+
 Для создания бота потребуется минимум кода, за счёт реализации большинства методов vk api в виде удобных функций.  
 Также есть готовые модули, которые облегчают разработку: 
  * Рассылка сообщений
@@ -145,3 +146,5 @@ $vk->listen(function($data)use($vk){ //в $data содержится все да
 - Яндекс.Деньги - [money.yandex.ru/to/410014638432302]()
 - Дебетовая карта - 2202201272652211
 - Также вы можете помочь проекту `Pull Request`'ом
+
+<github-button href="https://github.com/digitalstars/simplevk" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star digitalstars/simplevk on GitHub">Star</github-button>

@@ -41,16 +41,18 @@ class LongPoll extends vk_api
     {
         parent::setAllDataclass($vk->copyAllDataclass());
         $this->vk = $vk;
-        if ($vk->auth_type == 'user') {
-            $this->user_id = $vk->userInfo()['id'];
+        $data = $this->vk->userInfo();
+        if ($data != false) {
+            $this->vk->auth_type = 'user';
+            $this->user_id = $data['id'];
         } else {
+            $this->vk->auth_type = 'group';
             $this->group_id = $this->vk->request('groups.getById', [])[0]['id'];
             $this->vk->request('groups.setLongPollSettings', [
                 'group_id' => $this->group_id,
                 'enabled' => 1,
                 'api_version' => $this->vk->version,
                 'message_new' => 1,
-                'message_deny' => 1
             ]);
         }
         $this->getLongPollServer();
@@ -136,7 +138,7 @@ class LongPoll extends vk_api
         $summands = [];
         $data = json_decode(json_encode($this->vk->data), true);
         switch ($type) {
-            case 'new_message':
+            case 'message_new':
                 {
                     if ($data[0] == 4) {
                         foreach ([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 65536] as $key) {

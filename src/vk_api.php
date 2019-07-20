@@ -57,20 +57,14 @@ class vk_api {
         if ($token instanceof auth) {
             $this->auth = $token;
             $this->version = $version;
-            $this->auth_type = 'user';
             $this->token = $this->auth->getAccessToken();
         } else if (isset($also_version)) {
             $this->auth = new Auth($token, $version);
-            $this->auth_type = 'user';
             $this->token = $this->auth->getAccessToken();
             $this->version = $also_version;
         } else {
             $this->token = $token;
             $this->version = $version;
-            if ($this->userInfo())
-                $this->auth_type = 'user';
-            else
-                $this->auth_type = 'group';
         }
         $this->data = json_decode(file_get_contents('php://input'));
     }
@@ -351,15 +345,19 @@ class vk_api {
      * @return mixed
      * @throws VkApiException
      */
-    public function userInfo($user_url = null, $scope = []) {
-        if (isset($scope) and count($scope) != 0)
-            $scope = ["fields" => join(",", $scope)];
+    public function userInfo($user_url = '', $scope = []) {
+        $scope = ["fields" => join(",", $scope)];
         if (isset($user_url)) {
-            $user_url = preg_replace("!.*?/!", '', $user_url);
-            return current($this->request('users.get', ["user_ids" => $user_url] + $scope));
-        } else
-            return current($this->request('users.get', [] + $scope));
+            preg_replace("!.*?/!", '', $user_url);
+            $user_url = ($user_url == '') ? [] : ["user_ids" => $user_url];
+        }
+        try {
+            return current($this->request('users.get', $user_url + $scope));
+        } catch (Exception $e) {
+            return false;
+        }
     }
+
 
     /**
      * @param $chat_id
