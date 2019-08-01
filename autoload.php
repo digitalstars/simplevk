@@ -11,3 +11,4 @@ require_once($path_dir.'/Group.php');
 require_once($path_dir.'/LongPoll.php');
 require_once($path_dir.'/Coin.php');
 require_once($path_dir.'/Execute.php');
+require_once($path_dir.'/SiteAuth.php');
