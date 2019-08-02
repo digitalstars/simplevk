@@ -9,7 +9,7 @@
 namespace DigitalStar\vk_api;
 
 
-class SiteAuth extends vk_api {
+class SiteAuth {
     public $settings = [];
     public $data = [];
 
