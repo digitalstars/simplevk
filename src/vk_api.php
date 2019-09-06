@@ -348,7 +348,7 @@ class vk_api {
     public function userInfo($user_url = '', $scope = []) {
         $scope = ["fields" => join(",", $scope)];
         if (isset($user_url)) {
-            preg_replace("!.*?/!", '', $user_url);
+            $user_url = preg_replace("!.*?/!", '', $user_url);
             $user_url = ($user_url == '') ? [] : ["user_ids" => $user_url];
         }
         try {
