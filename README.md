@@ -61,6 +61,14 @@ const VK_KEY = ''; //токен сообщества или пользовате
 const CONFIRM_STR = ''; //ключ авторизации сообщества, который вы получили
 const VERSION = '5.101'; //ваша версия используемого api
 ```
+#### Минимальный Callback бот для бесед и сообщества
+```php
+require_once('vendor/autoload.php');
+use DigitalStar\vk_api\vk_api;
+$vk = vk_api::create(VK_KEY, VERSION)->setConfirm(CONFIRM_STR);
+$vk->initVars($id, $message);
+$vk->reply($message);
+```
 #### Простой Callback бот для бесед и сообщества
 ```php
 require_once('vendor/autoload.php');
