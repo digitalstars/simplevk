@@ -873,7 +873,7 @@ class vk_api {
         if (is_string($message))
             $message = ['message' => $message];
         if ($keyboard != [])
-            $keyboard = ['keyboard' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['one_time'])];
+            $keyboard = ['keyboard' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['inline'], $keyboard['one_time'])];
         return $this->request('messages.send', ['peer_id' => $id] + $message + $props + $send_attachment + $keyboard);
     }
 
