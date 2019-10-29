@@ -48,8 +48,8 @@ class Execute extends vk_api {
         $this->checkExec();
     }
 
-    public function sendButton($id, $message, $buttons = [], $one_time = False, $params = []) {
-        $keyboard = $this->generateKeyboard($buttons, $one_time);
+    public function sendButton($id, $message, $buttons = [], $inline = false, $one_time = False, $params = []) {
+        $keyboard = $this->generateKeyboard($buttons, $inline, $one_time);
         $message = $this->vk->placeholders($id, $message);
         $this->messages[] = ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard, "random_id" => rand(-2147483648, 2147483647)] + $params;
         $this->counter += 1;
@@ -98,7 +98,7 @@ class Execute extends vk_api {
             $object = [
                 'id' => $id,
                 'message' => $message,
-                'keyboard_content' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['one_time']),
+                'keyboard_content' => $this->generateKeyboard($keyboard['keyboard'], $keyboard['inline'], $keyboard['one_time']),
                 'images_content' => [],
                 'docs_content' => []
             ];
