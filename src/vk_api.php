@@ -407,13 +407,14 @@ class vk_api {
      * @param $id
      * @param $message
      * @param array $buttons
+     * @param bool $inline
      * @param bool $one_time
      * @param array $params
      * @return mixed
      * @throws VkApiException
      */
-    public function sendButton($id, $message, $buttons = [], $one_time = False, $inline = false, $params = []) {
-        $keyboard = $this->generateKeyboard($buttons, $one_time, $inline);
+    public function sendButton($id, $message, $buttons = [], $inline = false, $one_time = False, $params = []) {
+        $keyboard = $this->generateKeyboard($buttons, $inline, $one_time);
         $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
