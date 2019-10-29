@@ -35,11 +35,12 @@ class Message extends Base
 
     /**
      * @param array $keyboard
+     * @param bool $inline
      * @param bool $one_time
      */
-    public function setKeyboard($keyboard = [], $one_time = false)
+    public function setKeyboard($keyboard = [], $inline = false, $one_time = false)
     {
-        $this->keyboard = ['keyboard' => $keyboard, 'one_time' => $one_time];
+        $this->keyboard = ['keyboard' => $keyboard, 'inline' => $inline, 'one_time' => $one_time];
     }
 
     public function addVoice()
