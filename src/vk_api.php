@@ -412,8 +412,8 @@ class vk_api {
      * @return mixed
      * @throws VkApiException
      */
-    public function sendButton($id, $message, $buttons = [], $one_time = False, $params = []) {
-        $keyboard = $this->generateKeyboard($buttons, $one_time);
+    public function sendButton($id, $message, $buttons = [], $one_time = False, $inline = false, $params = []) {
+        $keyboard = $this->generateKeyboard($buttons, $one_time, $inline);
         $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
@@ -451,7 +451,7 @@ class vk_api {
      * @param bool $one_time
      * @return array|false|string
      */
-    public function generateKeyboard($buttons = [], $one_time = False) {
+    public function generateKeyboard($buttons = [], $one_time = False, $inline) {
         $keyboard = [];
         $i = 0;
         foreach ($buttons as $button_str) {
@@ -490,7 +490,7 @@ class vk_api {
             }
             $i++;
         }
-        $keyboard = ["one_time" => $one_time, "buttons" => $keyboard];
+        $keyboard = ["one_time" => $one_time, "buttons" => $keyboard, 'inline' => $inline];
         $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
         return $keyboard;
     }
