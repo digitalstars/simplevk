@@ -1,8 +1,5 @@
 <?php
-
-
 namespace DigitalStar\vk_api;
-
 
 class Execute extends vk_api {
     private $vk;
@@ -33,12 +30,17 @@ class Execute extends vk_api {
         if (!$this->vk->debug_mode)
             $this->vk->sendOK();
         $data = $this->vk->data;
+        $data_backup = $this->vk->data;
+        $type = isset($data->type) ? $data->type : null;
+        if($type == 'message_new' && isset($data->object->message)) {
+            $data->object = $data->object->message;
+        }
         $id = isset($data->object->peer_id) ? $data->object->peer_id : null;
         $message = isset($data->object->text) ? $data->object->text : null;
         $payload = isset($data->object->payload) ? json_decode($data->object->payload, true) : null;
         $user_id = isset($data->object->from_id) ? $data->object->from_id : null;
-        $type = isset($data->type) ? $data->type : null;
-        return $data;
+        $data = $data_backup;
+        return $data_backup;
     }
 
     public function sendMessage($id, $message, $props = []) {
