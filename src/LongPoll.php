@@ -1,5 +1,4 @@
 <?php
-
 namespace DigitalStar\vk_api;
 
 /**
@@ -170,12 +169,17 @@ class LongPoll extends vk_api
     public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null, &$data = null)
     {
         $data = $this->vk->data;
+        $data_backup = $this->vk->data;
+        $type = isset($data->type) ? $data->type : null;
+        if($type == 'message_new' && isset($data->object->message)) {
+            $data->object = $data->object->message;
+        }
         $id = isset($data->object->peer_id) ? $data->object->peer_id : null;
         $message = isset($data->object->text) ? $data->object->text : null;
         $payload = isset($data->object->payload) ? json_decode($data->object->payload, true) : null;
         $user_id = isset($data->object->from_id) ? $data->object->from_id : null;
-        $type = isset($data->type) ? $data->type : null;
-        return $data;
+        $data = $data_backup;
+        return $data_backup;
     }
     
     public function reply($message, $params = []) {
@@ -195,6 +199,8 @@ class LongPoll extends vk_api
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url.http_build_query($params));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             $result = json_decode(curl_exec($ch));
             curl_close($ch);
         } else {
