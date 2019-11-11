@@ -104,14 +104,18 @@ class vk_api {
     public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null, &$data = null) {
         if (!$this->debug_mode)
             $this->sendOK();
-
         $data = $this->data;
+        $data_backup = $this->data;
+        $type = isset($data->type) ? $data->type : null;
+        if(isset($data->object->message) and $type == 'message_new') {
+            $data->object = $data->object->message; //какая-то дичь с ссылками, но $this->data теперь тоже переопределился
+        }
         $id = isset($data->object->peer_id) ? $data->object->peer_id : null;
         $message = isset($data->object->text) ? $data->object->text : null;
         $payload = isset($data->object->payload) ? json_decode($data->object->payload, true) : null;
         $user_id = isset($data->object->from_id) ? $data->object->from_id : null;
-        $type = isset($data->type) ? $data->type : null;
-        return $data;
+        $data = $data_backup;
+        return $data_backup;
     }
 
     /**
@@ -188,15 +192,23 @@ class vk_api {
     }
 
     protected function placeholders($id, $message) {
-        if (strpos($message, '%') !== false) {
-            $data = $this->userInfo($id);
-            $f = $data['first_name'];
-            $l = $data['last_name'];
-            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
-            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
-            return str_replace($tag, $replace, $message);
-        } else
+        if($id >= 2000000000) {
+            $id = isset($this->data->object->from_id) ? $this->data->object->from_id : null;
+        }
+        if($id == null) {
+            print "Попытка использовать заполнители при передаче id беседы";
             return $message;
+        } else {
+            if (strpos($message, '%') !== false) {
+                $data = $this->userInfo($id);
+                $f = $data['first_name'];
+                $l = $data['last_name'];
+                $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
+                $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
+                return str_replace($tag, $replace, $message);
+            } else
+                return $message;
+        }
     }
 
     /**
@@ -250,6 +262,8 @@ class vk_api {
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             $result = json_decode(curl_exec($ch), True);
             curl_close($ch);
         } else {
@@ -365,7 +379,7 @@ class vk_api {
      * @return bool|null|string
      * @throws VkApiException
      */
-    public function isAdmin($chat_id, $user_id) { //возвращает привелегию по id
+    public function isAdmin($user_id, $chat_id) { //возвращает привелегию по id
         try {
             $members = $this->request('messages.getConversationMembers', ['peer_id' => $chat_id])['items'];
         } catch (\Exception $e) {
@@ -373,7 +387,7 @@ class vk_api {
         }
         foreach ($members as $key) {
             if ($key['member_id'] == $user_id)
-                return (isset($key["is_owner"])) ? 'owner' : (isset($key["is_admin"])) ? 'admin' : false;
+                return (isset($key["is_owner"])) ? 'owner' : ((isset($key["is_admin"])) ? 'admin' : false);
         }
         return null;
     }
@@ -449,10 +463,11 @@ class vk_api {
 
     /**
      * @param array $buttons
+     * @param bool $inline
      * @param bool $one_time
      * @return array|false|string
      */
-    public function generateKeyboard($buttons = [], $one_time = False, $inline) {
+    public function generateKeyboard($buttons = [], $inline = false, $one_time = False) {
         $keyboard = [];
         $i = 0;
         foreach ($buttons as $button_str) {
@@ -947,6 +962,3 @@ class vk_api {
         list($this->token, $this->version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
     }
 }
-
-
-
