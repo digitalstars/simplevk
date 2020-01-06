@@ -51,7 +51,7 @@ require_once "vendor/autoload.php"; //Подключаем библиотеку
 1. Скачать последний релиз
 2. Подключить autoload.php. Вот так будет происходить подключение, если ваш скрипт находится в той же папке, что и папка vk_api-master
 ```php
-require_once "vk_api-master/autoload.php"; //Подключаем библиотеку
+require_once "simplevk-master/autoload.php"; //Подключаем библиотеку
 ```
 ## Примеры использования
 Больше примеров есть на [сайте с документацией](https://simplevk.scripthub.ru)  
