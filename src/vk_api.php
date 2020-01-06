@@ -121,34 +121,28 @@ class vk_api {
     /**
      * @return bool
      */
-    public static function sendOK() {
+    private function sendOK() {
+        set_time_limit(0);
         ini_set('display_errors', 'Off');
-        echo 'ok';
-        $response_length = ob_get_length();
-        // check if fastcgi_finish_request is callable
+
+        // для Nginx
         if (is_callable('fastcgi_finish_request')) {
-            /*
-             * This works in Nginx but the next approach not
-             */
             session_write_close();
             fastcgi_finish_request();
-
             return True;
         }
-
+        // для Apache
         ignore_user_abort(true);
 
         ob_start();
-        $serverProtocol = filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING);
-        header($serverProtocol . ' 200 OK');
+        echo 'ok';
         header('Content-Encoding: none');
-        header('Content-Length: ' . $response_length);
+        header('Content-Length: ' . ob_get_length());
         header('Connection: close');
 
         ob_end_flush();
         ob_flush();
         flush();
-
         return True;
     }
 
@@ -228,9 +222,10 @@ class vk_api {
             try {
                 return $this->request_core($url, $params);
             } catch (VkApiException $e) {
-                sleep(1);
-                if (in_array($e->getCode(), $this->request_ignore_error))
+                if (in_array($e->getCode(), $this->request_ignore_error)) {
+                    sleep(1);
                     continue;
+                }
                 else
                     throw new VkApiException($e->getMessage(), $e->getCode());
             }
