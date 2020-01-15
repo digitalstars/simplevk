@@ -135,13 +135,11 @@ class vk_api {
         ignore_user_abort(true);
 
         ob_start();
-        echo 'ok';
         header('Content-Encoding: none');
         header('Content-Length: ' . ob_get_length());
         header('Connection: close');
-
+        echo 'ok';
         ob_end_flush();
-        ob_flush();
         flush();
         return True;
     }
