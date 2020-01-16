@@ -136,7 +136,7 @@ class vk_api {
 
         ob_start();
         header('Content-Encoding: none');
-        header('Content-Length: ' . ob_get_length());
+        header('Content-Length: 2');
         header('Connection: close');
         echo 'ok';
         ob_end_flush();
