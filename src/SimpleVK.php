@@ -1,42 +1,37 @@
 <?php
+
 namespace DigitalStars\SimpleVK;
+
 use Exception;
 
 require_once('config_simplevk.php');
 
-class SimpleVK
-{
-    protected $count_send_user = 0;
+class SimpleVK {
+    protected $count_send_error = 0;
     protected $version;
     protected $data = [];
     protected $data_backup = [];
     protected $api_url = 'https://api.vk.com/method/';
     protected $token;
-    public static $debug_mode = 0;
+    private static $debug_mode = 0;
     protected $auth;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     protected static $user_log_error = null;
-    public static $confirm_str = null;
-    public static $secret_str = null;
 
     public function __construct($token, $version, $also_version = null) {
         $this->processAuth($token, $version, $also_version);
         $this->data = json_decode(file_get_contents('php://input'), 1);
         $this->data_backup = $this->data;
-        if (!empty(self::$secret_str)) {
-            if (isset($this->data['secret']) && $this->data['secret'] != self::$secret_str) {
-                exit('security error');
+        if(isset($this->data['type']) && $this->data['type'] != 'confirmation') {
+            if (self::$debug_mode) {
+                $this->debugRun();
             }
-        }
-        if(!empty(self::$confirm_str)) {
-            if (isset($this->data['type']) && $this->data['type'] == 'confirmation') {
-                exit(self::$confirm_str);
+            else {
+                $this->sendOK();
             }
-        }
-        if (!self::$debug_mode)
-            $this->sendOK();
-        if(isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
-            $this->data['object'] = $this->data['object']['message'];
+            if (isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
+                $this->data['object'] = $this->data['object']['message'];
+            }
         }
     }
 
@@ -47,6 +42,20 @@ class SimpleVK
 
     public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
+    }
+
+    public function setConfirm($str) {
+        if (isset($this->data['type']) && $this->data['type'] == 'confirmation') {
+            exit($str);
+        }
+        return $this;
+    }
+
+    public function setSecret($str) {
+        if (isset($this->data['secret']) && $this->data['secret'] == $str) {
+            return $this;
+        }
+        exit('security error');
     }
 
     public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null) {
@@ -75,6 +84,11 @@ class SimpleVK
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
     }
 
+    public function forward($id, $id_messages, $params = []) {
+        $forward_messages = (is_array($id_messages)) ? join(',', $id_messages) : $id_messages;
+        return $this->request('messages.send', ['peer_id' => $id, 'forward_messages' => $forward_messages] + $params);
+    }
+
     public function userInfo($user_url = '', $scope = []) {
         $scope = ["fields" => join(",", $scope)];
         if (isset($user_url)) {
@@ -88,21 +102,19 @@ class SimpleVK
         }
     }
 
-    public static function debug() {
-        $data = json_decode(file_get_contents('php://input'), 1);
-        if(isset($data['type']) && $data['type'] != 'confirmation') {
-            if (empty(self::$confirm_str)) {
-                ini_set('error_reporting', E_ALL);
-                ini_set('display_errors', 1);
-                ini_set('display_startup_errors', 1);
-                echo 'ok';
-                self::$debug_mode = 1;
-            }
-        }
+    public static function debug($flag = true) {
+        self::$debug_mode = ($flag) ?: false;
+    }
+
+    protected function debugRun() {
+        ini_set('error_reporting', E_ALL);
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        echo 'ok';
     }
 
     public static function setUserLogError($user_id) {
-        self::$user_log_error = $user_id;
+        self::$user_log_error = !is_array($user_id) ? [$user_id] : $user_id;
     }
 
     public function request($method, $params = []) {
@@ -149,12 +161,12 @@ class SimpleVK
             ])), true);
         }
         if (!isset($result)) {
-            if($iteration <= 5) {
+            if ($iteration <= 5) {
                 SimpleVkException::nullError('Запрос к вк вернул пустоту. Повторная отправка, попытка №' . $iteration);
                 $this->request_core($url, $params, ++$iteration);
             } else {
                 $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
-                                  Метод:$url\nПараметры:\n".json_encode($params);
+                                  Метод:$url\nПараметры:\n" . json_encode($params);
                 SimpleVkException::nullError($error_message);
                 throw new SimpleVkException(77777, $error_message);
             }
@@ -168,7 +180,7 @@ class SimpleVK
             return $result;
     }
 
-    protected function sendOK() {
+    public function sendOK() {
         set_time_limit(0);
         ini_set('display_errors', 'Off');
 
@@ -183,7 +195,7 @@ class SimpleVK
 
         ob_start();
         header('Content-Encoding: none');
-        header('Content-Length: ' . ob_get_length());
+        header('Content-Length: 2');
         header('Connection: close');
         echo 'ok';
         ob_end_flush();
@@ -192,12 +204,14 @@ class SimpleVK
     }
 
     protected function sendErrorUser($e) {
-        if(!is_null(self::$user_log_error)) {
-            if($this->count_send_user < 1) {
-                $this->count_send_user++;
+        if (!is_null(self::$user_log_error)) {
+            if ($this->count_send_error < 1) {
+                $this->count_send_error++;
                 $error = SimpleVkException::userError($e);
-                $this->sendMessage(self::$user_log_error, $error);
-                $this->count_send_user = 0;
+                foreach (self::$user_log_error as $id) {
+                    $this->sendMessage($id, $error);
+                }
+                $this->count_send_error = 0;
             }
         }
     }

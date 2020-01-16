@@ -1,24 +1,20 @@
 <?php
-
-
 namespace DigitalStars\simplevk;
 
-class LongPoll extends SimpleVK
-{
+class LongPoll extends SimpleVK {
     private $group_id;
     private $user_id;
     private $key;
     private $server;
     private $ts;
     private $auth_type;
+    public static $use_user_long_poll = 0;
 
-    public function __construct($token, $version, $also_version = null)
-    {
+    public function __construct($token, $version, $also_version = null) {
         $this->processAuth($token, $version, $also_version);
         $data = $this->userInfo();
-        if ($data != false) {
+        if ($data != false || self::$use_user_long_poll) {
             $this->auth_type = 'user';
-            $this->user_id = $data['id'];
         } else {
             $this->auth_type = 'group';
             $this->group_id = $this->request('groups.getById')[0]['id'];
@@ -32,10 +28,9 @@ class LongPoll extends SimpleVK
         $this->getLongPollServer();
     }
 
-    private function getLongPollServer()
-    {
+    private function getLongPollServer() {
         if ($this->auth_type == 'user')
-            $data = $this->request('messages.getLongPollServer', ['need_pts' => 1, 'lp_version' => 3]);
+            $data = $this->request('messages.getLongPollServer', ['need_pts' => 1, 'lp_version' => 10]);
         else
             $data = $this->request('groups.getLongPollServer', ['group_id' => $this->group_id]);
         unset($this->key);
@@ -44,8 +39,7 @@ class LongPoll extends SimpleVK
         list($this->key, $this->server, $this->ts) = [$data['key'], $data['server'], $data['ts']];
     }
 
-    public function listen($anon)
-    {
+    public function listen($anon) {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
                 unset($this->data);
@@ -66,8 +60,7 @@ class LongPoll extends SimpleVK
         }
     }
 
-    private function processingData()
-    {
+    private function processingData() {
         while (($data = $this->getData())) {
             if (isset($data['failed'])) {
                 switch ($data['failed']) {
@@ -89,8 +82,7 @@ class LongPoll extends SimpleVK
         }
     }
 
-    private function getData()
-    {
+    private function getData() {
         $default_params = ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' => 25];
         try {
             if ($this->auth_type == 'user') {
@@ -106,8 +98,7 @@ class LongPoll extends SimpleVK
         }
     }
 
-    private function request_core_lp($url, $params = [], $iteration = 1)
-    {
+    private function request_core_lp($url, $params = [], $iteration = 1) {
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url . http_build_query($params));
@@ -141,24 +132,21 @@ class LongPoll extends SimpleVK
         return $result;
     }
 
-    private function userLongPoll($anon)
-    {
+    private function userLongPoll($anon) {
         $data = $this->data;
         switch ($data[0]) {
             case 4:
             { //входящее сообщение
                 if (!$this->checkFlags(2)) { //не обрабатывать, если это исходящее
                     $this->data = [];
+                    $this->data['object']['id'] = isset($data[1]) ? $data[1] : null;
                     $this->data['object']['peer_id'] = isset($data[3]) ? $data[3] : null;
-                    if (isset($data[6]['from'])) {
-                        $this->data['object']['from_id'] = $data[6]['from'];
-                    } else {
-                        $this->data['object']['from_id'] = $this->data['object']['peer_id'];
-                    }
                     $this->data['object']['date'] = isset($data[4]) ? $data[4] : null;
                     $this->data['object']['text'] = isset($data[5]) ? $data[5] : null;
-                    $this->data['object']['attachments'] = isset($data[6]) ? $data[6] : null;
-                    $this->data['object']['random_id'] = (isset($data[7]) && !empty($data[7])) ? $data[7] : null;
+                    $this->data['object']['attachments'] = isset($data[7]) ? $data[7] : null;
+                    $this->data['object']['random_id'] = (isset($data[8]) && !empty($data[8])) ? $data[8] : null;
+                    $this->data['object']['conversation_message_id'] = isset($data[9]) ? $data[9] : null;
+                    $this->data['object']['from_id'] = isset($data[6]['from']) ? $data[6]['from'] : $this->data['object']['peer_id'];
                     $this->data['type'] = 'message_new';
                     $this->data_backup = $this->data;
                     $anon($data);
@@ -172,8 +160,7 @@ class LongPoll extends SimpleVK
         }
     }
 
-    private function checkFlags($flag)
-    {
+    private function checkFlags($flag) {
         $all = [];
         $data = $this->data;
         foreach ([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 65536] as $key) {
