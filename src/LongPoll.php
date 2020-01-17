@@ -94,7 +94,8 @@ class LongPoll extends SimpleVK {
             return $data;
         } catch (SimpleVkException $e) {
             $this->sendErrorUser($e);
-            return ['updates' => [], 'ts' => $this->ts];
+            $this->sendErrorUser($e->getCode());
+            return ['updates' => [], 'ts' => $this->ts, 'failed' => $e->getCode()];
         }
     }
 
