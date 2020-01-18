@@ -11,7 +11,7 @@ class SimpleVkException extends Exception {
             }
         } else
             $this->printError($code, $message);
-        parent::__construct(PHP_EOL.PHP_EOL."CODE: $code".PHP_EOL."MESSAGE: $message".PHP_EOL.PHP_EOL, 0, $previous);
+        parent::__construct(PHP_EOL.PHP_EOL."CODE: $code".PHP_EOL."MESSAGE: $message".PHP_EOL.PHP_EOL, $code, $previous);
     }
 
     private function printError($code, $message) {
@@ -20,7 +20,7 @@ class SimpleVkException extends Exception {
         $error .= "\r\nMESSAGE: {$message}";
         $error .= "\r\nin: {$this->getFile()}:{$this->getLine()}";
         $error .= "\r\nStack trace:\r\n{$this->getTraceAsString()}\r\n\r\n";
-        $file = fopen('error/error_log' . date('d-m-Y_h') . ".log", 'a');
+        $file = fopen('error/error_log' . date('d-m-Y') . ".log", 'a');
         fwrite($file, $error);
         fclose($file);
     }

@@ -61,7 +61,7 @@ class LongPoll extends SimpleVK {
     }
 
     private function processingData() {
-        while (($data = $this->getData())) {
+        while ($data = $this->getData()) {
             if (isset($data['failed'])) {
                 switch ($data['failed']) {
                     case 1:
@@ -92,10 +92,9 @@ class LongPoll extends SimpleVK {
                 $data = $this->request_core_lp($this->server . '?', $default_params);
             }
             return $data;
-        } catch (SimpleVkException $e) {
+        } catch (\Exception $e) {
             $this->sendErrorUser($e);
-            $this->sendErrorUser($e->getCode());
-            return ['updates' => [], 'ts' => $this->ts, 'failed' => $e->getCode()];
+            throw new SimpleVkException($e->getCode(), $e->getMessage());
         }
     }
 
@@ -117,9 +116,7 @@ class LongPoll extends SimpleVK {
                 ]
             ])), true);
         }
-        if (isset($result['failed'])) {
-            throw new SimpleVkException($result['failed'], "Ошибка longpoll при получении данных");
-        } else if (!isset($result)) {
+        if (!isset($result)) {
             if ($iteration <= 5) {
                 SimpleVkException::nullError('Запрос к вк вернул пустоту. Повторная отправка, попытка №' . $iteration);
                 $result = $this->request_core_lp($url, $params, ++$iteration); //TODO рекурсия
@@ -127,7 +124,7 @@ class LongPoll extends SimpleVK {
                 $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
                                   Метод:$url\nПараметры:\n" . json_encode($params);
                 SimpleVkException::nullError($error_message);
-                throw new SimpleVkException(77777, $error_message);
+                throw new \Exception($error_message, 77777);
             }
         }
         return $result;
