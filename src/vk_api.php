@@ -121,12 +121,13 @@ class vk_api {
     /**
      * @return bool
      */
-    private function sendOK() {
+    protected function sendOK() {
         set_time_limit(0);
         ini_set('display_errors', 'Off');
 
         // для Nginx
         if (is_callable('fastcgi_finish_request')) {
+            echo 'ok';
             session_write_close();
             fastcgi_finish_request();
             return True;
