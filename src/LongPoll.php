@@ -43,6 +43,7 @@ class LongPoll extends SimpleVK {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
                 unset($this->data);
+                unset($this->data_backup);
                 $this->data = $event;
                 $this->data_backup = $this->data;
                 if ($this->auth_type == 'group') {

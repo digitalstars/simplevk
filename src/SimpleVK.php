@@ -37,7 +37,8 @@ class SimpleVK {
 
     public function __call($method, $args = []) {
         $method = str_replace("_", ".", $method);
-        return $this->request("$method", $args[0]);
+        $args = (empty($args)) ? $args : $args[0];
+        return $this->request("$method", $args);
     }
 
     public static function create($token, $version, $also_version = null) {
@@ -180,12 +181,13 @@ class SimpleVK {
             return $result;
     }
 
-    public function sendOK() {
+    protected function sendOK() {
         set_time_limit(0);
         ini_set('display_errors', 'Off');
 
         // для Nginx
         if (is_callable('fastcgi_finish_request')) {
+            echo 'ok';
             session_write_close();
             fastcgi_finish_request();
             return True;
