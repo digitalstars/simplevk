@@ -1,5 +1,6 @@
 <?php
 namespace DigitalStars\SimpleVK;
+use DigitalStars\simplevk\simplevk as vk;
 require_once('config_simplevk.php');
 
 class Auth
@@ -90,6 +91,13 @@ class Auth
             curl_setopt($curl, CURLOPT_USERAGENT, $this->useragent);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            if(isset(vk::$proxy['ip'])) {
+                curl_setopt($curl, CURLOPT_PROXYTYPE, vk::$proxy_types[vk::$proxy['type']]);
+                curl_setopt($curl, CURLOPT_PROXY, vk::$proxy['ip']);
+                if(isset(vk::$proxy['user_pwd'])) {
+                    curl_setopt($curl, CURLOPT_PROXYUSERPWD, vk::$proxy['user_pwd']);
+                }
+            }
             if (isset($post_values)) {
                 curl_setopt($curl, CURLOPT_POST, 1);
                 curl_setopt($curl, CURLOPT_POSTFIELDS, $post_values);

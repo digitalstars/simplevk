@@ -17,6 +17,8 @@ class SimpleVK {
     protected $auth;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     protected static $user_log_error = null;
+    public static $proxy = [];
+    public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
 
     public function __construct($token, $version, $also_version = null) {
         $this->processAuth($token, $version, $also_version);
@@ -150,6 +152,13 @@ class SimpleVK {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            if(isset(self::$proxy['ip'])) {
+                curl_setopt($ch, CURLOPT_PROXYTYPE, self::$proxy_types[self::$proxy['type']]);
+                curl_setopt($ch, CURLOPT_PROXY, self::$proxy['ip']);
+                if(isset(self::$proxy['user_pwd'])) {
+                    curl_setopt($ch, CURLOPT_PROXYUSERPWD, self::$proxy['user_pwd']);
+                }
+            }
             $result = json_decode(curl_exec($ch), True);
             curl_close($ch);
         } else {
@@ -179,6 +188,25 @@ class SimpleVK {
             return $result['response'];
         else
             return $result;
+    }
+
+    public function json_online($data) {
+        $json = (is_array($data)) ? json_encode($data) : $data;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        if ($json) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type:application/json"
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['name' => rand(10000000, 100000000), 'data' => $json]));
+            print json_encode(['name' => rand(10000000, 100000000), 'data' => $json]);
+        }
+        curl_setopt($ch, CURLOPT_URL, 'https://jsoneditoronline.herokuapp.com/v1/docs/');
+        $result = json_decode(curl_exec($ch), True);
+        curl_close($ch);
+        var_dump($result);
+        return 'https://jsoneditoronline.org/?id='.$result['id'];
     }
 
     protected function sendOK() {
