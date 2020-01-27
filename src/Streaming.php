@@ -52,7 +52,7 @@ class Streaming {
             $data = $this->read(2);
             $opcode = ord($data[0]) & 31;
             if ($opcode == 9) { //ping
-                $this->send('PONG');
+                $this->pong();
             } else {
                 $data = $this->getPayload();
                 $data = $this->dataProcessing($data);
@@ -75,7 +75,8 @@ class Streaming {
         return $data;
     }
 
-    private function send($payload) {
+    private function pong() {
+        $payload = 'PONG';
         $frameHead = [];
         $payloadLength = strlen($payload);
         $frameHead[0] = 138;
