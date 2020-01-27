@@ -55,8 +55,9 @@ class Streaming {
                 $this->pong();
             } else {
                 $data = $this->getPayload();
-                $data = $this->dataProcessing($data);
-                $anon(json_decode($data, 1));
+                $data = json_decode($data, 1);
+                $data['event']['text'] = $this->dataProcessing($data['event']['text']);
+                $anon($data);
             }
         }
     }
