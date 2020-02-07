@@ -9,5 +9,22 @@ const COUNT_TRY_SEND_FILE = 5;
 const DEFAULT_SCOPE = "notify,friends,photos,audio,video,stories,pages,status,notes,messages,wall,ads,offline,docs,groups,notifications,stats,email,market";
 // User-Agent по умолчанию
 const DEFAULT_USERAGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36';
-// ID приложения ВК по умолчанию
-const DEFAULT_ID_APP = '6660888';
+// Приложения ВК
+const DEFAULT_APP = [
+    "android" => [
+        'id' => 2274003,
+        'secret' => 'hHbZxrka2uZ6jB1inYsH'
+    ],
+    'ios' => [
+        'id' => 3140623,
+        'secret' => 'VeWdmVclDCtn6ihuP1nt'
+    ],
+    'windows' => [
+        'id' => 3697615,
+        'secret' => 'AlVXZFMUqyrnABp8ncuU'
+    ]
+];
+// Автосохранение авторизации
+const AUTO_SAVE_AUTH = True;
+// Директория запуска корневого скрипта
+DEFINE('DIRNAME', dirname(current(get_included_files())));
