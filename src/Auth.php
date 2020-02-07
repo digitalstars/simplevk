@@ -275,6 +275,11 @@ class Auth {
         return $this->access_token;
     }
 
+    public function reloadToken() {
+        $this->access_token = '';
+        return $this->getAccessToken();
+    }
+
     private function generateAccessTokenApp($resend = false) {
         $scope = "&scope=".$this->scope;
 

@@ -14,7 +14,7 @@ class SimpleVK {
     protected $api_url = 'https://api.vk.com/method/';
     protected $token;
     private static $debug_mode = 0;
-    protected $auth;
+    protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     protected static $user_log_error = null;
     public static $proxy = [];
@@ -125,6 +125,7 @@ class SimpleVK {
         $params['v'] = $this->version;
         $params['random_id'] = rand(-2147483648, 2147483647);
         $url = $this->api_url . $method;
+        $first_query = true;
         while (True) {
             try {
                 return $this->request_core($url, $params);
@@ -133,6 +134,13 @@ class SimpleVK {
                     sleep(1);
                     continue;
                 } else {
+                    if ($e->getCode() == 5 and isset($this->auth) and $first_query) {
+                        $this->auth->reloadToken();
+                        $this->token = $this->auth->getAccessToken();
+                        $params['access_token'] = $this->token;
+                        $first_query = false;
+                        continue;
+                    }
                     $this->sendErrorUser($e);
                     throw new Exception($e->getMessage(), $e->getCode());
                 }
