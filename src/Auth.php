@@ -34,16 +34,16 @@ class Auth {
         if ($this->is_update and $this->is_save) {
             if (!is_dir(DIRNAME."/cache"))
                 mkdir(DIRNAME."/cache");
-            $path = DIRNAME . "/cache/" . hash('sha256', $this->login.$this->pass.$this->cashed_salt).".php";
+            $path = DIRNAME . "/cache/" . hash('sha256', $this->login.$this->pass).".php";
             file_put_contents($path, $this->cashed_salt.
                 base64_encode(
                     json_encode(
-                        [   'cookie' => $this->cookie,
-                            'access_token' => $this->access_token,
-                            'method' => $this->method,
-                            'scope' => $this->scope,
-                            'id_app' => $this->id_app,
-                            'app' => $this->app]
+                        [   $this->cookie,
+                            $this->access_token,
+                            $this->method,
+                            $this->scope,
+                            $this->id_app,
+                            $this->app]
                     )
                 )
             );
@@ -123,7 +123,7 @@ class Auth {
 
     private function loadCashed() {
         if ($this->is_save) {
-            $path = DIRNAME . "/cache/" . hash('sha256', $this->login . $this->pass . $this->cashed_salt) . ".php";
+            $path = DIRNAME . "/cache/" . hash('sha256', $this->login . $this->pass) . ".php";
             if (file_exists($path)) {
                 $cashed_data = json_decode(
                     base64_decode(
@@ -131,12 +131,12 @@ class Auth {
                     )
                     , true);
                 if ($cashed_data != '') {
-                    ['cookie' => $this->cookie,
-                        'access_token' => $this->access_token,
-                        'method' => $this->method,
-                        'scope' => $this->scope,
-                        'id_app' => $this->id_app,
-                        'app' => $this->app] = $cashed_data;
+                    list($this->cookie,
+                        $this->access_token,
+                        $this->method,
+                        $this->scope,
+                        $this->id_app,
+                        $this->app) = $cashed_data;
                 }
             }
         }
