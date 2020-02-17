@@ -20,6 +20,7 @@ class Auth {
     private $default_app = DEFAULT_APP;
     private $is_update = false;
     private $cashed_salt = "<?php http_response_code(404);exit('404');?>";
+    private $captcha_handler_func = null;
 
     public function __construct($login = null, $pass = null) {
         if (isset($login) and isset($pass)) {
@@ -108,24 +109,35 @@ class Auth {
 
     public function save($is) {
         $this->is_save = $is;
+        if (!$this->is_update) {
+            $this->access_token = '';
+            $this->cookie = [];
+        }
+        return $this;
+    }
+
+    public function captchaHandler($func) {
+        $this->captcha_handler_func = $func;
         return $this;
     }
 
     private function loadCashed() {
-        $path = DIRNAME . "/cache/" . hash('sha256', $this->login.$this->pass.$this->cashed_salt).".php";
-        if (file_exists($path)) {
-            $cashed_data = json_decode(
-                base64_decode(
-                    str_replace($this->cashed_salt, '', @file_get_contents($path))
-                )
-                , true);
-            if ($cashed_data != '') {
-                ['cookie' => $this->cookie,
-                    'access_token' => $this->access_token,
-                    'method' => $this->method,
-                    'scope' => $this->scope,
-                    'id_app' => $this->id_app,
-                    'app' => $this->app] = $cashed_data;
+        if ($this->is_save) {
+            $path = DIRNAME . "/cache/" . hash('sha256', $this->login . $this->pass . $this->cashed_salt) . ".php";
+            if (file_exists($path)) {
+                $cashed_data = json_decode(
+                    base64_decode(
+                        str_replace($this->cashed_salt, '', @file_get_contents($path))
+                    )
+                    , true);
+                if ($cashed_data != '') {
+                    ['cookie' => $this->cookie,
+                        'access_token' => $this->access_token,
+                        'method' => $this->method,
+                        'scope' => $this->scope,
+                        'id_app' => $this->id_app,
+                        'app' => $this->app] = $cashed_data;
+                }
             }
         }
     }
@@ -251,11 +263,11 @@ class Auth {
         return 2;
     }
 
-    public function getAccessToken() {
+    public function getAccessToken($captcha_key = null, $captcha_sid = null) {
         if ($this->access_token != '')
             return $this->access_token;
         if ($this->method == 1) {
-            $this->access_token = $this->generateAccessTokenOfficialApp();
+            $this->access_token = $this->generateAccessTokenOfficialApp($captcha_key, $captcha_sid);
         } else if ($this->method == 2) {
             if ($this->isAuth() == 0)
                 $this->loginInVK();
@@ -332,7 +344,11 @@ class Auth {
 
         if (isset($response_auth['access_token']))
             return $response_auth['access_token'];
-        else
+        else if (isset($response_auth['error']) and $response_auth['error'] == 'need_captcha') {
+            if (is_callable($this->captcha_handler_func))
+                return $this->generateAccessTokenOfficialApp(call_user_func_array($this->captcha_handler_func, [$response_auth['captcha_sid'], $response_auth['captcha_img']]), $response_auth['captcha_sid']);
+        }
+        if (isset($response_auth['error']))
             throw new SimpleVkException(0, json_encode($response_auth));
     }
 }
