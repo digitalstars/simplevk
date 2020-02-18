@@ -116,11 +116,10 @@ class LongPoll extends SimpleVK {
             $result = json_decode(curl_exec($ch), true);
             curl_close($ch);
         } else {
-            $result = json_decode(file_get_contents($url, true, stream_context_create([
+            $result = json_decode(file_get_contents($url . http_build_query($params), true, stream_context_create([
                 'http' => [
                     'method' => 'POST',
-                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                    'content' => http_build_query($params)
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\n"
                 ]
             ])), true);
         }

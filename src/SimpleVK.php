@@ -181,7 +181,7 @@ class SimpleVK {
         if (!isset($result)) {
             if ($iteration <= 5) {
                 SimpleVkException::nullError('Запрос к вк вернул пустоту. Повторная отправка, попытка №' . $iteration);
-                $this->request_core($url, $params, ++$iteration);
+                $result = $this->request_core($url, $params, ++$iteration);
             } else {
                 $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
                                   Метод:$url\nПараметры:\n" . json_encode($params);
