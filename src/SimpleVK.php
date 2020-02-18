@@ -7,7 +7,6 @@ use Exception;
 require_once('config_simplevk.php');
 
 class SimpleVK {
-    protected $count_send_error = 0;
     protected $version;
     protected $data = [];
     protected $data_backup = [];
@@ -16,7 +15,7 @@ class SimpleVK {
     private static $debug_mode = 0;
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
-    protected static $user_log_error = null;
+    protected static $user_log_error = [];
     public static $proxy = [];
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
 
@@ -121,35 +120,38 @@ class SimpleVK {
     }
 
     public function request($method, $params = []) {
-        $params['access_token'] = $this->token;
-        $params['v'] = $this->version;
-        $params['random_id'] = rand(-2147483648, 2147483647);
-        $url = $this->api_url . $method;
-        $first_query = true;
-        while (True) {
+        for ($iteration = 0; $iteration < 6; ++$iteration) {
             try {
-                return $this->request_core($url, $params);
+                return $this->request_core($method, $params);
             } catch (SimpleVkException $e) {
                 if (in_array($e->getCode(), $this->request_ignore_error)) {
                     sleep(1);
+                    $iteration = 0;
                     continue;
-                } else {
-                    if ($e->getCode() == 5 and isset($this->auth) and $first_query) {
-                        $this->auth->reloadToken();
-                        $this->token = $this->auth->getAccessToken();
-                        $params['access_token'] = $this->token;
-                        $first_query = false;
-                        continue;
+                } else if ($e->getCode() == 5 and isset($this->auth) and $iteration != 0) {
+                    $this->auth->reloadToken();
+                    $this->token = $this->auth->getAccessToken();
+                    continue;
+                } else if ($e->getCode() == 77777) {
+                    if ($iteration == 5) {
+                        $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
+                                  Метод:$method\nПараметры:\n" . json_encode($params);
+                        throw new SimpleVkException(77777, $error_message);
                     }
-                    $this->sendErrorUser($e);
-                    throw new Exception($e->getMessage(), $e->getCode());
+                    continue;
                 }
+                $this->sendErrorUser($e);
+                throw new Exception($e->getMessage(), $e->getCode());
             }
         }
         return false;
     }
 
-    protected function request_core($url, $params = [], $iteration = 1) {
+    protected function request_core($method, $params = []) {
+        $params['access_token'] = $this->token;
+        $params['v'] = $this->version;
+        $params['random_id'] = rand(-2147483648, 2147483647);
+        $url = $this->api_url . $method;
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -179,15 +181,7 @@ class SimpleVK {
             ])), true);
         }
         if (!isset($result)) {
-            if ($iteration <= 5) {
-                SimpleVkException::nullError('Запрос к вк вернул пустоту. Повторная отправка, попытка №' . $iteration);
-                $result = $this->request_core($url, $params, ++$iteration);
-            } else {
-                $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
-                                  Метод:$url\nПараметры:\n" . json_encode($params);
-                SimpleVkException::nullError($error_message);
-                throw new SimpleVkException(77777, $error_message);
-            }
+            throw new SimpleVkException(77777, 'Запрос к вк вернул пустоту.');
         }
         if (isset($result['error'])) {
             throw new SimpleVkException($result['error']['error_code'], json_encode($result));
@@ -242,15 +236,11 @@ class SimpleVK {
     }
 
     protected function sendErrorUser($e) {
-        if (!is_null(self::$user_log_error)) {
-            if ($this->count_send_error < 1) {
-                $this->count_send_error++;
-                $error = SimpleVkException::userError($e);
-                foreach (self::$user_log_error as $id) {
-                    $this->sendMessage($id, $error);
-                }
-                $this->count_send_error = 0;
-            }
+        $error = SimpleVkException::userError($e);
+        foreach (self::$user_log_error as $id) {
+            try {
+                $this->request_core('messages.send', ['message' => $error, 'peer_id' => $id]);
+            } catch (Exception $ee) {}
         }
     }
 
