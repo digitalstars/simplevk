@@ -113,7 +113,7 @@ $login_arr = [
     ['login4', 'pass4']
 ];
 $auth = Auth::create()->captchaHandler(function ($sid, $img) {
-    echo "Решите каптчу: $img\n";
+    echo "\nРешите каптчу: $img\n";
     return trim(fgets(STDIN));
 });
 foreach ($login_arr as $login) {
