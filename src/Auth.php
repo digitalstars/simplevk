@@ -147,6 +147,7 @@ class Auth {
             throw new SimpleVkException(0, "Только для авторизации через приложение");
         if ($this->isAuth() == 0)
             $this->loginInVK();
+        return $this->isAuth();
     }
 
     private function loginInVK() {
@@ -263,11 +264,11 @@ class Auth {
         return 2;
     }
 
-    public function getAccessToken($captcha_key = null, $captcha_sid = null) {
+    public function getAccessToken() {
         if ($this->access_token != '')
             return $this->access_token;
         if ($this->method == 1) {
-            $this->access_token = $this->generateAccessTokenOfficialApp($captcha_key, $captcha_sid);
+            $this->access_token = $this->generateAccessTokenOfficialApp();
         } else if ($this->method == 2) {
             if ($this->isAuth() == 0)
                 $this->loginInVK();
