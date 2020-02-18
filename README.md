@@ -20,8 +20,9 @@
 * `$pass` - Пароль пользователя *(строка)*
 ```php
 use DigitalStars\simplevk\Auth as Auth;
-$auth = Auth::create($login, $pass);
+$auth = Auth::create($login, $pass); 
 ```
+> Это не авторизация, а лишь создание объекта настроек. Для авторизации используйте один из методов: getAccessToken или auth
 ## Методы цепочки вызовов
 ### login
 **Входные параметры**
@@ -42,7 +43,7 @@ $login_arr = [
 $auth = Auth::create();
 foreach ($login_arr as $login) {
     try {
-        $auth->login($login[0])->pass($login[1])->getAccessToken();
+        $token = $auth->login($login[0])->pass($login[1])->getAccessToken();
         echo "\nВерные данные: $login[0]:$login[1]";
     } catch (Exception $e) {
         continue;
@@ -115,7 +116,7 @@ $auth = Auth::create()->captchaHandler(function ($sid, $img) {
 });
 foreach ($login_arr as $login) {
     try {
-        $auth->login($login[0])->pass($login[1])->getAccessToken();
+        $token = $auth->login($login[0])->pass($login[1])->getAccessToken();
         echo "\nВерные данные: $login[0]:$login[1]";
     } catch (Exception $e) {
         continue;
@@ -152,10 +153,12 @@ $cookie_auth = $auth->dumpCookie();
 * `1` - Авторизовано, токен получен
 * `2` - Авторизовано, токен не получен *(только при авторизации через неофициальное приложение)*
 > Возвращает статус авторизации
+
+> Для проверки используется вызов метода users.get, по этому не желательно использовать часто. При передачи экземпляра $auth в SimpleVK он сам получит новый токен, если этот устарел
 ```php
 $auth = Auth::create('login', 'pass');
-$token = $auth->getAccessToken();
-$check_auth = $auth->isAuth();
+if (!$auth->isAuth())   // Если токена нет в кеше
+    $token = $auth->getAccessToken();  // Получаем токен
 ```
 ### getAccessToken
 **Возвращает** ***(строка)***
