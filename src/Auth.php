@@ -246,6 +246,8 @@ class Auth {
     }
 
     public function dumpCookie() {
+        if ($this->cookie == null or $this->method == 1)
+            return false;
         return json_encode($this->cookie);
     }
 
