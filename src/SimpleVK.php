@@ -16,7 +16,7 @@ class SimpleVK {
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     protected static $user_log_error = [];
-    public static $proxy = [];
+    public static $proxy = PROXY;
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
 
     public function __construct($token, $version, $also_version = null) {
@@ -40,6 +40,13 @@ class SimpleVK {
         $method = str_replace("_", ".", $method);
         $args = (empty($args)) ? $args : $args[0];
         return $this->request("$method", $args);
+    }
+
+    public static function setProxy($proxy, $pass = false) {
+        self::$proxy['ip'] = $proxy;
+        self::$proxy['type'] = explode(':', $proxy)[0];
+        if ($pass)
+            self::$proxy['user_pwd'] = $pass;
     }
 
     public static function create($token, $version, $also_version = null) {

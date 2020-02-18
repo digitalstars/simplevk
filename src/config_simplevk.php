@@ -4,6 +4,8 @@ namespace DigitalStars\SimpleVK;
 const REQUEST_IGNORE_ERROR = [1,6,9,10,14];
 // максимальное количество попыток загрузки файла
 const COUNT_TRY_SEND_FILE = 5;
+// Прокси по умолчанию
+const PROXY = [];
 // Auth
 // Запрашиваемые права доступа для токена пользователя по уполчанию
 const DEFAULT_SCOPE = "notify,friends,photos,audio,video,stories,pages,status,notes,messages,wall,ads,offline,docs,groups,notifications,stats,email,market";

@@ -30,8 +30,8 @@ class Auth {
         }
     }
 
-    public function __destruct() {
-        if ($this->is_update and $this->is_save) {
+    private function saveCashed() {
+        if ($this->is_save) {
             if (!is_dir(DIRNAME."/cache"))
                 mkdir(DIRNAME."/cache");
             $path = DIRNAME . "/cache/" . hash('sha256', $this->login.$this->pass).".php";
@@ -291,6 +291,7 @@ class Auth {
             }
         }
         $this->is_update = true;
+        $this->saveCashed();
         return $this->access_token;
     }
 
