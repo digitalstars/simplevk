@@ -42,10 +42,7 @@ $login_arr = [
 $auth = Auth::create();
 foreach ($login_arr as $login) {
     try {
-        $auth
-            ->login($login[0])
-            ->pass($login[1])
-            ->getAccessToken();
+        $auth->login($login[0])->pass($login[1])->getAccessToken();
         echo "\nВерные данные: $login[0]:$login[1]";
     } catch (Exception $e) {
         continue;
@@ -118,10 +115,7 @@ $auth = Auth::create()->captchaHandler(function ($sid, $img) {
 });
 foreach ($login_arr as $login) {
     try {
-        $auth
-            ->login($login[0])
-            ->pass($login[1])
-            ->getAccessToken();
+        $auth->login($login[0])->pass($login[1])->getAccessToken();
         echo "\nВерные данные: $login[0]:$login[1]";
     } catch (Exception $e) {
         continue;
