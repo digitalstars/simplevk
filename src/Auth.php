@@ -56,6 +56,8 @@ class Auth {
 
     public function login($login) {
         $this->login = $login;
+        if ($login != $this->login)
+            $this->access_token = '';
         if (isset($this->pass))
             $this->loadCashed();
         return $this;
@@ -63,6 +65,8 @@ class Auth {
 
     public function pass($pass) {
         $this->pass = $pass;
+        if ($pass != $this->pass)
+            $this->access_token = '';
         if (isset($this->login))
             $this->loadCashed();
         return $this;

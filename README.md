@@ -31,28 +31,64 @@ $auth = Auth::create($login, $pass);
 **Входные параметры**
 * `$pass` - Пароль пользователя *(строка)*
 > Задаёт пароль пользователя
+#### Пример. Поиск верных данных авторизации
+```php
+$login_arr = [
+    ['login1', 'pass1'],
+    ['login2', 'pass2'],
+    ['login3', 'pass3'],
+    ['login4', 'pass4']
+];
+$auth = Auth::create();
+foreach ($login_arr as $login) {
+    try {
+        $auth
+            ->login($login[0])
+            ->pass($login[1])
+            ->getAccessToken();
+        echo "\nВерные данные: $login[0]:$login[1]";
+    } catch (Exception $e) {
+        continue;
+    }
+}
+```
 ### cookie
 **Входные параметры**
 * `$cookie` - JSON куки авторизованного пользователя *(строка)*
 > Задаёт куки авторизованного пользователя
+```php
+$auth = Auth::create('login', 'pass')->cookie('JSON');
+```
 ### useragent
 **Входные параметры**
 * `$useragent` - желаемый useragent *(строка)*
 > Задаёт useragent для авторизации. 
 
 >Значение по умолчанию - константа DEFAULT_USERAGENT в файле конфигураций
+```php
+$auth = Auth::create('login', 'pass')->useragent('User-Agent');
+```
 ### app
 **Входные параметры**
 * `$app` - id приложения для авторизации через приложение или один из идентификаторов ['windows', 'mac', 'android'] для авторизации через официальное приложение *(int или строка)*
 > Задаёт метод авторизации и id приложения. 
 
 >По умолчанию используется авторизация через официальное приложение android
+```php
+$auth = Auth::create('login', 'pass')->app(1234567);
+```
+```php
+$auth = Auth::create('login', 'pass')->app('ios');
+```
 ### scope
 **Входные параметры**
 * `$scope` - Список прав через запятую, получаемых при авторизации *(строка)*
 > Задаёт список прав, которые будут получены при авторизации.
 
 >Значение по умолчанию - константа DEFAULT_SCOPE в файле конфигураций
+```php
+$auth = Auth::create('login', 'pass')->scope('notify,friends,photos');
+```
 ### save
 **Входные параметры**
 * `$is` - Сохранять ли авторизационные данные *(bool)*
@@ -61,10 +97,37 @@ $auth = Auth::create($login, $pass);
 > Авторизация сохраняется в папку `cache` в директории запускаемого скрипта
 
 > По умолчанию - true
+```php
+$auth = Auth::create('login', 'pass')->save(false);
+```
 ### captchaHandler
 **Входные параметры**
 * `$func` - Анонимная функция *(функция)*
 > При поимке каптчи будет вызвана переданная анонимная функция: $func($sid, $img), где $sid - сид каптчи, $img - ссылка на изображение каптчи. Функция должна вернуть решение каптчи (строка)
+#### Пример. Поиск верных данных авторизации с обработкой каптчи
+```php
+$login_arr = [
+    ['login1', 'pass1'],
+    ['login2', 'pass2'],
+    ['login3', 'pass3'],
+    ['login4', 'pass4']
+];
+$auth = Auth::create()->captchaHandler(function ($sid, $img) {
+    echo "Решите каптчу: $img\n";
+    return trim(fgets(STDIN));
+});
+foreach ($login_arr as $login) {
+    try {
+        $auth
+            ->login($login[0])
+            ->pass($login[1])
+            ->getAccessToken();
+        echo "\nВерные данные: $login[0]:$login[1]";
+    } catch (Exception $e) {
+        continue;
+    }
+}
+```
 ## Методы
 ### auth
 > Только для авторизации через неофициаьное приложение
@@ -76,23 +139,47 @@ $auth = Auth::create($login, $pass);
 > Авторизовывается на сайте ВК и возвращает статус авторизации.
 
 > После метода можно получить авторизационные куки пользователя
+```php
+$auth = Auth::create('login', 'pass')->app(1234567);
+$check_auth = $auth->auth();
+```
 ### dumpCookie
 **Возвращает** ***(строка)***
 * `строка` - Куки в JSON
 > Возвращает текущие куки. После авторизации через неофициальное приложение вернёт куки, с которыми можно будет зайти на страницу даже из браузера (При условии одинаковых ip)
+```php
+$auth = Auth::create('login', 'pass')->app(1234567);
+$check_auth = $auth->auth();
+$cookie_auth = $auth->dumpCookie();
+```
 ### isAuth
 **Возвращает** ***(int)***
 * `0` - Авторизация не удалась
 * `1` - Авторизовано, токен получен
 * `2` - Авторизовано, токен не получен *(только при авторизации через неофициальное приложение)*
 > Возвращает статус авторизации
+```php
+$auth = Auth::create('login', 'pass');
+$token = $auth->getAccessToken();
+$check_auth = $auth->isAuth();
+```
 ### getAccessToken
 **Возвращает** ***(строка)***
 * `строка` - Авторизационный токен
 > Получает токен, если он ещё не был получен и возвращает его
+```php
+$auth = Auth::create('login', 'pass');
+$token = $auth->getAccessToken();
+```
 ### reloadToken
 **Возвращает** ***(строка)***
 * `строка` - Авторизационный токен
 > Получает новый авторизационный токен
 
 > Вызывается автоматически, когда авторизация устарела
+```php
+$auth = Auth::create('login', 'pass');
+echo "Токен 1: ".$auth->getAccessToken();
+$auth->reloadToken();
+echo "\nТокен 2: ".$auth->getAccessToken()."\n";
+```
