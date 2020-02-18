@@ -46,7 +46,7 @@ foreach ($login_arr as $login) {
         $token = $auth->login($login[0])->pass($login[1])->getAccessToken();
         echo "\nВерные данные: $login[0]:$login[1]";
     } catch (Exception $e) {
-        continue;
+        continue; // Не удалось авторизоваться
     }
 }
 ```
@@ -119,7 +119,7 @@ foreach ($login_arr as $login) {
         $token = $auth->login($login[0])->pass($login[1])->getAccessToken();
         echo "\nВерные данные: $login[0]:$login[1]";
     } catch (Exception $e) {
-        continue;
+        continue; // Не удалось авторизоваться
     }
 }
 ```
