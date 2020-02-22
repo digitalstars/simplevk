@@ -12,22 +12,25 @@ class SimpleVK {
     protected $data_backup = [];
     protected $api_url = 'https://api.vk.com/method/';
     protected $token;
-    private static $debug_mode = 0;
+    private static $debug_mode = false;
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     protected static $user_log_error = [];
     public static $proxy = PROXY;
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
 
+    public static function create($token, $version, $also_version = null) {
+        return new self($token, $version, $also_version);
+    }
+
     public function __construct($token, $version, $also_version = null) {
         $this->processAuth($token, $version, $also_version);
         $this->data = json_decode(file_get_contents('php://input'), 1);
         $this->data_backup = $this->data;
-        if(isset($this->data['type']) && $this->data['type'] != 'confirmation') {
+        if (isset($this->data['type']) && $this->data['type'] != 'confirmation') {
             if (self::$debug_mode) {
                 $this->debugRun();
-            }
-            else {
+            } else {
                 $this->sendOK();
             }
             if (isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
@@ -39,7 +42,7 @@ class SimpleVK {
     public function __call($method, $args = []) {
         $method = str_replace("_", ".", $method);
         $args = (empty($args)) ? $args : $args[0];
-        return $this->request("$method", $args);
+        return $this->request($method, $args);
     }
 
     public static function setProxy($proxy, $pass = false) {
@@ -49,8 +52,12 @@ class SimpleVK {
             self::$proxy['user_pwd'] = $pass;
     }
 
-    public static function create($token, $version, $also_version = null) {
-        return new self($token, $version, $also_version);
+    public static function setUserLogError($user_id) {
+        self::$user_log_error = !is_array($user_id) ? [$user_id] : $user_id;
+    }
+
+    public static function debug($flag = true) {
+        self::$debug_mode = ($flag) ?: false;
     }
 
     public function setConfirm($str) {
@@ -111,19 +118,23 @@ class SimpleVK {
         }
     }
 
-    public static function debug($flag = true) {
-        self::$debug_mode = ($flag) ?: false;
-    }
-
-    protected function debugRun() {
-        ini_set('error_reporting', E_ALL);
-        ini_set('display_errors', 1);
-        ini_set('display_startup_errors', 1);
-        echo 'ok';
-    }
-
-    public static function setUserLogError($user_id) {
-        self::$user_log_error = !is_array($user_id) ? [$user_id] : $user_id;
+    public function json_online($data) {
+        $json = (is_array($data)) ? json_encode($data) : $data;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        if ($json) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type:application/json"
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['name' => rand(10000000, 100000000), 'data' => $json]));
+            print json_encode(['name' => rand(10000000, 100000000), 'data' => $json]);
+        }
+        curl_setopt($ch, CURLOPT_URL, 'https://jsoneditoronline.herokuapp.com/v1/docs/');
+        $result = json_decode(curl_exec($ch), True);
+        curl_close($ch);
+        var_dump($result);
+        return 'https://jsoneditoronline.org/?id=' . $result['id'];
     }
 
     public function request($method, $params = []) {
@@ -169,10 +180,10 @@ class SimpleVK {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            if(isset(self::$proxy['ip'])) {
+            if (isset(self::$proxy['ip'])) {
                 curl_setopt($ch, CURLOPT_PROXYTYPE, self::$proxy_types[self::$proxy['type']]);
                 curl_setopt($ch, CURLOPT_PROXY, self::$proxy['ip']);
-                if(isset(self::$proxy['user_pwd'])) {
+                if (isset(self::$proxy['user_pwd'])) {
                     curl_setopt($ch, CURLOPT_PROXYUSERPWD, self::$proxy['user_pwd']);
                 }
             }
@@ -199,23 +210,11 @@ class SimpleVK {
             return $result;
     }
 
-    public function json_online($data) {
-        $json = (is_array($data)) ? json_encode($data) : $data;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        if ($json) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type:application/json"
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['name' => rand(10000000, 100000000), 'data' => $json]));
-            print json_encode(['name' => rand(10000000, 100000000), 'data' => $json]);
-        }
-        curl_setopt($ch, CURLOPT_URL, 'https://jsoneditoronline.herokuapp.com/v1/docs/');
-        $result = json_decode(curl_exec($ch), True);
-        curl_close($ch);
-        var_dump($result);
-        return 'https://jsoneditoronline.org/?id='.$result['id'];
+    protected function debugRun() {
+        ini_set('error_reporting', E_ALL);
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        echo 'ok';
     }
 
     protected function sendOK() {
@@ -247,7 +246,8 @@ class SimpleVK {
         foreach (self::$user_log_error as $id) {
             try {
                 $this->request_core('messages.send', ['message' => $error, 'peer_id' => $id]);
-            } catch (Exception $ee) {}
+            } catch (Exception $ee) {
+            }
         }
     }
 

@@ -3,7 +3,6 @@ namespace DigitalStars\simplevk;
 
 class LongPoll extends SimpleVK {
     private $group_id;
-    private $user_id;
     private $key;
     private $server;
     private $ts;
@@ -28,17 +27,6 @@ class LongPoll extends SimpleVK {
         $this->getLongPollServer();
     }
 
-    private function getLongPollServer() {
-        if ($this->auth_type == 'user')
-            $data = $this->request('messages.getLongPollServer', ['need_pts' => 1, 'lp_version' => 10]);
-        else
-            $data = $this->request('groups.getLongPollServer', ['group_id' => $this->group_id]);
-        unset($this->key);
-        unset($this->server);
-        unset($this->ts);
-        list($this->key, $this->server, $this->ts) = [$data['key'], $data['server'], $data['ts']];
-    }
-
     public function listen($anon) {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
@@ -59,6 +47,17 @@ class LongPoll extends SimpleVK {
 //                $this->vk->exec();
 //            }
         }
+    }
+
+    private function getLongPollServer() {
+        if ($this->auth_type == 'user')
+            $data = $this->request('messages.getLongPollServer', ['need_pts' => 1, 'lp_version' => 10]);
+        else
+            $data = $this->request('groups.getLongPollServer', ['group_id' => $this->group_id]);
+        unset($this->key);
+        unset($this->server);
+        unset($this->ts);
+        list($this->key, $this->server, $this->ts) = [$data['key'], $data['server'], $data['ts']];
     }
 
     private function processingData() {

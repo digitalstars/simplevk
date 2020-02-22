@@ -2,6 +2,8 @@
 
 namespace DigitalStars\simplevk;
 
+use DigitalStars\SimpleVK\SimpleVK as vk;
+
 class Streaming {
     private $rules_url;
     private $stream_url;
@@ -109,6 +111,14 @@ class Streaming {
     }
 
     private function request($url, $type, $json = []) {
+        try {
+            return $this->request_core($url, $type, $json);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), $e->getCode());
+        }
+    }
+
+    private function request_core($url, $type, $json) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -123,6 +133,12 @@ class Streaming {
         curl_setopt($ch, CURLOPT_URL, $url);
         $result = json_decode(curl_exec($ch), True);
         curl_close($ch);
+        if (empty($result)) {
+            throw new SimpleVkException(77777, 'Вк вернул пустой ответ');
+        }
+        if ($result['code'] == 400) {
+            throw new SimpleVkException($result['code'], json_encode($result));
+        }
         return $result;
     }
 

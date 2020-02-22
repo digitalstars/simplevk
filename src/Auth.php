@@ -22,36 +22,16 @@ class Auth {
     private $cashed_salt = "<?php http_response_code(404);exit('404');?>";
     private $captcha_handler_func = null;
 
+    public static function create($login = null, $pass = null) {
+        return new self($login, $pass);
+    }
+
     public function __construct($login = null, $pass = null) {
         if (isset($login) and isset($pass)) {
             $this->login = $login;
             $this->pass = $pass;
             $this->loadCashed();
         }
-    }
-
-    private function saveCashed() {
-        if ($this->is_save) {
-            if (!is_dir(DIRNAME."/cache"))
-                mkdir(DIRNAME."/cache");
-            $path = DIRNAME . "/cache/" . hash('sha256', $this->login.$this->pass).".php";
-            file_put_contents($path, $this->cashed_salt.
-                base64_encode(
-                    json_encode(
-                        [   $this->cookie,
-                            $this->access_token,
-                            $this->method,
-                            $this->scope,
-                            $this->id_app,
-                            $this->app]
-                    )
-                )
-            );
-        }
-    }
-
-    public static function create($login = null, $pass = null) {
-        return new self($login, $pass);
     }
 
     public function login($login) {
@@ -125,6 +105,148 @@ class Auth {
         return $this;
     }
 
+    public function auth() {
+        if ($this->method != 2)
+            throw new SimpleVkException(0, "Только для авторизации через приложение");
+        if ($this->isAuth() == 0)
+            $this->loginInVK();
+        return $this->isAuth();
+    }
+
+    public function dumpCookie() {
+        if ($this->cookie == null or $this->method == 1)
+            return false;
+        return json_encode($this->cookie);
+    }
+
+    public function isAuth() {
+        if ($this->method == 0 or ($this->access_token == '' and $this->method == 1))
+            return 0;
+        if ($this->access_token != '') {
+            $check_valid_token = json_decode($this->getCURL("https://api.vk.com/method/users.get?v=5.103&access_token=" . $this->access_token)['body'], true);
+            if (isset($check_valid_token['response'])) {
+                return 1;
+            }
+            if ($this->method = 1)
+                return 0;
+        }
+        $header = $this->getCURL("https://vk.com/feed")['header'];
+        if (isset($header['location'][0]) and strpos($header['location'][0], 'login.vk.com')) {
+            $this->cookie = null;
+            return 0;
+        }
+        return 2;
+    }
+
+    public function getAccessToken() {
+        if ($this->access_token != '')
+            return $this->access_token;
+        if ($this->method == 1) {
+            $this->access_token = $this->generateAccessTokenOfficialApp();
+        } else if ($this->method == 2) {
+            if ($this->isAuth() == 0)
+                $this->loginInVK();
+            try {
+                $this->access_token = $this->generateAccessTokenApp();
+            } catch (\Exception $e) {
+                if (isset($this->login) and isset($this->pass)) {
+                    $this->cookie = null;
+                    $this->loginInVK();
+                    $this->access_token = $this->generateAccessTokenApp();
+                } else {
+                    throw new SimpleVkException(0, "Через куки не выходит получить токен, а логин и пароль не заданы");
+                }
+            }
+        }
+        $this->is_update = true;
+        $this->saveCashed();
+        return $this->access_token;
+    }
+
+    public function reloadToken() {
+        $this->access_token = '';
+        return $this->getAccessToken();
+    }
+
+    private function generateAccessTokenApp($resend = false) {
+        $scope = "&scope=" . $this->scope;
+
+        if ($resend)
+            $scope .= "&revoke=1";
+
+        $token_url = 'https://oauth.vk.com/authorize?client_id=' . $this->id_app . $scope . '&response_type=token';
+
+        $get_url_token = $this->getCURL($token_url);
+
+        if (isset($get_url_token['header']['location'][0]))
+            $url_token = $get_url_token['header']['location'][0];
+        else {
+            preg_match('!location.href = "(.*)"\+addr!s', $get_url_token['body'], $url_token);
+
+            if (!isset($url_token[1])) {
+                throw new SimpleVkException(0, "Не получилось получить токен на этапе получения ссылки подтверждения");
+            }
+            $url_token = $url_token[1];
+        }
+
+        $access_token_location = $this->getCURL($url_token)['header']['location'][0];
+
+        if (preg_match("!access_token=(.*?)&!s", $access_token_location, $access_token) != 1)
+            throw new SimpleVkException(0, "Не удалось найти access_token в строке ридеректа, ошибка:" . $this->getCURL($access_token_location, null, false)['body']);
+        return $access_token[1];
+    }
+
+    private function generateAccessTokenOfficialApp($captcha_key = false, $captcha_sid = false) {
+        if (!isset($this->login) or !isset($this->pass))
+            throw new SimpleVkException(0, "Для авторизации через оффициальное приложение необходимо задать логин и пароль");
+
+        $captcha = '';
+        $scope = "&scope=" . $this->scope;
+
+        if ($captcha_key and $captcha_sid)
+            $captcha = "&captcha_sid=$captcha_sid&captcha_key=$captcha_key";
+
+        $token_url = 'https://oauth.vk.com/token?grant_type=password' .
+            '&client_id=' . $this->app['id'] .
+            '&client_secret=' . $this->app['secret'] .
+            '&username=' . $this->login .
+            '&password=' . $this->pass .
+            $scope .
+            $captcha;
+        $response_auth = $this->getCURL($token_url, null, false)['body'];
+        $response_auth = json_decode($response_auth, true);
+
+        if (isset($response_auth['access_token']))
+            return $response_auth['access_token'];
+        else if (isset($response_auth['error']) and $response_auth['error'] == 'need_captcha') {
+            if (is_callable($this->captcha_handler_func))
+                return $this->generateAccessTokenOfficialApp(call_user_func_array($this->captcha_handler_func,
+                    [$response_auth['captcha_sid'], $response_auth['captcha_img']]), $response_auth['captcha_sid']);
+        }
+        if (isset($response_auth['error']))
+            throw new SimpleVkException(0, json_encode($response_auth));
+    }
+
+    private function saveCashed() {
+        if ($this->is_save) {
+            if (!is_dir(DIRNAME . "/cache"))
+                mkdir(DIRNAME . "/cache");
+            $path = DIRNAME . "/cache/" . hash('sha256', $this->login . $this->pass) . ".php";
+            file_put_contents($path, $this->cashed_salt .
+                base64_encode(
+                    json_encode(
+                        [$this->cookie,
+                            $this->access_token,
+                            $this->method,
+                            $this->scope,
+                            $this->id_app,
+                            $this->app]
+                    )
+                )
+            );
+        }
+    }
+
     private function loadCashed() {
         if ($this->is_save) {
             $path = DIRNAME . "/cache/" . hash('sha256', $this->login . $this->pass) . ".php";
@@ -144,14 +266,6 @@ class Auth {
                 }
             }
         }
-    }
-
-    public function auth() {
-        if ($this->method != 2)
-            throw new SimpleVkException(0, "Только для авторизации через приложение");
-        if ($this->isAuth() == 0)
-            $this->loginInVK();
-        return $this->isAuth();
     }
 
     private function loginInVK() {
@@ -243,120 +357,5 @@ class Auth {
             else
                 $this->cookie[$preger[1]] = $preger[2] . ';' . $preger[3];
         }
-    }
-
-    public function dumpCookie() {
-        if ($this->cookie == null or $this->method == 1)
-            return false;
-        return json_encode($this->cookie);
-    }
-
-    public function isAuth() {
-        if ($this->method == 0 or ($this->access_token == '' and $this->method == 1))
-            return 0;
-        if ($this->access_token != '') {
-            $check_valid_token = json_decode($this->getCURL("https://api.vk.com/method/users.get?v=5.103&access_token=".$this->access_token)['body'], true);
-            if (isset($check_valid_token['response'])) {
-                return 1;
-            }
-            if ($this->method = 1)
-                return 0;
-        }
-        $header = $this->getCURL("https://vk.com/feed")['header'];
-        if (isset($header['location'][0]) and strpos($header['location'][0], 'login.vk.com')) {
-            $this->cookie = null;
-            return 0;
-        }
-        return 2;
-    }
-
-    public function getAccessToken() {
-        if ($this->access_token != '')
-            return $this->access_token;
-        if ($this->method == 1) {
-            $this->access_token = $this->generateAccessTokenOfficialApp();
-        } else if ($this->method == 2) {
-            if ($this->isAuth() == 0)
-                $this->loginInVK();
-            try {
-                $this->access_token = $this->generateAccessTokenApp();
-            } catch (Exception $e) {
-                if (isset($this->login) and isset($this->pass)) {
-                    $this->cookie = null;
-                    $this->loginInVK();
-                    $this->access_token = $this->generateAccessTokenApp();
-                } else {
-                    throw new SimpleVkException(0, "Через куки не выходит получить токен, а логин и пароль не заданы");
-                }
-            }
-        }
-        $this->is_update = true;
-        $this->saveCashed();
-        return $this->access_token;
-    }
-
-    public function reloadToken() {
-        $this->access_token = '';
-        return $this->getAccessToken();
-    }
-
-    private function generateAccessTokenApp($resend = false) {
-        $scope = "&scope=".$this->scope;
-
-        if ($resend)
-            $scope .= "&revoke=1";
-
-        $token_url = 'https://oauth.vk.com/authorize?client_id=' . $this->id_app .
-            $scope .
-            '&response_type=token';
-
-        $get_url_token = $this->getCURL($token_url);
-
-        if (isset($get_url_token['header']['location'][0]))
-            $url_token = $get_url_token['header']['location'][0];
-        else {
-            preg_match('!location.href = "(.*)"\+addr!s', $get_url_token['body'], $url_token);
-
-            if (!isset($url_token[1])) {
-                throw new SimpleVkException(0, "Не получилось получить токен на этапе получения ссылки подтверждения");
-            }
-            $url_token = $url_token[1];
-        }
-
-        $access_token_location = $this->getCURL($url_token)['header']['location'][0];
-
-        if (preg_match("!access_token=(.*?)&!s", $access_token_location, $access_token) != 1)
-            throw new SimpleVkException(0, "Не удалось найти access_token в строке ридеректа, ошибка:" . $this->getCURL($access_token_location, null, false)['body']);
-        return $access_token[1];
-    }
-
-    private function generateAccessTokenOfficialApp($captcha_key = false, $captcha_sid = false) {
-        if (!isset($this->login) or !isset($this->pass))
-            throw new SimpleVkException(0, "Для авторизации через оффициальное приложение необходимо задать логин и пароль");
-
-        $captcha = '';
-        $scope = "&scope=".$this->scope;
-
-        if ($captcha_key and $captcha_sid)
-            $captcha = "&captcha_sid=$captcha_sid&captcha_key=$captcha_key";
-
-        $token_url = 'https://oauth.vk.com/token?grant_type=password' .
-            '&client_id=' . $this->app['id'] .
-            '&client_secret=' . $this->app['secret'] .
-            '&username=' . $this->login .
-            '&password=' . $this->pass .
-            $scope .
-            $captcha;
-        $response_auth = $this->getCURL($token_url, null, false)['body'];
-        $response_auth = json_decode($response_auth, true);
-
-        if (isset($response_auth['access_token']))
-            return $response_auth['access_token'];
-        else if (isset($response_auth['error']) and $response_auth['error'] == 'need_captcha') {
-            if (is_callable($this->captcha_handler_func))
-                return $this->generateAccessTokenOfficialApp(call_user_func_array($this->captcha_handler_func, [$response_auth['captcha_sid'], $response_auth['captcha_img']]), $response_auth['captcha_sid']);
-        }
-        if (isset($response_auth['error']))
-            throw new SimpleVkException(0, json_encode($response_auth));
     }
 }
