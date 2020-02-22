@@ -1,7 +1,5 @@
 <?php
-
 namespace DigitalStars\simplevk;
-
 use DigitalStars\SimpleVK\SimpleVK as vk;
 
 class Streaming {

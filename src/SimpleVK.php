@@ -118,7 +118,99 @@ class SimpleVK {
         }
     }
 
-    public function json_online($data) {
+    public function sendKeyboard($id, $message, $keyboard = [], $inline = false, $one_time = False, $params = []) {
+        $keyboard = $this->generateKeyboard($keyboard, $inline, $one_time);
+        //$message = $this->placeholders($id, $message);
+        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
+    }
+
+    public function buttonLocation($payload = null) {
+        return ['location', $payload];
+    }
+
+    public function buttonOpenLink($link, $label = 'Открыть', $payload = null) {
+        return ['open_link', $payload, $link, $label];
+    }
+
+    public function buttonPayToGroup($group_id, $amount, $description = null, $data = null, $payload = null) {
+        return ['vkpay', $payload, 'pay-to-group', $group_id, $amount, $description, $data];
+    }
+
+    public function buttonPayToUser($user_id, $amount, $description = null, $payload = null) {
+        return ['vkpay', $payload, 'pay-to-user', $user_id, $amount, $description];
+    }
+
+    public function buttonDonateToGroup($group_id, $payload = null) {
+        return ['vkpay', $payload, 'transfer-to-group', $group_id];
+    }
+
+    public function buttonDonateToUser($user_id, $payload = null) {
+        return ['vkpay', $payload, 'transfer-to-user', $user_id];
+    }
+
+    public function buttonApp($text, $app_id, $owner_id = null, $hash = null, $payload = null) {
+        return ['open_app', $payload, $text, $app_id, $owner_id, $hash];
+    }
+
+    public function buttonText($text, $color, $payload = null) {
+        return ['text', $payload, $text, self::$color_replacer[$color]];
+    }
+
+    static $color_replacer = [
+        'blue' => 'primary',
+        'white' => 'default',
+        'red' => 'negative',
+        'green' => 'positive'
+    ];
+
+    public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
+        $keyboard = [];
+        $i = 0;
+        foreach ($keyboard_raw as $button_str) {
+            $j = 0;
+            foreach ($button_str as $button) {
+                $keyboard[$i][$j]['action']['type'] = $button[0];
+                if ($button[1] != null)
+                    $keyboard[$i][$j]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
+                switch ($button[0]) {
+                    case 'text': {
+                        $keyboard[$i][$j]['color'] = $button[3];
+                        $keyboard[$i][$j]['action']['label'] = $button[2];
+                        break;
+                    }
+                    case 'vkpay': {
+                        $keyboard[$i][$j]['action']['hash'] = "action={$button[2]}";
+                        $keyboard[$i][$j]['action']['hash'] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id={$button[3]}";
+                        $keyboard[$i][$j]['action']['hash'] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
+                        $keyboard[$i][$j]['action']['hash'] .= (isset($button[5])) ? "&description={$button[5]}" : '';
+                        $keyboard[$i][$j]['action']['hash'] .= (isset($button[6])) ? "&data={$button[6]}" : '';
+                        $keyboard[$i][$j]['action']['hash'] .= '&aid=1';
+                        break;
+                    }
+                    case 'open_app': {
+                        $keyboard[$i][$j]['action']['label'] = $button[2];
+                        $keyboard[$i][$j]['action']['app_id'] = $button[3];
+                        if(isset($button[4]))
+                            $keyboard[$i][$j]['action']['owner_id'] = $button[4];
+                        if(isset($button[5]))
+                            $keyboard[$i][$j]['action']['hash'] = $button[5];
+                        break;
+                    }
+                    case 'open_link': {
+                        $keyboard[$i][$j]['action']['link'] = $button[2];
+                        $keyboard[$i][$j]['action']['label'] = $button[3];
+                    }
+                }
+                $j++;
+            }
+            $i++;
+        }
+        $keyboard = ['one_time' => $one_time, 'buttons' => $keyboard, 'inline' => $inline];
+        $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
+        return $keyboard;
+    }
+
+    public function json_online($data) { //не работает
         $json = (is_array($data)) ? json_encode($data) : $data;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
@@ -173,7 +265,7 @@ class SimpleVK {
         if (function_exists('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type:multipart/form-data"
+                'Content-Type:multipart/form-data'
             ]);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
