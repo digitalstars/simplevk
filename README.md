@@ -66,8 +66,9 @@ const VERSION = '5.101'; //ваша версия используемого api
 require_once('vendor/autoload.php');
 use DigitalStar\vk_api\vk_api;
 $vk = vk_api::create(VK_KEY, VERSION)->setConfirm(CONFIRM_STR);
-$vk->initVars($id, $message);
-$vk->reply($message);
+$data = $vk->initVars($id, $message, $payload, $user_id, $type); //инициализация переменных
+if($type == 'message_new')
+  $vk->reply($message);
 ```
 #### Простой Callback бот для бесед и сообщества
 ```php
@@ -75,7 +76,7 @@ require_once('vendor/autoload.php');
 use DigitalStar\vk_api\vk_api;
 $vk = vk_api::create(VK_KEY, VERSION)->setConfirm(CONFIRM_STR);
 $vk->debug();
-$vk->initVars($id, $message, $payload); //инициализация переменных
+$data = $vk->initVars($id, $message, $payload, $user_id, $type); //инициализация переменных
 $info_btn = $vk->buttonText('Информация', 'blue', ['command' => 'info']); //создание кнопки
 if ($payload) {
     if($payload['command'] == 'info')
