@@ -450,6 +450,10 @@ class vk_api {
     public function buttonApp($text, $app_id, $owner_id = null, $hash = null, $payload = null) {
         return ['open_app', $payload, $text, $app_id, $owner_id, $hash];
     }
+    
+    public function buttonOpenLink($text, $link, $payload = null) {
+        return ['open_link', $payload, $text, $link];
+    }
 
     public function buttonText($text, $color, $payload = null) {
         return ['text', $payload, $text, $color];
@@ -493,6 +497,11 @@ class vk_api {
                             $keyboard[$i][$j]["action"]["owner_id"] = $button[4];
                         if(isset($button[5]))
                             $keyboard[$i][$j]["action"]["hash"] = $button[5];
+                        break;
+                    }
+                    case 'open_link': {
+                        $keyboard[$i][$j]["action"]["label"] = $button[2];
+                        $keyboard[$i][$j]["action"]["link"] = $button[3];
                         break;
                     }
                 }
