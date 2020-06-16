@@ -100,6 +100,8 @@ class Bot {
                     if (preg_match($preg_mask, $message, $result_parse))
                         return Message::create($this->vk, $this->config['action'][$action], $this->config['btn'])->send($id, null, $result_parse);
         }
+        if (isset($this->config['action']['other']))
+            return Message::create($this->vk, $this->config['action']['other'], $this->config['btn'])->send($id);
         return null;
     }
 }
