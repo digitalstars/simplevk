@@ -4,7 +4,7 @@ require_once __DIR__ . '/../autoload.php';
 use DigitalStars\simplevk\Bot as Bot;
 use DigitalStars\SimpleVK\LongPoll as lp;
 
-$vk = new lp("a39df011677c98bc513ed176c75fb91fa4e50dbce0430dcd466cc57c47ddf50a1e744dcbfa4328cb31f90", "5.110");
+$vk = new lp("TOKEN", "5.110");
 $bot = Bot::create($vk);      // Инициализация конструктора ботов
 
 $bot->btn('first')  // Кнопка "Начать" или любой текст
