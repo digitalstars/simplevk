@@ -74,6 +74,24 @@ class BaseConstructor {
         return $this;
     }
 
+    public function func($func) {
+        $this->config['func'] = $func;
+        return $this;
+    }
+
+    public function afterFunc($func) {
+        $this->config['func_after'] = $func;
+        return $this;
+    }
+
+    public function getFunc() {
+        return $this->config['func'];
+    }
+
+    public function getAfterFunc() {
+        return $this->config['func_after'];
+    }
+
     public function getDoc() {
         return $this->config['doc'];
     }
