@@ -7,13 +7,15 @@ use DigitalStars\SimpleVK\LongPoll as lp;
 $vk = new lp("", "5.110");
 $bot = Bot::create($vk);
 
-$bot->cmd('other')->text("Команда не найдена" .
+$bot->btn('first')->text("Команда не найдена" .
     "\nДоступные команды: " .
     "\n!посчитай число + число \n---пример '!посчитай 5 + 5'" .
     "\n!посчитай число * число \n---пример '!посчитай 5 * 5'" .
     "\n!напиши мне слово любое_слово \n---пример '!напиши мне слово Привет!'" .
     "\n!напиши что угодно \n---пример '!напиши Какой то рандомный текст'" .
     "\n!покажи кнопку [слово] [white,blue,red,green] \n---пример '!покажи кнопку Кнопочка green'");
+
+$bot->redirect('other', 'first');
 
 $bot->cmd('sum', '!посчитай %n + %n')
     ->func(function ($msg, $id, $params) {
@@ -45,5 +47,5 @@ $bot->cmd('send_btn', '!покажи кнопку %s %s')->text('Ваша кно
     });
 
 $vk->listen(function ($data) use ($vk, $bot) {
-    $bot->run();
+    echo $bot->run() . "\n";
 });
