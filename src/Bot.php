@@ -36,6 +36,14 @@ class Bot {
         return $this->newAction($id);
     }
 
+    public function __call($name, $arguments) {
+        if (empty($arguments))
+            return $this->btn($name);
+        if (is_array($arguments[0]))
+            return $this->btn($name, $arguments[0]);
+        return $this->btn($name, $this->vk->buttonText($arguments[0], $arguments[1] ?? 'white'));
+    }
+
     public function cmd($id, $mask = null, $is_case = false) {
         if (!$is_case)
             $mask = mb_strtolower($mask);
