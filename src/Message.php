@@ -68,11 +68,14 @@ class Message extends BaseConstructor {
             if ($this->config['func']($this, $id, $var))
                 return null;
         if (!empty($this->config['func_before_chain']))
-            foreach ($this->config['func_before_chain'] as $func)
+            foreach ($this->config['func_before_chain'] as $func) {
                 if ($func['f'] == 'run')
                     $this->bot->run($func['args']);
                 else
                     call_user_func_array($func['f'], $func['args']);
+                if ($this->bot->getStatus())
+                    return null;
+            }
         $attachments = [];
         if (isset($this->config['img']))
             foreach ($this->config['img'] as $img)
@@ -113,11 +116,14 @@ class Message extends BaseConstructor {
             if($this->config['func_after']($result, $var))
                 return $result;
         if (!empty($this->config['func_after_chain']))
-            foreach ($this->config['func_after_chain'] as $func)
+            foreach ($this->config['func_after_chain'] as $func) {
                 if ($func['f'] == 'run')
                     $this->bot->run($func['args']);
                 else
                     call_user_func_array($func['f'], $func['args']);
+                if ($this->bot->getStatus())
+                    return $result;
+            }
         $this->config = $cfg_cache;
         return $result;
     }
