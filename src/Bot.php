@@ -25,12 +25,21 @@ class Bot {
     private function newAction($id) {
         if (!isset($this->config['action'][$id]))
             $this->config['action'][$id] = [];
-        return new Message($this->vk, $this->config['action'][$id], $this->config['btn']);
+        return new Message($this->vk, $this->config['action'][$id], $this, $this->config['btn']);
     }
 
     public function btn($id, $btn = null, $is_text_triggered = false) {
-        if (isset($btn))
-            $this->config['btn'][$id] = $btn;
+        if (isset($btn)) {
+            if (is_array($btn)) {
+                if (!isset($btn[1]))
+                    $btn[1] = 'white';
+                if (count($btn) == 2 and in_array($btn[1], ['white', 'green', 'red', 'blue']))
+                    $this->config['btn'][$id] = $this->vk->buttonText($btn[0], $btn[1]);
+                else
+                    $this->config['btn'][$id] = $btn;
+            } else
+                $this->config['btn'][$id] = $this->vk->buttonText($btn);
+        }
         if ($is_text_triggered)
             $this->cmd($id, $btn[2]);
         return $this->newAction($id);
@@ -71,13 +80,13 @@ class Bot {
         $this->vk->initVars($id_now, $message, $payload, $user_id, $type);
         $id = $id ?? $id_now;
         if (isset($send) and isset($this->config['action'][$send]))
-            return Message::create($this->vk, $this->config['action'][$send], $this->config['btn'])->send($id);
+            return Message::create($this->vk, $this->config['action'][$send], $this, $this->config['btn'])->send($id);
         if ($type != 'message_new')
             return null;
         if (isset($payload['name']) and isset($this->config['action'][$payload['name']]))
-            return Message::create($this->vk, $this->config['action'][$payload['name']], $this->config['btn'])->send($id);
+            return Message::create($this->vk, $this->config['action'][$payload['name']], $this, $this->config['btn'])->send($id);
         if ((isset($payload['command']) and $payload['command'] == 'start') or $this->is_text_start)
-            return Message::create($this->vk, $this->config['action']['first'], $this->config['btn'])->send($id);
+            return Message::create($this->vk, $this->config['action']['first'], $this, $this->config['btn'])->send($id);
         if (!empty($message)) {
             if (isset($this->config['mask'])) {
                 $arr_msg = explode(' ', $message);
@@ -100,16 +109,16 @@ class Bot {
                         }
                     }
                     if ($flag)
-                        return Message::create($this->vk, $this->config['action'][$action], $this->config['btn'])->send($id, null, $result_parse);
+                        return Message::create($this->vk, $this->config['action'][$action], $this, $this->config['btn'])->send($id, null, $result_parse);
                 }
             }
             if (isset($this->config['preg_mask']))
                 foreach ($this->config['preg_mask'] as $action => $preg_mask)
                     if (preg_match($preg_mask, $message, $result_parse))
-                        return Message::create($this->vk, $this->config['action'][$action], $this->config['btn'])->send($id, null, $result_parse);
+                        return Message::create($this->vk, $this->config['action'][$action], $this, $this->config['btn'])->send($id, null, $result_parse);
         }
         if (isset($this->config['action']['other']))
-            return Message::create($this->vk, $this->config['action']['other'], $this->config['btn'])->send($id);
+            return Message::create($this->vk, $this->config['action']['other'], $this, $this->config['btn'])->send($id);
         return null;
     }
 }

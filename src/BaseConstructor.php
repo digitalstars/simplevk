@@ -16,6 +16,40 @@ class BaseConstructor {
         $this->vk = $vk;
     }
 
+    public function __call($name, $arguments) {
+        $prefix = substr($name, 0, 2);
+        $func = substr($name, 2);
+        if ($prefix == 'a_')
+            $prefix = 'func_after_chain';
+        else if ($prefix == 'b_')
+            $prefix = 'func_before_chain';
+        else
+            throw new SimpleVkException(0, 'Неверно задан префикс фнкции');
+        if (is_callable($func))
+            $this->config[$prefix][] = ['f' => $func, 'args' => $arguments];
+        else
+            throw new SimpleVkException(0, 'Функция '.$func.' недоступна');
+        return $this;
+    }
+
+    public function clearChainAfter() {
+        $this->config['func_after_chain'] = [];
+        return $this;
+    }
+
+    public function getChainAfter() {
+        return $this->config['func_after_chain'];
+    }
+
+    public function clearChainBefore() {
+        $this->config['func_before_chain'] = [];
+        return $this;
+    }
+
+    public function getChainBefore() {
+        return $this->config['func_before_chain'];
+    }
+
     public function text($text) {
         $this->config['text'] = $text;
         return $this;
