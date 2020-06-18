@@ -152,7 +152,7 @@ class SimpleVK {
         return ['open_app', $payload, $text, $app_id, $owner_id, $hash];
     }
 
-    public function buttonText($text, $color, $payload = null) {
+    public function buttonText($text, $color = 'white', $payload = null) {
         return ['text', $payload, $text, self::$color_replacer[$color]];
     }
 
