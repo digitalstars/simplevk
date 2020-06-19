@@ -93,10 +93,12 @@ class SimpleVK {
     }
 
     public function reply($message, $params = []) {
+        $message = $this->placeholders($this->data['object']['peer_id'], $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $this->data['object']['peer_id']] + $params);
     }
 
     public function sendMessage($id, $message, $params = []) {
+        $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
     }
 
