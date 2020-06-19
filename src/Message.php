@@ -59,21 +59,6 @@ class Message extends BaseConstructor {
         return $this;
     }
 
-    private function placeholders($message, $id) {
-        if ($id >= 2e9) {
-            $this->vk->initVars($v, $v, $v, $id);
-        }
-        if (strpos($message, '%') !== false) {
-            $data = $this->vk->userInfo($id);
-            $f = $data['first_name'];
-            $l = $data['last_name'];
-            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
-            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
-            return str_replace($tag, $replace, $message);
-        } else
-            return $message;
-    }
-
     public function send($id = null, $vk = null, $var = null) {
         if (empty($this->vk))
             $this->vk = $vk;
@@ -123,7 +108,7 @@ class Message extends BaseConstructor {
             : (isset($this->config['kbd']) ? ['keyboard' => $this->vk->generateKeyboard($this->config['kbd']['kbd'], $this->config['kbd']['inline'], $this->config['kbd']['one_time'])]
                 : []);
         $params = $this->config['params'] ?? [];
-        $text = isset($this->config['text']) ? ['message' => $this->placeholders($this->config['text'], $id)] : [];
+        $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
         $query = $text + $params + $attachments + $kbd;
         if (empty($query))
             return null;

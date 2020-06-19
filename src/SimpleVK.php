@@ -93,12 +93,10 @@ class SimpleVK {
     }
 
     public function reply($message, $params = []) {
-        $message = $this->placeholders($this->data['object']['peer_id'], $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $this->data['object']['peer_id']] + $params);
     }
 
     public function sendMessage($id, $message, $params = []) {
-        $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
     }
 
@@ -122,7 +120,6 @@ class SimpleVK {
 
     public function sendKeyboard($id, $message, $keyboard = [], $inline = false, $one_time = False, $params = []) {
         $keyboard = $this->generateKeyboard($keyboard, $inline, $one_time);
-        $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
 
@@ -247,6 +244,8 @@ class SimpleVK {
     }
 
     public function request($method, $params = []) {
+        if (isset($params['message']))
+            $params['message'] = $this->placeholders($params['peer_id'] ?? null, $params['message']);
         for ($iteration = 0; $iteration < 6; ++$iteration) {
             try {
                 return $this->request_core($method, $params);
