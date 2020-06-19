@@ -124,6 +124,7 @@ class vk_api {
     protected function sendOK() {
         set_time_limit(0);
         ini_set('display_errors', 'Off');
+        ob_end_clean();
 
         // для Nginx
         if (is_callable('fastcgi_finish_request')) {
