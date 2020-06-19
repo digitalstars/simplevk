@@ -8,6 +8,8 @@ class Bot {
     private $vk = null;
     private $config = [];
     private $is_text_start = false;
+    private $is_text_button_triggered = false;
+    private $case_default = false;
     private $status = 1;
     private $color = 'white';
 
@@ -50,8 +52,8 @@ class Bot {
             } else
                 $this->config['btn'][$id] = $this->vk->buttonText($btn, $this->color);
         }
-        if ($is_text_triggered)
-            $this->cmd($id, $btn[2]);
+        if ($this->config['btn'][$id][0] == 'text' and ($is_text_triggered or $this->is_text_button_triggered))
+            $this->cmd($id, $this->config['btn'][$id][2]);
         return $this->newAction($id);
     }
 
@@ -59,7 +61,8 @@ class Bot {
         return $this->btn($name, $arguments[0] ?? null, $arguments[1] ?? null);
     }
 
-    public function cmd($id, $mask = null, $is_case = false) {
+    public function cmd($id, $mask = null, $is_case = null) {
+        $is_case = $is_case ?? $this->case_default;
         if (isset($mask)) {
             $this->config['mask'][$id] = [[], $is_case];
             if (is_array($mask))
@@ -68,8 +71,11 @@ class Bot {
                         $m = mb_strtolower($m);
                     $this->config['mask'][$id][0][] = $m;
                 }
-            else
+            else {
+                if (!$is_case)
+                    $mask = mb_strtolower($mask);
                 $this->config['mask'][$id][0][] = $mask;
+            }
         }
         return $this->newAction($id);
     }
@@ -161,6 +167,16 @@ class Bot {
             $this->color = $color;
         else
             throw new SimpleVkException(0, "Неверное название цвета");
+        return $this;
+    }
+
+    public function setCaseDefault($case = true) {
+        $this->case_default = $case;
+        return $this;
+    }
+
+    public function isTextBtnTriggered($status = true) {
+        $this->is_text_button_triggered = $status;
         return $this;
     }
 
