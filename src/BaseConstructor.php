@@ -24,11 +24,21 @@ class BaseConstructor {
         else if ($prefix == 'b_')
             $prefix = 'func_before_chain';
         else
-            throw new SimpleVkException(0, 'Неверно задан префикс фнкции');
+            throw new SimpleVkException(0, 'Неверно задан префикс функции');
         if (is_callable($func))
             $this->config[$prefix][] = ['f' => $func, 'args' => $arguments];
         else
             throw new SimpleVkException(0, 'Функция '.$func.' недоступна');
+        return $this;
+    }
+
+    public function a_sleep($time) {
+        $this->config['func_after_chain'][] = ['f' => 'sleep', 'args' => [$time]];
+        return $this;
+    }
+
+    public function b_sleep($time) {
+        $this->config['func_before_chain'][] = ['f' => 'sleep', 'args' => [$time]];
         return $this;
     }
 
