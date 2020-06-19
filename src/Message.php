@@ -8,6 +8,7 @@ class Message extends BaseConstructor {
     use FileUploader;
 
     private $buttons;
+    /** @var Bot */
     private $bot = null;
 
     public function __construct($vk = null, &$cfg = null, $bot = null, &$buttons = null) {
@@ -56,6 +57,21 @@ class Message extends BaseConstructor {
             throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
         $this->config['func_before_chain'][] = ['f' => 'run', 'args' => $id];
         return $this;
+    }
+
+    private function placeholders($message, $id) {
+        if ($id >= 2e9) {
+            $this->vk->initVars($v, $v, $v, $id);
+        }
+        if (strpos($message, '%') !== false) {
+            $data = $this->vk->userInfo($id);
+            $f = $data['first_name'];
+            $l = $data['last_name'];
+            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
+            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
+            return str_replace($tag, $replace, $message);
+        } else
+            return $message;
     }
 
     public function send($id = null, $vk = null, $var = null) {
@@ -107,7 +123,7 @@ class Message extends BaseConstructor {
             : (isset($this->config['kbd']) ? ['keyboard' => $this->vk->generateKeyboard($this->config['kbd']['kbd'], $this->config['kbd']['inline'], $this->config['kbd']['one_time'])]
                 : []);
         $params = $this->config['params'] ?? [];
-        $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
+        $text = isset($this->config['text']) ? ['message' => $this->placeholders($this->config['text'], $id)] : [];
         $query = $text + $params + $attachments + $kbd;
         if (empty($query))
             return null;

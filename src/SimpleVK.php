@@ -120,7 +120,7 @@ class SimpleVK {
 
     public function sendKeyboard($id, $message, $keyboard = [], $inline = false, $one_time = False, $params = []) {
         $keyboard = $this->generateKeyboard($keyboard, $inline, $one_time);
-        //$message = $this->placeholders($id, $message);
+        $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
 
@@ -162,6 +162,21 @@ class SimpleVK {
         'red' => 'negative',
         'green' => 'positive'
     ];
+
+    protected function placeholders($id, $message) {
+        if($id >= 2e9) {
+            $id = $this->data['object']['from_id'] ?? null;
+        }
+        if (strpos($message, '%') !== false) {
+            $data = $this->userInfo($id);
+            $f = $data['first_name'];
+            $l = $data['last_name'];
+            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
+            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
+            return str_replace($tag, $replace, $message);
+        } else
+            return $message;
+    }
 
     public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
         $keyboard = [];

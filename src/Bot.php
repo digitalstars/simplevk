@@ -5,6 +5,7 @@ namespace DigitalStars\simplevk;
 
 class Bot {
     use FileUploader;
+    /** @var SimpleVK */
     private $vk = null;
     private $config = [];
     private $is_text_start = false;
@@ -21,7 +22,7 @@ class Bot {
         return new self($vk);
     }
 
-    public function isText($start) {
+    public function isStartTextTriggered($start) {
         $this->is_text_start = $start;
         return $this;
     }
@@ -153,8 +154,12 @@ class Bot {
         return $out;
     }
 
-    public function compile($var = 'compile') {
-        return $this->out_array($this->config, $var);
+    public function compile($var = 'compile', $file = 'cache', $is_write = true) {
+        $source = $this->out_array($this->config, $var);
+        file_put_contents(DIRNAME."/".$file.".php", $source);
+        if ($is_write)
+            echo "Процесс компиляции завершён".PHP_EOL;
+        return $source;
     }
 
     public function load($compile) {

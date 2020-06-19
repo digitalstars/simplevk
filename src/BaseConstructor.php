@@ -6,6 +6,7 @@ namespace DigitalStars\simplevk;
 
 class BaseConstructor {
     protected $config;
+    /** @var SimpleVK */
     protected $vk = null;
 
     public function __construct($vk = null, &$cfg = null) {
