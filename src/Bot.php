@@ -211,6 +211,10 @@ class Bot {
                                 $number_temp = str_replace(",", '.', $arr_msg[$index]);
                                 if (is_numeric($number_temp))
                                     $result_parse[] = (double)$number_temp;
+                                else {
+                                    $flag = false;
+                                    break;
+                                }
                             } else if ($word == '%s' and is_string($arr_msg[$index])) {
                                 $result_parse[] = $arr_msg[$index];
                             } else if ((!$masks[1] or $word != $arr_msg[$index]) and ($masks[1] or $word != mb_strtolower($arr_msg[$index]))) {
