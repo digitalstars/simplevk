@@ -114,7 +114,7 @@ class Bot {
         return $this;
     }
 
-    private function out_array($array, $var, $_livel = null) {
+    private function out_array($array, $var, $_livel = null, $stack = []) {
         $out = $margin = '';
         $nr = "\n";
         $tab = "\t";
@@ -143,13 +143,17 @@ class Bot {
                     }
 
                     if (is_array($row)) {
-                        $out .= $this->out_array($row, $var, $_livel);
+                        $stack[] = $key;
+                        $out .= $this->out_array($row, $var, $_livel, $stack);
+                        array_pop($stack);
                     } elseif (is_null($row)) {
                         $out .= 'null';
                     } elseif (is_numeric($row)) {
                         $out .= $row;
                     } elseif (is_bool($row)) {
                         $out .= ($row) ? 'true' : 'false';
+                    } elseif ($stack[0] == 'action' and ($key == 'func' or $key == 'func_after') and is_callable($row)) {
+                        $out .= $this->getFunction(end($stack), $key);
                     } else {
                         $out .= "'" . addslashes($row) . "'";
                     }
@@ -215,6 +219,39 @@ class Bot {
                     return null;
         $this->status = 0;
         return Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+    }
+
+    private function getFunction($id, $type) {
+        $func_info = new \ReflectionFunction($this->config['action'][$id][$type]);
+        $filename = $func_info->getFileName();
+        $start_line = $func_info->getStartLine() - 1;
+        $end_line = $func_info->getEndLine();
+        $length = $end_line - $start_line;
+
+        $source = file($filename);
+        $body = implode("", array_slice($source, $start_line, $length));
+        $tokens = token_get_all("<?php ".$body);
+        $flag = false;
+        $brackets = 0;
+        $result = '';
+        $type = $type == 'func' ? 'func' : 'afterFunc';
+        foreach ($tokens as $token) {
+            if (is_string($token))
+                $var = $token;
+            else {
+                if ($token[0] == T_DOC_COMMENT or $token[0] == T_COMMENT or $token[0] == T_WHITESPACE)
+                    continue;
+                $var = $token[1];
+            }
+            if ($flag) {
+                $result .= $var;
+                $var == '(' ? ++$brackets : (($var == ')') ? --$brackets : null);
+                if ($brackets == 0)
+                    break;
+            } else if ($var == $type)
+                $flag = true;
+        }
+        return $result;
     }
 
     public function run($send = null, $id = null) {
