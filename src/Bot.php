@@ -247,9 +247,11 @@ class Bot {
                 $result .= $var;
                 $var == '(' ? ++$brackets : (($var == ')') ? --$brackets : null);
                 if ($brackets == 0)
-                    break;
-            } else if ($var == $type)
+                    $flag = false;
+            } else if ($var == $type) {
                 $flag = true;
+                $result = '';
+            }
         }
         return $result;
     }
