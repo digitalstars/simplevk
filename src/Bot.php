@@ -30,7 +30,7 @@ class Bot {
     private function newAction($id) {
         if (!isset($this->config['action'][$id]))
             $this->config['action'][$id] = [];
-        return new Message($this->vk, $this->config['action'][$id], $this, $this->config['btn']);
+        return new Message($this->vk, $this->config['action'][$id], $this, $this->config['btn'], $id);
     }
 
     public function brake() {
@@ -81,6 +81,24 @@ class Bot {
         return $this->newAction($id);
     }
 
+    public function access($id, $access) {
+        $this->config['action'][$id]['access'] = $access;
+        return $this;
+    }
+
+    public function getAccess($id) {
+        return $this->config['action'][$id]['access'];
+    }
+
+    public function notAccess($id, $access) {
+        $this->config['action'][$id]['not_access'] = $access;
+        return $this;
+    }
+
+    public function getNotAccess($id) {
+        return $this->config['action'][$id]['not_access'];
+    }
+
     public function preg_cmd($id, $mask = null) {
         if (isset($mask))
             $this->config['preg_mask'][$id] = $mask;
@@ -94,11 +112,6 @@ class Bot {
     public function redirect($id, $to_id) {
         $this->config['action'][$id] = &$this->config['action'][$to_id];
         return $this;
-    }
-
-    private function runAction($id, &$action, $result_parse = null) {
-        $this->status = 0;
-        return Message::create($this->vk, $action, $this, $this->config['btn'])->send($id, null, $result_parse);
     }
 
     private function out_array($array, $var, $_livel = null) {
@@ -185,17 +198,36 @@ class Bot {
         return $this;
     }
 
+    private function runAction($id, $user_id, $action_id, $result_parse = null) {
+        if (isset($this->config['action'][$action_id]['access'])) {
+            $flag = false;
+            foreach ($this->config['action'][$action_id]['access'] as $access)
+                if ((is_array($access) and ($id == $access[0] or $user_id == $access[0]) and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access))) {
+                    $flag = true;
+                    break;
+                }
+            if (!$flag)
+                return null;
+        }
+        if (isset($this->config['action'][$action_id]['not_access']))
+            foreach ($this->config['action'][$action_id]['not_access'] as $access)
+                if ((is_array($access) and ($id == $access[0] or $user_id == $access[0]) and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access)))
+                    return null;
+        $this->status = 0;
+        return Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+    }
+
     public function run($send = null, $id = null) {
         $this->vk->initVars($id_now, $message, $payload, $user_id, $type);
         $id = $id ?? $id_now;
         if (isset($send) and isset($this->config['action'][$send]))
-            return $this->runAction($id, $this->config['action'][$send]);
+            return $this->runAction($id, $user_id, $send);
         if ($type != 'message_new')
             return null;
         if (isset($payload['name']) and isset($this->config['action'][$payload['name']]))
-            return $this->runAction($id, $this->config['action'][$payload['name']]);
+            return $this->runAction($id, $user_id, $payload['name']);
         if ((isset($payload['command']) and $payload['command'] == 'start') or $this->is_text_start)
-            return $this->runAction($id, $this->config['action']['first']);
+            return $this->runAction($id, $user_id, 'first');
         if (!empty($message)) {
             if (isset($this->config['mask'])) {
                 $arr_msg = explode(' ', $message);
@@ -223,16 +255,16 @@ class Bot {
                             }
                         }
                         if ($flag)
-                            return $this->runAction($id, $this->config['action'][$action], $result_parse);
+                            return $this->runAction($id, $user_id, $action, $result_parse);
                     }
             }
             if (isset($this->config['preg_mask']))
                 foreach ($this->config['preg_mask'] as $action => $preg_mask)
                     if (preg_match($preg_mask, $message, $result_parse))
-                        return $this->runAction($id, $this->config['action'][$action], $result_parse);
+                        return $this->runAction($id, $user_id, $action, $result_parse);
         }
         if (isset($this->config['action']['other']))
-            return $this->runAction($id, $this->config['action']['other']);
+            return $this->runAction($id, $user_id, 'other');
         return null;
     }
 }

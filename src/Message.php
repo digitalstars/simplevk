@@ -10,15 +10,17 @@ class Message extends BaseConstructor {
     private $buttons;
     /** @var Bot */
     private $bot = null;
+    private $id_action = null;
 
-    public function __construct($vk = null, &$cfg = null, $bot = null, &$buttons = null) {
+    public function __construct($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
         $this->buttons = &$buttons;
         $this->bot = $bot;
+        $this->id_action = $id_action;
         parent::__construct($vk, $cfg);
     }
 
-    public static function create($vk = null, &$cfg = null, $bot = null, &$buttons = null) {
-        return new self($vk, $cfg, $bot, $buttons);
+    public static function create($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
+        return new self($vk, $cfg, $bot, $buttons, $id_action);
     }
 
     public function voice($path) {
@@ -57,6 +59,30 @@ class Message extends BaseConstructor {
             throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
         $this->config['func_before_chain'][] = ['f' => 'run', 'args' => $id];
         return $this;
+    }
+
+    public function access() {
+        if (!is_null($this->bot))
+            $this->bot->access($this->id_action, func_get_args());
+        return $this;
+    }
+
+    public function getAccess() {
+        if (!is_null($this->bot))
+            return $this->bot->getAccess($this->id_action);
+        return null;
+    }
+
+    public function notAccess() {
+        if (!is_null($this->bot))
+            $this->bot->notAccess($this->id_action, func_get_args());
+        return $this;
+    }
+
+    public function getNotAccess() {
+        if (!is_null($this->bot))
+            return $this->bot->getNotAccess($this->id_action);
+        return null;
     }
 
     public function send($id = null, $vk = null, $var = null) {
