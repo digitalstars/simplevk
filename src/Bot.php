@@ -202,7 +202,7 @@ class Bot {
         if (isset($this->config['action'][$action_id]['access'])) {
             $flag = false;
             foreach ($this->config['action'][$action_id]['access'] as $access)
-                if ((is_array($access) and ($id == $access[0] or $user_id == $access[0]) and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access))) {
+                if ((is_array($access) and $access[0] == $id and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access))) {
                     $flag = true;
                     break;
                 }
@@ -211,7 +211,7 @@ class Bot {
         }
         if (isset($this->config['action'][$action_id]['not_access']))
             foreach ($this->config['action'][$action_id]['not_access'] as $access)
-                if ((is_array($access) and ($id == $access[0] or $user_id == $access[0]) and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access)))
+                if ((is_array($access) and $access[0] == $id and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access)))
                     return null;
         $this->status = 0;
         return Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
