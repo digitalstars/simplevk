@@ -231,10 +231,11 @@ class Bot {
         $source = file($filename);
         $body = implode("", array_slice($source, $start_line, $length));
         $tokens = token_get_all("<?php ".$body);
-        $flag = false;
+        $flag = 0;
         $brackets = 0;
         $result = '';
         $type = $type == 'func' ? 'func' : 'afterFunc';
+        $cache = '';
         foreach ($tokens as $token) {
             if (is_string($token))
                 $var = $token;
@@ -243,17 +244,26 @@ class Bot {
                     continue;
                 $var = $token[1];
             }
-            if ($flag) {
+            if ($flag > 0) {
                 $result .= $var;
-                $var == '(' ? ++$brackets : (($var == ')') ? --$brackets : null);
-                if ($brackets == 0)
-                    $flag = false;
+                if ($var == '{') {
+                    ++$brackets;
+                    $flag = 2;
+                } else if ($var == '}')
+                    --$brackets;
+                if ($brackets == 0 and $flag == 2)
+                    $flag = 0;
             } else if ($var == $type) {
-                $flag = true;
+                $flag = -1;
+                $cache = $result;
                 $result = '';
+            } else if ($var == 'function' and ($result == '' or $flag == -1)) {
+                $flag = 1;
+                $cache = $result;
+                $result = $var;
             }
         }
-        return $result;
+        return $brackets == 0 ? $result : $cache;
     }
 
     public function run($send = null, $id = null) {
