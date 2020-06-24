@@ -1,6 +1,6 @@
 <?php
-
 namespace DigitalStars\simplevk;
+require_once('config_simplevk.php');
 
 trait ErrorHandler {
     public function setUserLogError($ids) {
@@ -35,7 +35,7 @@ trait ErrorHandler {
         };
 
         $fatal_error_handler = function () use ($error_handler) {
-            if ($error = error_get_last() AND $error['type'] & (E_ALL)) { //E_ERROR | E_PARSE | E_COMPILE_ERROR | E_CORE_ERROR
+            if ($error = error_get_last() AND $error['type'] & (DEFAULT_ERROR_LOG)) {
                 $error_handler($error['type'], $error['message'], $error['file'], $error['line']); // запускаем обработчик ошибок
             }
         };
