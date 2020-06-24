@@ -13,6 +13,7 @@ class Bot {
     private $case_default = false;
     private $status = 1;
     private $color = 'white';
+    private $compile_files = [];
 
     public function __construct($vk) {
         $this->vk = $vk;
@@ -120,7 +121,7 @@ class Bot {
         $tab = "\t";
 
         if (is_null($_livel)) {
-            $out .= '<?php' . PHP_EOL . '$' . $var . ' = ';
+            $out .= '$' . $var . ' = ';
             if (!empty($array)) {
                 $out .= $this->out_array($array, $var, 0);
             }
@@ -172,7 +173,47 @@ class Bot {
     }
 
     public function compile($var = 'compile', $file = 'cache', $is_write = true) {
+        $this->compile_files = [];
         $source = $this->out_array($this->config, $var);
+
+        $namespaces_all = [];
+        foreach ($this->compile_files as $filename) {
+            $tokens = token_get_all(file_get_contents($filename));
+            $flag = 0;
+            $namespaces = '';
+            foreach ($tokens as $token) {
+                if (is_array($token))
+                    if (!$flag)
+                        if ($token[0] == T_USE)
+                            $flag = 1;
+                        else if ($token[0] !== T_WHITESPACE and $token[0] !== T_OPEN_TAG)
+                            $flag = 2;
+                    else if ($token[0] == T_COMMENT or $token[0] == T_DOC_COMMENT or $token[0] == T_INLINE_HTML)
+                        continue;
+                $var = is_array($token) ? $token[1] : $token;
+                if ($flag == 1) {
+                    $namespaces .= $var;
+                    if ($var == ';') {
+                        if (!in_array($namespaces, $namespaces_all))
+                            $namespaces_all[] = $namespaces;
+                        $namespaces = '';
+                        $flag = 0;
+                    }
+                } else if ($flag == 2 and $var == ';') {
+                    $flag = 0;
+                }
+            }
+        }
+        $check_arr_namespace = [];
+        foreach ($namespaces_all as $key => $space) {
+            $check_space = strtolower(str_replace([' ', "\r", "\n"], '', $space));
+            if (in_array($check_space, $check_arr_namespace))
+                unset($namespaces_all[$key]);
+            else
+                $check_arr_namespace[] = $check_space;
+        }
+        $source = "<?php ".PHP_EOL.join(PHP_EOL, $namespaces_all).PHP_EOL.$source;
+
         file_put_contents(DIRNAME."/".$file.".php", $source);
         if ($is_write)
             echo "Процесс компиляции завершён".PHP_EOL;
@@ -228,6 +269,9 @@ class Bot {
         $end_line = $func_info->getEndLine();
         $length = $end_line - $start_line;
 
+        if (!in_array($filename, $this->compile_files))
+            $this->compile_files[] = $filename;
+
         $source = file($filename);
         $body = implode("", array_slice($source, $start_line, $length));
         $tokens = token_get_all("<?php ".$body);
@@ -240,9 +284,12 @@ class Bot {
             if (is_string($token))
                 $var = $token;
             else {
-                if ($token[0] == T_DOC_COMMENT or $token[0] == T_COMMENT or $token[0] == T_WHITESPACE)
+                if ($token[0] == T_DOC_COMMENT or $token[0] == T_COMMENT)
                     continue;
-                $var = $token[1];
+                else if ($token[0] != T_CONSTANT_ENCAPSED_STRING)
+                    $var = str_replace(["\t", "\r", "\n"], '', $token[1]);
+                else
+                    $var = $token[1];
             }
             if ($flag > 0) {
                 $result .= $var;
