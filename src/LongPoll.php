@@ -2,6 +2,7 @@
 namespace DigitalStars\simplevk;
 
 class LongPoll extends SimpleVK {
+    use ErrorHandler;
     private $group_id;
     private $key;
     private $server;

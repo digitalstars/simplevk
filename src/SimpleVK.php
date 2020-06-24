@@ -7,6 +7,7 @@ use Exception;
 require_once('config_simplevk.php');
 
 class SimpleVK {
+    use ErrorHandler;
     protected $version;
     protected $data = [];
     protected $data_backup = [];
@@ -15,7 +16,6 @@ class SimpleVK {
     private static $debug_mode = false;
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
-    protected static $user_log_error = [];
     public static $proxy = PROXY;
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
 
@@ -50,10 +50,6 @@ class SimpleVK {
         self::$proxy['type'] = explode(':', $proxy)[0];
         if ($pass)
             self::$proxy['user_pwd'] = $pass;
-    }
-
-    public static function setUserLogError($user_id) {
-        self::$user_log_error = !is_array($user_id) ? [$user_id] : $user_id;
     }
 
     public static function debug($flag = true) {
@@ -266,7 +262,6 @@ class SimpleVK {
                     }
                     continue;
                 }
-                $this->sendErrorUser($e);
                 throw new Exception($e->getMessage(), $e->getCode());
             }
         }
@@ -322,7 +317,6 @@ class SimpleVK {
         ini_set('error_reporting', E_ALL);
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
-        echo 'ok';
     }
 
     protected function sendOK() {
@@ -335,6 +329,7 @@ class SimpleVK {
             echo 'ok';
             session_write_close();
             fastcgi_finish_request();
+            $this->debugRun();
             return True;
         }
         // для Apache
@@ -347,17 +342,8 @@ class SimpleVK {
         echo 'ok';
         ob_end_flush();
         flush();
+        $this->debugRun();
         return True;
-    }
-
-    protected function sendErrorUser($e) {
-        $error = SimpleVkException::userError($e);
-        foreach (self::$user_log_error as $id) {
-            try {
-                $this->request_core('messages.send', ['message' => $error, 'peer_id' => $id]);
-            } catch (Exception $ee) {
-            }
-        }
     }
 
     protected function processAuth($token, $version, $also_version) {
