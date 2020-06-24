@@ -72,11 +72,11 @@ class SimpleVK {
 
     public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null) {
         $data = $this->data;
-        $type = isset($data['type']) ? $data['type'] : null;
-        $id = isset($data['object']['peer_id']) ? $data['object']['peer_id'] : null;
-        $message = isset($data['object']['text']) ? $data['object']['text'] : null;
+        $type = $data['type'] ?? null;
+        $id = $data['object']['peer_id'] ?? null;
+        $message = $data['object']['text'] ?? null;
         $payload = isset($data['object']['payload']) ? json_decode($data['object']['payload'], true) : null;
-        $user_id = isset($data['object']['from_id']) ? $data['object']['from_id'] : null;
+        $user_id = $data['object']['from_id'] ?? null;
         return $this->data_backup;
     }
 

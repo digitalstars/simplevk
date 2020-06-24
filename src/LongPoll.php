@@ -144,13 +144,13 @@ class LongPoll extends SimpleVK {
             { //входящее сообщение
                 if (!$this->checkFlags(2)) { //не обрабатывать, если это исходящее
                     $this->data = [];
-                    $this->data['object']['id'] = isset($data[1]) ? $data[1] : null;
-                    $this->data['object']['peer_id'] = isset($data[3]) ? $data[3] : null;
-                    $this->data['object']['date'] = isset($data[4]) ? $data[4] : null;
-                    $this->data['object']['text'] = isset($data[5]) ? $data[5] : null;
-                    $this->data['object']['attachments'] = isset($data[7]) ? $data[7] : null;
+                    $this->data['object']['id'] = $data[1] ?? null;
+                    $this->data['object']['peer_id'] = $data[3] ?? null;
+                    $this->data['object']['date'] = $data[4] ?? null;
+                    $this->data['object']['text'] = $data[5] ?? null;
+                    $this->data['object']['attachments'] = $data[7] ?? null;
                     $this->data['object']['random_id'] = (isset($data[8]) && !empty($data[8])) ? $data[8] : null;
-                    $this->data['object']['conversation_message_id'] = isset($data[9]) ? $data[9] : null;
+                    $this->data['object']['conversation_message_id'] = $data[9] ?? null;
                     $this->data['object']['from_id'] = isset($data[6]['from']) ? $data[6]['from'] : $this->data['object']['peer_id'];
                     $this->data['type'] = 'message_new';
                     $this->data_backup = $this->data;
