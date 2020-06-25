@@ -27,6 +27,8 @@ const DEFAULT_APP = [
         'secret' => 'AlVXZFMUqyrnABp8ncuU'
     ]
 ];
+
+const DEFAULT_ERROR_LOG = E_ALL; //E_ERROR | E_PARSE | E_COMPILE_ERROR | E_CORE_ERROR
 // Автосохранение авторизации
 const AUTO_SAVE_AUTH = True;
 // Директория запуска корневого скрипта

@@ -4,7 +4,7 @@ $path_dir =  __DIR__.'/src';
 require_once($path_dir.'/FileUploader.php');
 require_once($path_dir.'/BaseConstructor.php');
 require_once($path_dir.'/Message.php');
-//require_once($path_dir.'/Post.php');
+require_once($path_dir.'/ErrorHandler.php');
 require_once($path_dir.'/SimpleVK.php');
 require_once($path_dir.'/SimpleVkException.php');
 require_once($path_dir.'/Auth.php');
