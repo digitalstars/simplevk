@@ -53,9 +53,9 @@ class Bot {
                     $this->config['btn'][$id] = $btn;
             } else
                 $this->config['btn'][$id] = $this->vk->buttonText($btn, $this->color);
+            if ($this->config['btn'][$id][0] == 'text' and ($is_text_triggered or $this->is_text_button_triggered))
+                $this->cmd($id, $this->config['btn'][$id][2]);
         }
-        if ($this->config['btn'][$id][0] == 'text' and ($is_text_triggered or $this->is_text_button_triggered))
-            $this->cmd($id, $this->config['btn'][$id][2]);
         return $this->newAction($id);
     }
 
