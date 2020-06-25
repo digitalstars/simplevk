@@ -61,6 +61,18 @@ class Message extends BaseConstructor {
         return $this;
     }
 
+    public function run() {
+        if (is_null($this->bot))
+            throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
+        $id = explode('$', $this->id_action);
+        if (count($id) > 2 or (isset($id[1]) and !is_numeric($id[1])))
+            throw new SimpleVkException(0, "Нельзя использовать '$' в id действий");
+        $id[1] = isset($id[1]) ? ($id[1] + 1) : 1;
+        $id = join('$', $id);
+        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
+        return $this->bot->cmd($id);
+    }
+
     public function access() {
         if (!is_null($this->bot))
             $this->bot->access($this->id_action, func_get_args());
