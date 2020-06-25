@@ -137,8 +137,9 @@ class Message extends BaseConstructor {
         $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
         $query = $text + $params + $attachments + $kbd;
         if (empty($query))
-            return null;
-        $result = $this->request('messages.send', ['peer_id' => $id] + $query);
+            $result = null;
+        else
+            $result = $this->request('messages.send', ['peer_id' => $id] + $query);
         if (isset($this->config['func_after']) and is_callable($this->config['func_after']))
             if($this->config['func_after']($result, $var))
                 return $result;
