@@ -94,14 +94,20 @@ class BaseConstructor {
 
     private function removeEx(&$extends, $removed) {
         if (empty($removed)) {
-            $extends = [];
             return $this;
         }
         foreach ($removed as $remove_item)
             foreach ($extends as $index => $extend)
-                if ($extend[0] == $remove_item[0] and (empty($extend[1]) or $extend[1] == $remove_item[1])) {
-                    unset($extends[$index]);
-                    break;
+                if (is_array($extend)) {
+                    if ($extend[0] == $remove_item[0] and (empty($extend[1]) or $extend[1] == $remove_item[1])) {
+                        unset($extends[$index]);
+                        break;
+                    }
+                } else {
+                    if ($extend == $remove_item) {
+                        unset($extends[$index]);
+                        break;
+                    }
                 }
         return $this;
     }
@@ -114,8 +120,25 @@ class BaseConstructor {
         return $this->removeEx($this->config['img'], $this->imgParse(func_get_args()));
     }
 
+    public function removeAttachment() {
+        return $this->removeEx($this->config['attachments'], $this->attachmentParse(func_get_args()));
+    }
+
     public function params($params) {
         $this->config['params'] = $params;
+        return $this;
+    }
+
+    public function attachment() {
+        $this->config['attachments'] = $this->attachmentParse(func_get_args());
+        return $this;
+    }
+
+    public function addAttachment() {
+        if (empty($this->config['attachments']))
+            $this->config['attachments'] = $this->attachmentParse(func_get_args());
+        else
+            $this->config['attachments'] = array_merge($this->config['attachments'], $this->attachmentParse(func_get_args()));
         return $this;
     }
 
@@ -130,27 +153,31 @@ class BaseConstructor {
     }
 
     public function getFunc() {
-        return $this->config['func'];
+        return $this->config['func'] ?? null;
     }
 
     public function getAfterFunc() {
-        return $this->config['func_after'];
+        return $this->config['func_after'] ?? null;
     }
 
     public function getDoc() {
-        return $this->config['doc'];
+        return $this->config['doc'] ?? null;
     }
 
     public function getImg() {
-        return $this->config['img'];
+        return $this->config['img'] ?? [];
     }
 
     public function getText() {
-        return $this->config['text'];
+        return $this->config['text'] ?? '';
     }
 
     public function getParams() {
-        return $this->config['params'];
+        return $this->config['params'] ?? [];
+    }
+
+    public function getAttachment() {
+        return $this->config['attachments'] ?? [];
     }
 
     public function dump() {
@@ -178,6 +205,16 @@ class BaseConstructor {
         $result = [];
         foreach ($docs as $doc)
             $result = array_merge($result, $this->docParse($doc));
+        return $result;
+    }
+
+    private function attachmentParse($attachs) {
+        $result = [];
+        foreach ($attachs as $attach)
+            if (is_string($attach))
+                $result[] = $attach;
+            else
+                $result = array_merge($result, $this->attachmentParse($attach));
         return $result;
     }
 }

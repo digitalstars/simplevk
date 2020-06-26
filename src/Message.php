@@ -39,6 +39,8 @@ class Message extends BaseConstructor {
     }
 
     public function kbd($kbd = [], $inline = false, $one_time = False) {
+        if (is_string($kbd) or is_string($kbd[0]))
+            $kbd = [[$kbd]];
         $this->config['kbd'] = ['kbd' => $kbd, 'inline' => $inline, 'one_time' => $one_time];
         return $this;
     }
@@ -124,6 +126,12 @@ class Message extends BaseConstructor {
                 $attachments[] = $this->uploadDocsMessages($id, $doc[0], $doc[1]);
         if (isset($this->config['voice']))
             $attachments[] = $this->uploadVoice($id, $this->config['voice']);
+        if (isset($this->config['attachments']))
+            $attachments = array_merge($attachments, $this->config['attachments']);
+        if (isset($this->config['params']['attachment'])) {
+            $attachments = array_merge($attachments, $this->config['params']['attachment']);
+            unset($this->config['params']['attachment']);
+        }
         $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
         if (isset($this->buttons) and isset($this->config['kbd']))
             foreach ($this->config['kbd']['kbd'] as $row_index => $row)
