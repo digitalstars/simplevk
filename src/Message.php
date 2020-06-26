@@ -39,7 +39,7 @@ class Message extends BaseConstructor {
     }
 
     public function kbd($kbd = [], $inline = false, $one_time = False) {
-        if (is_string($kbd) or is_string($kbd[0]))
+        if (is_string($kbd) or (isset($kbd[0]) and is_string($kbd[0])))
             $kbd = [[$kbd]];
         $this->config['kbd'] = ['kbd' => $kbd, 'inline' => $inline, 'one_time' => $one_time];
         return $this;
