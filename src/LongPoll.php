@@ -94,7 +94,6 @@ class LongPoll extends SimpleVK {
             }
             return $data;
         } catch (\Exception $e) {
-            $this->sendErrorUser($e);
             throw new SimpleVkException($e->getCode(), $e->getMessage());
         }
     }
