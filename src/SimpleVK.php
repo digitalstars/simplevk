@@ -18,6 +18,7 @@ class SimpleVK {
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     public static $proxy = PROXY;
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
+    private $is_test_len_str = true;
 
     public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
@@ -173,6 +174,27 @@ class SimpleVK {
             return $message;
     }
 
+    protected function lengthMessageProcessing($id, $str) {
+        $bytes = 0;
+        $tmp_str = '';
+        $this->is_test_len_str = false;
+        $anon = function ($a) use (&$tmp_str, &$bytes, $id) {
+            $byte = strlen((@iconv('UTF-8', 'cp1251', $a[0]))
+                ?: "$#".(unpack('V', iconv('UTF-8', 'UCS-4LE', $a[0]))[1]).";");
+            $bytes += $byte;
+            if ($bytes > 4096) {
+                $this->sendMessage($id, $tmp_str);
+                $bytes = $byte;
+                $tmp_str = $a[0];
+            } else
+                $tmp_str .= $a[0];
+            return "";
+        };
+        preg_replace_callback('/./u', $anon, $str);
+        $this->is_test_len_str = true;
+        return $tmp_str;
+    }
+
     public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
         $keyboard = [];
         $i = 0;
@@ -240,8 +262,11 @@ class SimpleVK {
     }
 
     public function request($method, $params = []) {
-        if (isset($params['message']))
+        if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['peer_id'] ?? null, $params['message']);
+            if ($this->is_test_len_str and mb_strlen($params['message']) > 544)
+                $params['message'] = $this->lengthMessageProcessing($params['peer_id'] ?? null, $params['message']);
+        }
         for ($iteration = 0; $iteration < 6; ++$iteration) {
             try {
                 return $this->request_core($method, $params);
