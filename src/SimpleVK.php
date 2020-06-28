@@ -296,7 +296,7 @@ class SimpleVK {
     protected function request_core($method, $params = []) {
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
-        $params['random_id'] = rand(-2147483648, 2147483647);
+        $params['random_id'] = random_int(-2147483648, 2147483647);
         $url = $this->api_url . $method;
         if (function_exists('curl_init')) {
             $ch = curl_init();

@@ -8,6 +8,7 @@ class LongPoll extends SimpleVK {
     private $server;
     private $ts;
     private $auth_type;
+    private $async = false;
     public static $use_user_long_poll = 0;
 
     public function __construct($token, $version, $also_version = null) {
@@ -28,6 +29,10 @@ class LongPoll extends SimpleVK {
         $this->getLongPollServer();
     }
 
+    public function isAsync($async) {
+        $this->async = $async;
+    }
+
     public function listen($anon) {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
@@ -35,19 +40,31 @@ class LongPoll extends SimpleVK {
                 unset($this->data_backup);
                 $this->data = $event;
                 $this->data_backup = $this->data;
-                if ($this->auth_type == 'group') {
-                    if (isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
-                        $this->data['object'] = $this->data['object']['message'];
+                if ($this->async)
+                    $pid = pcntl_fork();
+                else
+                    $pid = 0;
+                if ($pid == 0) {
+                    if ($this->auth_type == 'group') {
+                        if (isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
+                            $this->data['object'] = $this->data['object']['message'];
+                        }
+                        $anon($event);
+                    } else {
+                        $this->userLongPoll($anon);
                     }
-                    $anon($event);
-                } else {
-                    $this->userLongPoll($anon);
+                    if ($this->async)
+                        $this->__exit();
                 }
             }
 //            if ($this->vk instanceof Execute) {
 //                $this->vk->exec();
 //            }
         }
+    }
+
+    private function __exit() {
+        posix_kill(posix_getpid(), SIGTERM);
     }
 
     private function getLongPollServer() {
