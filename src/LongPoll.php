@@ -8,7 +8,7 @@ class LongPoll extends SimpleVK {
     private $server;
     private $ts;
     private $auth_type;
-    private $async = false;
+    private $is_multi_thread = false;
     public static $use_user_long_poll = 0;
 
     public function __construct($token, $version, $also_version = null) {
@@ -29,8 +29,10 @@ class LongPoll extends SimpleVK {
         $this->getLongPollServer();
     }
 
-    public function isAsync($async) {
-        $this->async = $async;
+    public function isMultiThread($bool = true) {
+        if (!is_callable('pcntl_fork'))
+            throw new SimpleVkException(0, "Многопоточная обработка не поддерживается (модуль pcntl не найден)");
+        $this->is_multi_thread = $bool;
     }
 
     public function listen($anon) {
@@ -40,7 +42,7 @@ class LongPoll extends SimpleVK {
                 unset($this->data_backup);
                 $this->data = $event;
                 $this->data_backup = $this->data;
-                if ($this->async)
+                if ($this->is_multi_thread)
                     $pid = pcntl_fork();
                 else
                     $pid = 0;
@@ -53,7 +55,7 @@ class LongPoll extends SimpleVK {
                     } else {
                         $this->userLongPoll($anon);
                     }
-                    if ($this->async)
+                    if ($this->is_multi_thread)
                         $this->__exit();
                 }
             }
