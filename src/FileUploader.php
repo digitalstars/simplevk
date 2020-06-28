@@ -32,10 +32,9 @@ trait FileUploader {
                 fclose($tmp_file);
                 throw new SimpleVkException(0, "Ошибка скачивания файла");
             }
-            $post_file = new CURLFile($tmp_filename);
-            $post_file->setPostFilename("file.".explode('/', mime_content_type($tmp_filename))[1]);
+            $mime_type = mime_content_type($tmp_filename);
             $post_fields = [
-                $type => $post_file
+                $type => new CURLFile($tmp_filename, '$mime_type', 'file.'.explode('/', $mime_type)[1])
             ];
         }
 
