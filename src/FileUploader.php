@@ -21,9 +21,23 @@ trait FileUploader {
     }
 
     protected function sendFiles($url, $local_file_path, $type = 'file') {
-        $post_fields = [
-            $type => new CURLFile(realpath($local_file_path))
-        ];
+        if (filter_var($local_file_path, FILTER_VALIDATE_URL) === false)
+            $post_fields = [
+                $type => new CURLFile(realpath($local_file_path))
+            ];
+        else {
+            $tmp_file = tmpfile();
+            $tmp_filename = stream_get_meta_data($tmp_file)['uri'];
+            if (!copy($local_file_path, $tmp_filename)) {
+                fclose($tmp_file);
+                throw new SimpleVkException(0, "Ошибка скачивания файла");
+            }
+            $post_file = new CURLFile($tmp_filename);
+            $post_file->setPostFilename("file.".explode('/', mime_content_type($tmp_filename))[1]);
+            $post_fields = [
+                $type => $post_file
+            ];
+        }
 
         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
 
@@ -42,6 +56,8 @@ trait FileUploader {
             else
                 sleep(1);
         }
+        if (isset($tmp_file))
+            fclose($tmp_file);
         if ($output == '')
             throw new SimpleVkException(0,'Не удалось загрузить файл на сервер');
         return $output;

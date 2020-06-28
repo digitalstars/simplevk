@@ -17,7 +17,8 @@
         "php": ">=7.0",
         "ext-curl": "*",
         "ext-json": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "ext-fileinfo": "*"
     },
     "autoload": {
         "psr-4": {
