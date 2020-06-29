@@ -38,15 +38,15 @@ class LongPoll extends SimpleVK {
     public function listen($anon) {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
-                unset($this->data);
-                unset($this->data_backup);
-                $this->data = $event;
-                $this->data_backup = $this->data;
                 if ($this->is_multi_thread)
                     $pid = pcntl_fork();
                 else
                     $pid = 0;
                 if ($pid == 0) {
+                    unset($this->data);
+                    unset($this->data_backup);
+                    $this->data = $event;
+                    $this->data_backup = $this->data;
                     if ($this->auth_type == 'group') {
                         if (isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
                             $this->data['object'] = $this->data['object']['message'];
