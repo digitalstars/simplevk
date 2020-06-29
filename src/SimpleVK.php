@@ -81,6 +81,35 @@ class SimpleVK {
         return $this->data_backup;
     }
 
+    public function getAttachments($data = null) {
+        $data = $data ?? $this->data;
+        if (!isset($data['object']['attachments']))
+            return false;
+        $result = [];
+        foreach ($data['object']['attachments'] as $attachment) {
+            $type = $attachment['type'];
+            $attachment = $attachment[$type];
+            if (isset($attachment['sizes'])) {
+                $preview = $attachment['sizes'];
+                unset($attachment['sizes']);
+            } else if (isset($attachment['preview']))
+                $preview = $attachment['preview']['photo']['sizes'];
+            else
+                $preview = null;
+            if ($preview) {
+                $previews_result = [];
+                foreach ($preview as $item) {
+                    $previews_result[$item['type']] = $item;
+                }
+                if (empty($attachment['url']))
+                    $attachment['url'] = end($previews_result)['url'];
+                $attachment['preview'] = $previews_result;
+            }
+            $result[$type][] = $attachment;
+        }
+        return $result;
+    }
+
     public function clientSupport(&$keyboard, &$inline, &$buttons) {
         $data = $this->data_backup['object']['client_info'];
         $keyboard = $data['keyboard'];
