@@ -81,8 +81,8 @@ class SimpleVK {
         return $this->data_backup;
     }
 
-    public function getAttachments($data = null) {
-        $data = $data ?? $this->data;
+    public function getAttachments() {
+        $data = $this->data;
         if (!isset($data['object']['attachments']))
             return false;
         $result = [];
