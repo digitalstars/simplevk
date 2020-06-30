@@ -329,6 +329,16 @@ class SimpleVK {
                 + ($sort ? ['sort' => $sort] : []), 1000);
     }
 
+    public function getAllGroupsFromUser($user_id = null, $extended = 0, $filter = null, $fields = null) {
+        $extended = (!is_null($fields) || $extended);
+        return $this->generatorRequest('groups.get', [
+                'fields' => (is_array($fields) ? join(',', $fields) : ''),
+                'extended' => $extended]
+                + ($filter ? ['filter' => $filter] : [])
+                + ($fields ? ['fields' => $fields] : [])
+                + ($user_id ? ['user_id' => $user_id] : []), 1000);
+    }
+
     public function generatorRequest($method, $params, $count = 200) {
         for ($count_all = 0, $offset = 0; $offset <= $count_all; $offset += $count) {
             $members = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
