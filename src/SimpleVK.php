@@ -290,6 +290,23 @@ class SimpleVK {
         return 'https://jsoneditoronline.org/?id=' . $result['id'];
     }
 
+    public function getAllDialogs($extended = 0, $filter = 'all', $fields = null) {
+        for ($count_all = 0, $offset = 0, $last_id = []; $offset <= $count_all; $offset += 199) {
+            $members = $this->request('messages.getConversations', $last_id + ['count' => 200, 'filter' => $filter, 'extended' => $extended, 'fields' => (is_array($fields) ? join(',', $fields) : '')]);
+            if ($count_all == 0)
+                $count_all = $members['count'];
+            if (empty($members['items']))
+                break;
+            foreach ($members['items'] as $item) {
+                if (($last_id['start_message_id'] ?? 0) == $item['last_message']['id']) {
+                    continue;
+                } else
+                    $last_id['start_message_id'] = $item['last_message']['id'];
+                yield $item;
+            }
+        }
+    }
+
     public function request($method, $params = []) {
         if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['peer_id'] ?? null, $params['message']);
