@@ -290,9 +290,21 @@ class SimpleVK {
         return 'https://jsoneditoronline.org/?id=' . $result['id'];
     }
 
+    public function groupInfo($group_url = null) {
+        if (!is_null($group_url))
+            $group_url = ['group_ids' => preg_replace("!.*?/!", '', $group_url)];
+        else
+            $group_url = [];
+        return current($this->request('groups.getById', $group_url));
+    }
+
     public function getAllDialogs($extended = 0, $filter = 'all', $fields = null) {
         for ($count_all = 0, $offset = 0, $last_id = []; $offset <= $count_all; $offset += 199) {
-            $members = $this->request('messages.getConversations', $last_id + ['count' => 200, 'filter' => $filter, 'extended' => $extended, 'fields' => (is_array($fields) ? join(',', $fields) : '')]);
+            $members = $this->request('messages.getConversations', $last_id + [
+                    'count' => 200,
+                    'filter' => $filter,
+                    'extended' => $extended,
+                    'fields' => (is_array($fields) ? join(',', $fields) : '')]);
             if ($count_all == 0)
                 $count_all = $members['count'];
             if (empty($members['items']))
@@ -304,6 +316,26 @@ class SimpleVK {
                     $last_id['start_message_id'] = $item['last_message']['id'];
                 yield $item;
             }
+        }
+    }
+
+    public function getAllMembers($group_id = null, $filter = null, $fields = null, $sort = null) {
+        if (is_null($group_id))
+            $group_id = $this->groupInfo()['id'];
+        return $this->generatorRequest('groups.getMembers', [
+                'fields' => (is_array($fields) ? join(',', $fields) : ''),
+                'group_id' => $group_id]
+                + ($filter ? ['filter' => $filter] : [])
+                + ($sort ? ['sort' => $sort] : []), 1000);
+    }
+
+    public function generatorRequest($method, $params, $count = 200) {
+        for ($count_all = 0, $offset = 0; $offset <= $count_all; $offset += $count) {
+            $members = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
+            if ($count_all == 0)
+                $count_all = $members['count'];
+            foreach ($members['items'] as $item)
+                yield $item;
         }
     }
 
