@@ -319,6 +319,36 @@ class SimpleVK {
         }
     }
 
+    public function getAllComments($owner_id_ir_url, $post_id = null, $extended = 0, $sort = 'asc', $fields = null) {
+        if (!is_numeric($owner_id_ir_url) and is_null($post_id)) {
+            if (preg_match("!(-?\d+)_(\d+)!", $owner_id_ir_url, $matches)) {
+                $owner_id_ir_url = $matches[1];
+                $post_id = $matches[2];
+            } else
+                throw new SimpleVkException(0, "Передайте 2 параметра (id пользователя, id поста), или корректную ссылку на пост");
+        }
+        for ($count_all = 0, $offset = 0, $last_id = []; $offset <= $count_all; $offset += 99) {
+            $members = $this->request('wall.getComments', $last_id + [
+                    'count' => 100,
+                    'owner_id' => $owner_id_ir_url,
+                    'post_id' => $post_id,
+                    'extended' => $extended,
+                    'sort' => $sort,
+                    'fields' => (is_array($fields) ? join(',', $fields) : '')]);
+            if ($count_all == 0)
+                $count_all = $members['count'];
+            if (empty($members['items']))
+                break;
+            foreach ($members['items'] as $item) {
+                if (($last_id['start_comment_id'] ?? 0) == $item['id']) {
+                    continue;
+                } else
+                    $last_id['start_comment_id'] = $item['id'];
+                yield $item;
+            }
+        }
+    }
+
     public function getAllMembers($group_id = null, $filter = null, $fields = null, $sort = null) {
         if (is_null($group_id))
             $group_id = $this->groupInfo()['id'];
@@ -332,11 +362,19 @@ class SimpleVK {
     public function getAllGroupsFromUser($user_id = null, $extended = 0, $filter = null, $fields = null) {
         $extended = (!is_null($fields) || $extended);
         return $this->generatorRequest('groups.get', [
-                'fields' => (is_array($fields) ? join(',', $fields) : ''),
                 'extended' => $extended]
                 + ($filter ? ['filter' => $filter] : [])
                 + ($fields ? ['fields' => $fields] : [])
                 + ($user_id ? ['user_id' => $user_id] : []), 1000);
+    }
+
+    public function getAllWalls($id = null, $extended = 0, $filter = null, $fields = null) {
+        $extended = (!is_null($fields) || $extended);
+        return $this->generatorRequest('wall.get', [
+                'extended' => $extended]
+            + ($filter ? ['filter' => $filter] : [])
+            + ($fields ? ['fields' => $fields] : [])
+            + ($id ? ['owner_id' => $id] : []), 100);
     }
 
     public function generatorRequest($method, $params, $count = 200) {
@@ -346,6 +384,15 @@ class SimpleVK {
                 $count_all = $members['count'];
             foreach ($members['items'] as $item)
                 yield $item;
+        }
+    }
+
+    public function responseGeneratorRequest($method, $params, $count = 200) {
+        for ($count_all = 0, $offset = 0; $offset <= $count_all; $offset += $count) {
+            $members = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
+            if ($count_all == 0)
+                $count_all = $members['count'];
+            yield $members;
         }
     }
 
