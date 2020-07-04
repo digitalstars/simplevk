@@ -271,8 +271,11 @@ class SimpleVK {
         return $keyboard;
     }
 
-    public function json_online($data) { //не работает
-        $json = (is_array($data)) ? json_encode($data) : $data;
+    public function json_online($data = null) {
+        if (is_null($data))
+            $data = $this->data;
+        $json = is_array($data) ? json_encode($data) : $data;
+        $name = time().random_int(-2147483648, 2147483647);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -280,13 +283,11 @@ class SimpleVK {
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Content-Type:application/json"
             ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['name' => rand(10000000, 100000000), 'data' => $json]));
-            print json_encode(['name' => rand(10000000, 100000000), 'data' => $json]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['name' => $name, 'data' => $json]));
         }
         curl_setopt($ch, CURLOPT_URL, 'https://jsoneditoronline.herokuapp.com/v1/docs/');
         $result = json_decode(curl_exec($ch), True);
         curl_close($ch);
-        var_dump($result);
         return 'https://jsoneditoronline.org/?id=' . $result['id'];
     }
 
