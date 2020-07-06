@@ -5,11 +5,9 @@ namespace DigitalStars\simplevk;
 
 
 class Message extends BaseConstructor {
-    use FileUploader;
-
     private $buttons;
     /** @var Bot */
-    private $bot = null;
+    protected $bot = null;
     private $id_action = null;
 
     public function __construct($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
@@ -104,39 +102,16 @@ class Message extends BaseConstructor {
     }
 
     public function send($id = null, $vk = null, $var = null) {
-        if (empty($this->vk))
+        if (empty($this->vk) and isset($vk))
             $this->vk = $vk;
+        if (empty($this->vk))
+            throw new SimpleVkException(0, "Экземпляр SimpleVK не передан");
         if (empty($id))
             $this->vk->initVars($id);
-        $cfg_cache = $this->config;
-        if (isset($this->config['func']) and is_callable($this->config['func']))
-            if ($this->config['func']($this, $id, $var))
-                return null;
-        if (!empty($this->config['func_before_chain']))
-            foreach ($this->config['func_before_chain'] as $func) {
-                if ($func['f'] == 'run')
-                    $this->bot->run($func['args']);
-                else
-                    call_user_func_array($func['f'], $func['args']);
-                if ($this->bot->getStatus())
-                    return null;
-            }
-        $attachments = [];
-        if (isset($this->config['img']))
-            foreach ($this->config['img'] as $img)
-                $attachments[] = $this->uploadImage($id, $img[0]);
-        if (isset($this->config['doc']))
-            foreach ($this->config['doc'] as $doc)
-                $attachments[] = $this->uploadDocsMessages($id, $doc[0], $doc[1]);
-        if (isset($this->config['voice']))
-            $attachments[] = $this->uploadVoice($id, $this->config['voice']);
-        if (isset($this->config['attachments']))
-            $attachments = array_merge($attachments, $this->config['attachments']);
-        if (isset($this->config['params']['attachment'])) {
-            $attachments = array_merge($attachments, $this->config['params']['attachment']);
-            unset($this->config['params']['attachment']);
-        }
-        $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
+        $this->config_cache = $this->config;
+        $attachments = $this->preProcessing($id, $var);
+        if (is_bool($attachments))
+            return null;
         if (isset($this->buttons) and isset($this->config['kbd']))
             foreach ($this->config['kbd']['kbd'] as $row_index => $row)
                 foreach ($row as $col_index => $col) {
@@ -164,19 +139,7 @@ class Message extends BaseConstructor {
             $result = null;
         else
             $result = $this->request('messages.send', ['peer_id' => $id] + $query);
-        if (isset($this->config['func_after']) and is_callable($this->config['func_after']))
-            if($this->config['func_after']($result, $var))
-                return $result;
-        if (!empty($this->config['func_after_chain']))
-            foreach ($this->config['func_after_chain'] as $func) {
-                if ($func['f'] == 'run')
-                    $this->bot->run($func['args']);
-                else
-                    call_user_func_array($func['f'], $func['args']);
-                if ($this->bot->getStatus())
-                    return $result;
-            }
-        $this->config = $cfg_cache;
+        $this->postProcessing($result, $var);
         return $result;
     }
 }

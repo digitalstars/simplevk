@@ -5,7 +5,9 @@ namespace DigitalStars\simplevk;
 
 
 class BaseConstructor {
+    use FileUploader;
     protected $config;
+    protected $config_cache;
     /** @var SimpleVK */
     protected $vk = null;
 
@@ -142,12 +144,12 @@ class BaseConstructor {
         return $this;
     }
 
-    public function func($func) {
+    public function func($func = null) {
         $this->config['func'] = $func;
         return $this;
     }
 
-    public function afterFunc($func) {
+    public function afterFunc($func = null) {
         $this->config['func_after'] = $func;
         return $this;
     }
@@ -186,6 +188,58 @@ class BaseConstructor {
 
     protected function request($method, $params = []) {
         return $this->vk->request($method, $params);
+    }
+
+    protected function null() {
+        $this->config = $this->config_cache;
+        return true;
+    }
+
+    protected function preProcessing($id, $var) {
+        if (isset($this->config['func']) and is_callable($this->config['func']))
+            if ($this->config['func']($this, $id, $var))
+                return $this->null();
+        if (!empty($this->config['func_before_chain']))
+            foreach ($this->config['func_before_chain'] as $func) {
+                if ($func['f'] == 'run')
+                    $this->bot->run($func['args']);
+                else
+                    call_user_func_array($func['f'], $func['args']);
+                if ($this->bot->getStatus())
+                    return $this->null();
+            }
+        $attachments = [];
+        if (isset($this->config['img']))
+            foreach ($this->config['img'] as $img)
+                $attachments[] = $this->uploadImage($id, $img[0]);
+        if (isset($this->config['doc']))
+            foreach ($this->config['doc'] as $doc)
+                $attachments[] = $this->uploadDocsMessages($id, $doc[0], $doc[1]);
+        if (isset($this->config['voice']))
+            $attachments[] = $this->uploadVoice($id, $this->config['voice']);
+        if (isset($this->config['attachments']))
+            $attachments = array_merge($attachments, $this->config['attachments']);
+        if (isset($this->config['params']['attachment'])) {
+            $attachments = array_merge($attachments, $this->config['params']['attachment']);
+            unset($this->config['params']['attachment']);
+        }
+        return !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
+    }
+
+    protected function postProcessing($result, $var) {
+        if (isset($this->config['func_after']) and is_callable($this->config['func_after']))
+            if($this->config['func_after']($result, $var))
+                return $this->null();
+        if (!empty($this->config['func_after_chain']))
+            foreach ($this->config['func_after_chain'] as $func) {
+                if ($func['f'] == 'run')
+                    $this->bot->run($func['args']);
+                else
+                    call_user_func_array($func['f'], $func['args']);
+                if ($this->bot->getStatus())
+                    return $this->null();
+            }
+        return $this->null();
     }
 
     private function imgParse($imgs) {
