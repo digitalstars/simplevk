@@ -10,7 +10,7 @@ require_once('config_simplevk.php');
 trait FileUploader {
     protected $try_count_resend_file = COUNT_TRY_SEND_FILE;
 
-    protected function getUploadServerMessages($peer_id, $selector = 'doc') {
+    private function getUploadServerMessages($peer_id, $selector = 'doc') {
         if ($selector == 'doc')
             return $this->request('docs.getMessagesUploadServer', ['type' => 'doc', 'peer_id' => $peer_id]);
         else if ($selector == 'photo')
@@ -20,7 +20,7 @@ trait FileUploader {
         return null;
     }
 
-    protected function sendFiles($url, $local_file_path, $type = 'file') {
+    private function sendFiles($url, $local_file_path, $type = 'file') {
         if (filter_var($local_file_path, FILTER_VALIDATE_URL) === false)
             $post_fields = [
                 $type => new CURLFile(realpath($local_file_path))
@@ -67,7 +67,7 @@ trait FileUploader {
         return "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
     }
 
-    protected function uploadImage($id, $local_file_path) {
+    public function getMsgAttachmentUploadImage($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'photo')['upload_url'];
         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
             try {
@@ -88,7 +88,7 @@ trait FileUploader {
         return $this->request('docs.save', ['file' => $file, 'title' => $title]);
     }
 
-    protected function uploadDocsMessages($id, $local_file_path, $title = null) {
+    public function getMsgAttachmentUploadDoc($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerMessages($id)['upload_url'];
@@ -110,7 +110,7 @@ trait FileUploader {
         return $result;
     }
 
-    protected function uploadDocsPost($id, $local_file_path, $title = null) {
+    public function getWallAttachmentUploadDoc($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerPost($id)['upload_url'];
@@ -142,7 +142,7 @@ trait FileUploader {
         }
     }
 
-    protected function uploadImageWall($id, $local_file_path) {
+    public function getWallAttachmentUploadImage($id, $local_file_path) {
         $upload_url = $this->getWallUploadServer($id)['upload_url'];
         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
             try {
@@ -159,7 +159,7 @@ trait FileUploader {
         return $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
     }
 
-    protected function uploadVoice($id, $local_file_path) {
+    public function getMsgAttachmentUploadVoice($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'audio_message')['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'file'), true);
         $upload_file = $this->saveDocuments($answer_vk['file'], 'voice');

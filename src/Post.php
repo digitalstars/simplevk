@@ -31,10 +31,10 @@ class Post extends BaseConstructor {
         $attachments = [];
         if (isset($this->config['img']))
             foreach ($this->config['img'] as $img)
-                $attachments[] = $this->uploadImageWall($id, $img[0]);
+                $attachments[] = $this->getWallAttachmentUploadImage($id, $img[0]);
         if (isset($this->config['doc']))
             foreach ($this->config['doc'] as $doc)
-                $attachments[] = $this->uploadDocsPost($id, $doc[0], $doc[1]);
+                $attachments[] = $this->getWallAttachmentUploadDoc($id, $doc[0], $doc[1]);
         if (isset($this->config['attachments']))
             $attachments = array_merge($attachments, $this->config['attachments']);
         if (isset($this->config['params']['attachment'])) {

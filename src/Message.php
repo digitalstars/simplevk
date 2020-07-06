@@ -115,12 +115,12 @@ class Message extends BaseConstructor {
         $attachments = [];
         if (isset($this->config['img']))
             foreach ($this->config['img'] as $img)
-                $attachments[] = $this->uploadImage($id, $img[0]);
+                $attachments[] = $this->getMsgAttachmentUploadImage($id, $img[0]);
         if (isset($this->config['doc']))
             foreach ($this->config['doc'] as $doc)
-                $attachments[] = $this->uploadDocsMessages($id, $doc[0], $doc[1]);
+                $attachments[] = $this->getMsgAttachmentUploadDoc($id, $doc[0], $doc[1]);
         if (isset($this->config['voice']))
-            $attachments[] = $this->uploadVoice($id, $this->config['voice']);
+            $attachments[] = $this->getMsgAttachmentUploadVoice($id, $this->config['voice']);
         if (isset($this->config['attachments']))
             $attachments = array_merge($attachments, $this->config['attachments']);
         if (isset($this->config['params']['attachment'])) {
