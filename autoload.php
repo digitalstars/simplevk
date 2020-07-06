@@ -15,3 +15,4 @@ require_once($path_dir.'/Streaming.php');
 //require_once($path_dir.'/Execute.php');
 //require_once($path_dir.'/SiteAuth.php');
 require_once($path_dir.'/Bot.php');
+require_once($path_dir.'/Store.php');
