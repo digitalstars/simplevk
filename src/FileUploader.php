@@ -101,6 +101,64 @@ trait FileUploader {
         return "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
     }
 
+    private function getUploadServerPost($peer_id = []) {
+        if ($peer_id < 0)
+            $peer_id = ['group_id' => $peer_id * -1];
+        else
+            $peer_id = [];
+        $result = $this->request('docs.getUploadServer', $peer_id);
+        return $result;
+    }
+
+    protected function uploadDocsPost($id, $local_file_path, $title = null) {
+        if (!isset($title))
+            $title = preg_replace("!.*?/!", '', $local_file_path);
+        $upload_url = $this->getUploadServerPost($id)['upload_url'];
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
+        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
+        if (isset($upload_file['type']))
+            $upload_file = $upload_file[$upload_file['type']];
+        else
+            $upload_file = current($upload_file);
+        return "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
+    }
+
+    private function savePhotoWall($photo, $server, $hash, $id) {
+        if ($id < 0) {
+            $id *= -1;
+            $upload_file = $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'group_id' => $id]);
+        } else {
+            $upload_file =  $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'user_id' => $id]);
+        }
+        return "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
+    }
+
+    private function getWallUploadServer($id) {
+        if ($id < 0) {
+            $id *= -1;
+            return $this->request('photos.getWallUploadServer', ['group_id' => $id]);
+        } else {
+            return $this->request('photos.getWallUploadServer', ['user_id' => $id]);
+        }
+    }
+
+    protected function uploadImageWall($id, $local_file_path) {
+        $upload_url = $this->getWallUploadServer($id)['upload_url'];
+        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+            try {
+                $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
+                return $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+            } catch (SimpleVkException $e) {
+                sleep(1);
+                $exception = json_decode($e->getMessage(), true);
+                if ($exception['error']['error_code'] != 121)
+                    throw new SimpleVkException($exception['error']['error_code'], $e->getMessage());
+            }
+        }
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'photo'), true);
+        return $this->savePhotoWall($answer_vk['photo'], $answer_vk['server'], $answer_vk['hash'], $id);
+    }
+
     protected function uploadVoice($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'audio_message')['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'file'), true);
