@@ -34,7 +34,7 @@ class Bot {
         return new Message($this->vk, $this->config['action'][$id], $this, $this->config['btn'], $id);
     }
 
-    public function brake() {
+    public function break() {
         $this->status = 1;
     }
 
