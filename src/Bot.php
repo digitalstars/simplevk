@@ -259,7 +259,9 @@ class Bot {
                 if ((is_array($access) and $access[0] == $id and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access)))
                     return null;
         $this->status = 0;
-        return Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+        $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+        $this->status = 0;
+        return $result;
     }
 
     private function getFunction($id, $type) {
