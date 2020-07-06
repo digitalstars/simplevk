@@ -15,10 +15,8 @@ class Store {
         $this->full_path = self::$path."/".$filename.".php";
         if (!is_dir(self::$path))
             mkdir(self::$path);
-        if (!file_exists($this->full_path))
-            file_put_contents($this->full_path, '');
 
-        $this->file = fopen( $this->full_path, 'r' );
+        $this->file = fopen( $this->full_path, 'c+' );
         if (!flock( $this->file, LOCK_SH ))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $line = '';
@@ -35,8 +33,11 @@ class Store {
 
     public function save() {
         if (isset($this->data)) {
-            if ($this->is_writable)
-                file_put_contents($this->full_path, "<?php http_response_code(404);exit('404');?>\n" . json_encode($this->data));
+            if ($this->is_writable) {
+                ftruncate($this->file, 0);
+                rewind($this->file);
+                fwrite($this->file, "<?php http_response_code(404);exit('404');?>\n" . json_encode($this->data));
+            }
             flock($this->file, LOCK_UN);
             fclose($this->file);
             unset($this->data);
