@@ -28,6 +28,10 @@ class Message extends BaseConstructor {
         return $this;
     }
 
+    public function getVoice() {
+        return $this->config['voice'];
+    }
+
     public function load($cfg) {
         if ($cfg instanceof Message) {
             $this->vk = $cfg->vk;
