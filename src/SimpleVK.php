@@ -19,7 +19,7 @@ class SimpleVK {
     public static $proxy = PROXY;
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
     private $is_test_len_str = true;
-    private $group_id = null;
+    protected $group_id = null;
 
     public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
