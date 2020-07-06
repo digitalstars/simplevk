@@ -109,9 +109,26 @@ class Message extends BaseConstructor {
         if (empty($id))
             $this->vk->initVars($id);
         $this->config_cache = $this->config;
-        $attachments = $this->preProcessing($id, $var);
-        if (is_bool($attachments))
+        if ($this->preProcessing($id, $var))
             return null;
+
+        $attachments = [];
+        if (isset($this->config['img']))
+            foreach ($this->config['img'] as $img)
+                $attachments[] = $this->uploadImage($id, $img[0]);
+        if (isset($this->config['doc']))
+            foreach ($this->config['doc'] as $doc)
+                $attachments[] = $this->uploadDocsMessages($id, $doc[0], $doc[1]);
+        if (isset($this->config['voice']))
+            $attachments[] = $this->uploadVoice($id, $this->config['voice']);
+        if (isset($this->config['attachments']))
+            $attachments = array_merge($attachments, $this->config['attachments']);
+        if (isset($this->config['params']['attachment'])) {
+            $attachments = array_merge($attachments, $this->config['params']['attachment']);
+            unset($this->config['params']['attachment']);
+        }
+        $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
+
         if (isset($this->buttons) and isset($this->config['kbd']))
             foreach ($this->config['kbd']['kbd'] as $row_index => $row)
                 foreach ($row as $col_index => $col) {

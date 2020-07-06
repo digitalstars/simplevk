@@ -208,22 +208,7 @@ class BaseConstructor {
                 if ($this->bot->getStatus())
                     return $this->null();
             }
-        $attachments = [];
-        if (isset($this->config['img']))
-            foreach ($this->config['img'] as $img)
-                $attachments[] = $this->uploadImage($id, $img[0]);
-        if (isset($this->config['doc']))
-            foreach ($this->config['doc'] as $doc)
-                $attachments[] = $this->uploadDocsMessages($id, $doc[0], $doc[1]);
-        if (isset($this->config['voice']))
-            $attachments[] = $this->uploadVoice($id, $this->config['voice']);
-        if (isset($this->config['attachments']))
-            $attachments = array_merge($attachments, $this->config['attachments']);
-        if (isset($this->config['params']['attachment'])) {
-            $attachments = array_merge($attachments, $this->config['params']['attachment']);
-            unset($this->config['params']['attachment']);
-        }
-        return !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
+        return false;
     }
 
     protected function postProcessing($result, $var) {
