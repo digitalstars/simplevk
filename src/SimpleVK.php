@@ -404,6 +404,23 @@ class SimpleVK {
         return $this;
     }
 
+    public function sendImage($id, $local_file_paths, $params = []) {
+        if (!is_array($local_file_paths))
+            $local_file_paths = [$local_file_paths];
+        $attachments = [];
+        foreach ($local_file_paths as $path)
+            $attachments[] = $this->getMsgAttachmentUploadImage($id, $path);
+        return $this->request('messages.send', ['attachment' => join(',', $attachments), 'peer_id' => $id] + $params);
+    }
+
+    public function sendDoc($id, $local_file_path, $title = null, $params = []) {
+        return $this->request('messages.send', ['attachment' => $this->getMsgAttachmentUploadDoc($id, $local_file_path, $title), 'peer_id' => $id] + $params);
+    }
+
+    public function sendVoice($id, $local_file_path, $params = []) {
+        return $this->request('messages.send', ['attachment' => $this->getMsgAttachmentUploadVoice($id, $local_file_path), 'peer_id' => $id] + $params);
+    }
+
     public function request($method, $params = []) {
         if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['peer_id'] ?? null, $params['message']);
