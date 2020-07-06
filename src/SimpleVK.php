@@ -19,6 +19,7 @@ class SimpleVK {
     public static $proxy = PROXY;
     public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
     private $is_test_len_str = true;
+    private $group_id = null;
 
     public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
@@ -397,6 +398,11 @@ class SimpleVK {
         }
     }
 
+    public function group($id = null) {
+        $this->group_id = $id;
+        return $this;
+    }
+
     public function request($method, $params = []) {
         if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['peer_id'] ?? null, $params['message']);
@@ -433,6 +439,8 @@ class SimpleVK {
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
         $params['random_id'] = random_int(-2147483648, 2147483647);
+        if (!is_null($this->group_id) and empty($params['group_id']))
+            $params['group_id'] = $this->group_id;
         $url = $this->api_url . $method;
         if (function_exists('curl_init')) {
             $ch = curl_init();
