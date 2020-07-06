@@ -5,7 +5,6 @@ namespace DigitalStars\simplevk;
 
 
 class BaseConstructor {
-    use FileUploader;
     protected $config;
     protected $config_cache;
     /** @var SimpleVK */

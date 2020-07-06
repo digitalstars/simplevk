@@ -85,20 +85,31 @@ trait FileUploader {
     }
 
     private function saveDocuments($file, $title) {
-        return $this->request('docs.save', ['file' => $file, 'title' => $title]);
+        $upload_file = $this->request('docs.save', ['file' => $file, 'title' => $title]);
+        if (isset($upload_file['type']))
+            $upload_file = $upload_file[$upload_file['type']];
+        else
+            $upload_file = current($upload_file);
+        return "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
     }
 
     public function getMsgAttachmentUploadDoc($id, $local_file_path, $title = null) {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerMessages($id)['upload_url'];
+        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+            try {
+                $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
+                return $this->saveDocuments($answer_vk['file'], $title);
+            } catch (SimpleVkException $e) {
+                sleep(1);
+                $exception = json_decode($e->getMessage(), true);
+                if ($exception['error']['error_code'] != 121)
+                    throw new SimpleVkException($exception['error']['error_code'], $e->getMessage());
+            }
+        }
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
-        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
-        if (isset($upload_file['type']))
-            $upload_file = $upload_file[$upload_file['type']];
-        else
-            $upload_file = current($upload_file);
-        return "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
+        return $this->saveDocuments($answer_vk['file'], $title);
     }
 
     private function getUploadServerPost($peer_id = []) {
@@ -114,13 +125,19 @@ trait FileUploader {
         if (!isset($title))
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerPost($id)['upload_url'];
+        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+            try {
+                $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
+                return $this->saveDocuments($answer_vk['file'], $title);
+            } catch (SimpleVkException $e) {
+                sleep(1);
+                $exception = json_decode($e->getMessage(), true);
+                if ($exception['error']['error_code'] != 121)
+                    throw new SimpleVkException($exception['error']['error_code'], $e->getMessage());
+            }
+        }
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
-        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
-        if (isset($upload_file['type']))
-            $upload_file = $upload_file[$upload_file['type']];
-        else
-            $upload_file = current($upload_file);
-        return "doc" . $upload_file['owner_id'] . "_" . $upload_file['id'];
+        return $this->saveDocuments($answer_vk['file'], $title);
     }
 
     private function savePhotoWall($photo, $server, $hash, $id) {
@@ -161,8 +178,18 @@ trait FileUploader {
 
     public function getMsgAttachmentUploadVoice($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'audio_message')['upload_url'];
+        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
+            try {
+                $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'file'), true);
+                return $this->saveDocuments($answer_vk['file'], 'voice');
+            } catch (SimpleVkException $e) {
+                sleep(1);
+                $exception = json_decode($e->getMessage(), true);
+                if ($exception['error']['error_code'] != 121)
+                    throw new SimpleVkException($exception['error']['error_code'], $e->getMessage());
+            }
+        }
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'file'), true);
-        $upload_file = $this->saveDocuments($answer_vk['file'], 'voice');
-        return "doc" . $upload_file['audio_message']['owner_id'] . "_" . $upload_file['audio_message']['id'];
+        return $this->saveDocuments($answer_vk['file'], 'voice');
     }
 }

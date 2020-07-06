@@ -8,6 +8,7 @@ require_once('config_simplevk.php');
 
 class SimpleVK {
     use ErrorHandler;
+    use FileUploader;
     protected $version;
     protected $data = [];
     protected $data_backup = [];
