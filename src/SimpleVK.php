@@ -78,8 +78,14 @@ class SimpleVK {
         $type = $data['type'] ?? null;
         $id = $data['object']['peer_id'] ?? null;
         $message = $data['object']['text'] ?? null;
-        $payload = isset($data['object']['payload']) ? json_decode($data['object']['payload'], true) : null;
         $user_id = $data['object']['from_id'] ?? null;
+        if(isset($data['object']['payload'])) {
+            if(is_string($data['object']['payload'])) {
+                $payload = json_decode($data['object']['payload']) ?? $data['object']['payload'];
+            } else
+                $payload = $data['object']['payload'];
+        } else
+            $payload = null;
         return $this->data_backup;
     }
 
@@ -118,6 +124,58 @@ class SimpleVK {
         $inline = $data['inline_keyboard'];
         $buttons = $data['button_actions'];
         return $data;
+    }
+
+    public function eventAnswerSnackbar($text) {
+        $this->checkTypeEvent();
+        $this->request('messages.sendMessageEventAnswer', [
+            'event_id' => $this->data['object']['event_id'],
+            'user_id' => $this->data['object']['user_id'],
+            'peer_id' => $this->data['object']['peer_id'],
+            'event_data' => json_encode([
+                'type' => 'show_snackbar',
+                'text' => $text
+            ])
+        ]);
+    }
+
+    public function eventAnswerOpenLink($url) {
+        $this->checkTypeEvent();
+        $this->request('messages.sendMessageEventAnswer', [
+            'event_id' => $this->data['object']['event_id'],
+            'user_id' => $this->data['object']['user_id'],
+            'peer_id' => $this->data['object']['peer_id'],
+            'event_data' => json_encode([
+                'type' => 'open_link',
+                'link' => $url
+            ])
+        ]);
+    }
+
+    public function eventAnswerOpenApp($app_id, $owner_id = null, $hash = null) {
+        $this->checkTypeEvent();
+        $this->request('messages.sendMessageEventAnswer', [
+            'event_id' => $this->data['object']['event_id'],
+            'user_id' => $this->data['object']['user_id'],
+            'peer_id' => $this->data['object']['peer_id'],
+            'event_data' => json_encode([
+                'type' => 'open_app',
+                'app_id' => $app_id,
+                'owner_id' => $owner_id,
+                'hash' => $hash
+            ])
+        ]);
+    }
+
+    public function eventAnswerEditKeyboard($keyboard, $inline = false, $one_time = false, $params = []) {
+        $this->checkTypeEvent();
+        $this->request('messages.edit', [
+            'peer_id' => $this->data['object']['peer_id'],
+            'keep_forward_messages' => 1,
+            'keep_snippets' => 1,
+            'conversation_message_id' => $this->data['object']['conversation_message_id'],
+            'keyboard' => $this->generateKeyboard($keyboard, $inline, $one_time)
+        ] + $params);
     }
 
     public function reply($message, $params = []) {
@@ -183,6 +241,10 @@ class SimpleVK {
         return ['text', $payload, $text, self::$color_replacer[$color]];
     }
 
+    public function buttonCallback($text, $color = 'white', $payload = null) {
+        return ['callback', $payload, $text, self::$color_replacer[$color]];
+    }
+
     static $color_replacer = [
         'blue' => 'primary',
         'white' => 'default',
@@ -236,6 +298,7 @@ class SimpleVK {
                 if ($button[1] != null)
                     $keyboard[$i][$j]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
                 switch ($button[0]) {
+                    case 'callback':
                     case 'text': {
                         $keyboard[$i][$j]['color'] = $button[3];
                         $keyboard[$i][$j]['action']['label'] = $button[2];
@@ -451,6 +514,11 @@ class SimpleVK {
             }
         }
         return false;
+    }
+
+    protected function checkTypeEvent() {
+        if($this->data['type'] != 'message_event')
+            throw new SimpleVkException(0, "eventAnswerSnackbar можно использовать только при событии message_event");
     }
 
     protected function request_core($method, $params = []) {

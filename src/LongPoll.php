@@ -23,6 +23,7 @@ class LongPoll extends SimpleVK {
                 'enabled' => 1,
                 'api_version' => $this->version,
                 'message_new' => 1,
+                'message_event' => 1
             ]);
         }
         $this->getLongPollServer();
