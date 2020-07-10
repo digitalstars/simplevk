@@ -66,15 +66,37 @@ class Message extends BaseConstructor {
     }
 
     public function run() {
+        $id = $this->generateNewAction();
+        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
+        return $this->bot->cmd($id);
+    }
+
+    public function edit($is_save = true, $save_params = ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd']) {
+        if (!empty(array_intersect(array_keys($this->config), ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd']))) {
+            $id = $this->generateNewAction();
+            $this->config['func_after_chain'][] = ['f' => 'edit', 'args' => $id];
+            if ($is_save) {
+                $new_msg_config = [];
+                foreach ($this->config as $key => $val)
+                    if (in_array($key, $save_params))
+                        $new_msg_config[$key] = $val;
+                return $this->bot->cmd($id)->load($new_msg_config);
+            } else
+                return $this->bot->cmd($id);
+        } else {
+            $this->config['is_edit'] = true;
+            return $this;
+        }
+    }
+
+    private function generateNewAction() {
         if (is_null($this->bot))
             throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
         $id = explode('$', $this->id_action);
         if (count($id) > 2 or (isset($id[1]) and !is_numeric($id[1])))
             throw new SimpleVkException(0, "Нельзя использовать '$' в id действий");
         $id[1] = isset($id[1]) ? ($id[1] + 1) : 1;
-        $id = join('$', $id);
-        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
-        return $this->bot->cmd($id);
+        return join('$', $id);
     }
 
     public function access() {
@@ -101,13 +123,7 @@ class Message extends BaseConstructor {
         return null;
     }
 
-    public function send($id = null, $vk = null, $var = null) {
-        if (empty($this->vk) and isset($vk))
-            $this->vk = $vk;
-        if (empty($this->vk))
-            throw new SimpleVkException(0, "Экземпляр SimpleVK не передан");
-        if (empty($id))
-            $this->vk->initVars($id);
+    private function assembleMsg($id, $var) {
         $this->config_cache = $this->config;
         if ($this->preProcessing($id, $var))
             return null;
@@ -151,12 +167,42 @@ class Message extends BaseConstructor {
                 : []);
         $params = $this->config['params'] ?? [];
         $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
-        $query = $text + $params + $attachments + $kbd;
+        return $text + $params + $attachments + $kbd;
+    }
+
+    public function sendEdit($peer_id, $message_id = null, $conversation_message_id = null, $var = null) {
+        if (is_null($message_id) and is_null($conversation_message_id))
+            throw new SimpleVkException(0, "Нужно указать хотя-бы какой то из message_id");
+        $query = $this->assembleMsg($peer_id, $var);
+
+        if (empty($query))
+            $result = null;
+        else {
+            $message_id_key = is_null($message_id) ? 'conversation_message_id' : 'message_id';
+            $message_id = $message_id ?? $conversation_message_id;
+            $result = $this->request('messages.edit', ['peer_id' => $peer_id, $message_id_key => $message_id] + $query);
+        }
+        $this->postProcessing($peer_id, $result, $var);
+        return $result;
+    }
+
+    public function send($id = null, $vk = null, $var = null) {
+        if (empty($this->vk) and isset($vk))
+            $this->vk = $vk;
+        if (empty($this->vk))
+            throw new SimpleVkException(0, "Экземпляр SimpleVK не передан");
+        if (empty($id))
+            $this->vk->initVars($id);
+
+        $query = $this->assembleMsg($id, $var);
+        if (is_null($query))
+            return null;
+
         if (empty($query))
             $result = null;
         else
             $result = $this->request('messages.send', ['peer_id' => $id] + $query);
-        $this->postProcessing($result, $var);
+        $this->postProcessing($id, $result, $var);
         return $result;
     }
 }

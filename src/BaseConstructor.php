@@ -210,14 +210,16 @@ class BaseConstructor {
         return false;
     }
 
-    protected function postProcessing($result, $var) {
+    protected function postProcessing($id, $result, $var) {
         if (isset($this->config['func_after']) and is_callable($this->config['func_after']))
             if($this->config['func_after']($result, $var))
                 return $this->null();
         if (!empty($this->config['func_after_chain']))
             foreach ($this->config['func_after_chain'] as $func) {
                 if ($func['f'] == 'run')
-                    $this->bot->run($func['args']);
+                    $this->bot->run($func['args'], $id);
+                else if ($func['f'] == 'edit')
+                    $this->bot->editRun($func['args'], $id, $result);
                 else
                     call_user_func_array($func['f'], $func['args']);
                 if ($this->bot->getStatus())

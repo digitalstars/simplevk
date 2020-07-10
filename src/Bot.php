@@ -254,7 +254,7 @@ class Bot {
         return Message::create($this->vk, $v, $this, $this->config['btn']);
     }
 
-    private function runAction($id, $user_id, $action_id, $result_parse = null) {
+    private function runAction($id, $user_id, $action_id, $result_parse = null, $id_message = null, $is_edit = false) {
         if (isset($this->config['action'][$action_id]['access'])) {
             $flag = false;
             foreach ($this->config['action'][$action_id]['access'] as $access)
@@ -270,7 +270,14 @@ class Bot {
                 if ((is_array($access) and $access[0] == $id and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access)))
                     return null;
         $this->status = 0;
-        $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+        $is_edit = $is_edit || ($this->config['action'][$action_id]['is_edit'] ?? false);
+        if ($is_edit) {
+            if ($id_message['type'])
+                $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, $id_message['id'], null, $result_parse);
+            else
+                $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, null,  $id_message['id'], $result_parse);
+        } else
+            $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
         $this->status = 0;
         return $result;
     }
@@ -326,8 +333,17 @@ class Bot {
         return $brackets == 0 ? $result : $cache;
     }
 
-    public function run($send = null, $id = null) {
+    public function editRun($send, $id, $id_message) {
+        if (!is_numeric($id_message))
+            throw new SimpleVkException(0, "Не пришёл id сообщения");
+        if (empty($this->config['action'][$send]))
+            throw new SimpleVkException(0, "Событие $send не найдено");
         $this->vk->initVars($id_now, $message, $payload, $user_id, $type);
+        return $this->runAction($id, $user_id, $send, null, ['id' => $id_message, 'type' => true], true);
+    }
+
+    public function run($send = null, $id = null) {
+        $data = $this->vk->initVars($id_now, $message, $payload, $user_id, $type);
         $id = $id ?? $id_now;
         if (isset($send))
             if (isset($this->config['action'][$send]))
@@ -336,10 +352,11 @@ class Bot {
                 throw new SimpleVkException(0, "События с ID '$send' не существует");
         if ($type != 'message_new' and $type != 'message_event')
             return null;
+        $message_id = ['id' => $data['object']['conversation_message_id'] ?? null, 'type' => false];
         if (isset($payload['name']) and isset($this->config['action'][$payload['name']]))
-            return $this->runAction($id, $user_id, $payload['name']);
+            return $this->runAction($id, $user_id, $payload['name'], null, $message_id);
         if ((isset($payload['command']) and $payload['command'] == 'start') or $this->is_text_start)
-            return $this->runAction($id, $user_id, 'first');
+            return $this->runAction($id, $user_id, 'first', null, $message_id);
         if (!empty($message)) {
             if (isset($this->config['mask'])) {
                 $arr_msg = explode(' ', $message);
@@ -367,16 +384,16 @@ class Bot {
                             }
                         }
                         if ($flag)
-                            return $this->runAction($id, $user_id, $action, $result_parse);
+                            return $this->runAction($id, $user_id, $action, $result_parse, $message_id);
                     }
             }
             if (isset($this->config['preg_mask']))
                 foreach ($this->config['preg_mask'] as $action => $preg_mask)
                     if (preg_match($preg_mask, $message, $result_parse))
-                        return $this->runAction($id, $user_id, $action, $result_parse);
+                        return $this->runAction($id, $user_id, $action, $result_parse, $message_id);
         }
         if (isset($this->config['action']['other']))
-            return $this->runAction($id, $user_id, 'other');
+            return $this->runAction($id, $user_id, 'other', null, $message_id);
         return null;
     }
 }

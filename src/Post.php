@@ -51,7 +51,7 @@ class Post extends BaseConstructor {
             $result = null;
         else
             $result = $this->request('wall.post', ['owner_id' => $id] + $query);
-        $this->postProcessing($result, null);
+        $this->postProcessing($id, $result, null);
         return $result;
     }
 }
