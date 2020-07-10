@@ -67,5 +67,6 @@ class Store {
         if (!flock( $this->file, LOCK_EX ))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $this->is_writable = true;
+        return $this;
     }
 }
