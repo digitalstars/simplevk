@@ -52,15 +52,13 @@ class Message extends BaseConstructor {
     }
 
     public function a_run($id) {
-        if (is_null($this->bot))
-            throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
+        $this->checkBot();
         $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
         return $this;
     }
 
     public function b_run($id) {
-        if (is_null($this->bot))
-            throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
+        $this->checkBot();
         $this->config['func_before_chain'][] = ['f' => 'run', 'args' => $id];
         return $this;
     }
@@ -90,8 +88,7 @@ class Message extends BaseConstructor {
     }
 
     private function generateNewAction() {
-        if (is_null($this->bot))
-            throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
+        $this->checkBot();
         $id = explode('$', $this->id_action);
         if (count($id) > 2 or (isset($id[1]) and !is_numeric($id[1])))
             throw new SimpleVkException(0, "Нельзя использовать '$' в id действий");
@@ -121,6 +118,40 @@ class Message extends BaseConstructor {
         if (!is_null($this->bot))
             return $this->bot->getNotAccess($this->id_action);
         return null;
+    }
+
+    public function eventAnswerSnackbar($text) {
+        $this->checkBot();
+        $this->config['event'] = [
+            'type' => 0,
+            'text' => $text
+        ];
+        return $this;
+    }
+
+    public function eventAnswerOpenLink($url) {
+        $this->checkBot();
+        $this->config['event'] = [
+            'type' => 1,
+            'url' => $url
+        ];
+        return $this;
+    }
+
+    public function eventAnswerOpenApp($app_id, $owner_id = null, $hash = null) {
+        $this->checkBot();
+        $this->config['event'] = [
+            'type' => 2,
+            'app_id' => $app_id,
+            'owner_id' => $owner_id,
+            'hash' => $hash
+        ];
+        return $this;
+    }
+
+    private function checkBot() {
+        if (is_null($this->bot))
+            throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
     }
 
     private function assembleMsg($id, $var) {
