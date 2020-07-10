@@ -81,7 +81,7 @@ class SimpleVK {
         $user_id = $data['object']['from_id'] ?? null;
         if(isset($data['object']['payload'])) {
             if(is_string($data['object']['payload'])) {
-                $payload = json_decode($data['object']['payload']) ?? $data['object']['payload'];
+                $payload = json_decode($data['object']['payload'], true) ?? $data['object']['payload'];
             } else
                 $payload = $data['object']['payload'];
         } else
@@ -168,7 +168,6 @@ class SimpleVK {
     }
 
     public function eventAnswerEditKeyboard($keyboard, $inline = false, $one_time = false, $params = []) {
-        $this->checkTypeEvent();
         $this->request('messages.edit', [
             'peer_id' => $this->data['object']['peer_id'],
             'keep_forward_messages' => 1,
