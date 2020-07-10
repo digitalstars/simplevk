@@ -243,6 +243,10 @@ class Bot {
         return $this;
     }
 
+    public function msg() {
+        return Message::create($this->vk, $v, $this, $this->config['btn']);
+    }
+
     private function runAction($id, $user_id, $action_id, $result_parse = null) {
         if (isset($this->config['action'][$action_id]['access'])) {
             $flag = false;
