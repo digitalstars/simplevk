@@ -10,6 +10,7 @@ class Bot {
     private $config = [];
     private $is_text_start = false;
     private $is_text_button_triggered = false;
+    private $is_all_btn_callback = false;
     private $case_default = false;
     private $status = 1;
     private $color = 'white';
@@ -28,6 +29,11 @@ class Bot {
         return $this;
     }
 
+    public function isAllBtnCallback($is = true) {
+        $this->is_all_btn_callback = $is;
+        return $this;
+    }
+
     private function newAction($id) {
         if (!isset($this->config['action'][$id]))
             $this->config['action'][$id] = [];
@@ -42,17 +48,18 @@ class Bot {
         return $this->status;
     }
 
-    public function btn($id, $btn = null, $is_text_triggered = false) {
+    public function btn($id, $btn = null, $is_callback = false, $is_text_triggered = false) {
+        $is_callback = (!$this->is_all_btn_callback && $is_callback) || ($this->is_all_btn_callback && !$is_callback);
         if (isset($btn)) {
             if (is_array($btn)) {
                 if (!isset($btn[1]))
                     $btn[1] = $this->color;
                 if (count($btn) == 2 and in_array($btn[1], ['white', 'green', 'red', 'blue']))
-                    $this->config['btn'][$id] = $this->vk->buttonText($btn[0], $btn[1]);
+                    $this->config['btn'][$id] = $is_callback ? $this->vk->buttonCallback($btn[0], $btn[1]) : $this->vk->buttonText($btn[0], $btn[1]);
                 else
                     $this->config['btn'][$id] = $btn;
             } else
-                $this->config['btn'][$id] = $this->vk->buttonText($btn, $this->color);
+                $this->config['btn'][$id] = $is_callback ? $this->vk->buttonCallback($btn, $this->color) : $this->vk->buttonText($btn, $this->color);
             if ($this->config['btn'][$id][0] == 'text' and ($is_text_triggered or $this->is_text_button_triggered))
                 $this->cmd($id, $this->config['btn'][$id][2]);
         }
