@@ -334,7 +334,7 @@ class Bot {
                 return $this->runAction($id, $user_id, $send);
             else
                 throw new SimpleVkException(0, "События с ID '$send' не существует");
-        if ($type != 'message_new')
+        if ($type != 'message_new' and $type != 'message_event')
             return null;
         if (isset($payload['name']) and isset($this->config['action'][$payload['name']]))
             return $this->runAction($id, $user_id, $payload['name']);
