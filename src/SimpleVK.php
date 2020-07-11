@@ -78,7 +78,7 @@ class SimpleVK {
         $type = $data['type'] ?? null;
         $id = $data['object']['peer_id'] ?? null;
         $message = $data['object']['text'] ?? null;
-        $user_id = $data['object']['from_id'] ?? null;
+        $user_id = $data['object']['from_id'] ?? ($data['object']['user_id'] ?? null);
         if(isset($data['object']['payload'])) {
             if(is_string($data['object']['payload'])) {
                 $payload = json_decode($data['object']['payload'], true) ?? $data['object']['payload'];
