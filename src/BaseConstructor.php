@@ -207,6 +207,14 @@ class BaseConstructor {
                 if ($this->bot->getStatus())
                     return $this->null();
             }
+        if (!empty($this->config['event'])) {
+            if ($this->config['event']['type'] == 0)
+                $this->vk->eventAnswerSnackbar($this->config['event']['text']);
+            else if ($this->config['event']['type'] == 1)
+                $this->vk->eventAnswerOpenLink($this->config['event']['url']);
+            else if ($this->config['event']['type'] == 2)
+                $this->vk->eventAnswerOpenApp($this->config['event']['app_id'], $this->config['event']['owner_id'], $this->config['event']['hash']);
+        }
         return false;
     }
 
@@ -225,14 +233,6 @@ class BaseConstructor {
                 if ($this->bot->getStatus())
                     return $this->null();
             }
-        if (!empty($this->config['event'])) {
-            if ($this->config['event']['type'] == 0)
-                $this->vk->eventAnswerSnackbar($this->config['event']['text']);
-            else if ($this->config['event']['type'] == 1)
-                $this->vk->eventAnswerOpenLink($this->config['event']['url']);
-            else if ($this->config['event']['type'] == 2)
-                $this->vk->eventAnswerOpenApp($this->config['event']['app_id'], $this->config['event']['owner_id'], $this->config['event']['hash']);
-        }
         return $this->null();
     }
 
