@@ -77,4 +77,9 @@ class Store {
         $this->is_writable = true;
         return $this;
     }
+
+    public function clear() {
+        $this->getWriteLock();
+        unlink($this->full_path);
+    }
 }
