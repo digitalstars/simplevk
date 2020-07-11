@@ -70,7 +70,7 @@ class Message extends BaseConstructor {
     }
 
     public function edit($is_save = true, $save_params = ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd']) {
-        if (!empty(array_intersect(array_keys($this->config), ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd']))) {
+        if (!empty(array_intersect(array_keys($this->config), ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd', 'func']))) {
             $id = $this->generateNewAction();
             $this->config['func_after_chain'][] = ['f' => 'edit', 'args' => $id];
             if ($is_save) {
