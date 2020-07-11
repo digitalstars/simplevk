@@ -58,12 +58,20 @@ class Store {
         return $this;
     }
 
+    public function unset($key) {
+        $this->getWriteLock();
+        unset($this->data[$key]);
+        return $this;
+    }
+
     public function sset($key, $val) {
         $this->set($key, $val);
         $this->save();
     }
 
     public function getWriteLock() {
+        if ($this->is_writable)
+            return $this;
         if (!flock( $this->file, LOCK_EX ))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $this->is_writable = true;
