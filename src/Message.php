@@ -176,6 +176,15 @@ class Message extends BaseConstructor {
         }
         $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
 
+        $kbd = $this->parseKbd();
+        $kbd = !is_null($kbd) ? ['keyboard' => $this->vk->generateKeyboard($kbd, $this->config['kbd']['inline'], $this->config['kbd']['one_time'])] : [];
+
+        $params = $this->config['params'] ?? [];
+        $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
+        return $text + $params + $attachments + $kbd;
+    }
+
+    public function parseKbd() {
         if (isset($this->buttons) and isset($this->config['kbd']))
             foreach ($this->config['kbd']['kbd'] as $row_index => $row)
                 foreach ($row as $col_index => $col) {
@@ -193,12 +202,7 @@ class Message extends BaseConstructor {
                         $btn[1] = $payload;
                     $kbd[$row_index][$col_index] = $btn;
                 }
-        $kbd = isset($kbd) ? ['keyboard' => $this->vk->generateKeyboard($kbd, $this->config['kbd']['inline'], $this->config['kbd']['one_time'])]
-            : (isset($this->config['kbd']) ? ['keyboard' => $this->vk->generateKeyboard($this->config['kbd']['kbd'], $this->config['kbd']['inline'], $this->config['kbd']['one_time'])]
-                : []);
-        $params = $this->config['params'] ?? [];
-        $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
-        return $text + $params + $attachments + $kbd;
+        return $kbd ?? ($this->config['kbd']['kbd'] ?? null);
     }
 
     public function sendEdit($peer_id, $message_id = null, $conversation_message_id = null, $var = null) {
