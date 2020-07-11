@@ -38,14 +38,21 @@ class Store {
                 rewind($this->file);
                 fwrite($this->file, "<?php http_response_code(404);exit('404');?>\n" . json_encode($this->data));
             }
-            flock($this->file, LOCK_UN);
-            fclose($this->file);
-            unset($this->data);
         }
+        if (!flock( $this->file, LOCK_SH ))
+            throw new SimpleVkException(0, "Не удалось захватить файл");
+        $this->is_writable = false;
+    }
+
+    public function close() {
+        $this->save();
+        flock($this->file, LOCK_UN);
+        fclose($this->file);
+        unset($this->data);
     }
 
     public function __destruct() {
-        $this->save();
+        $this->close();
     }
 
     public function get($key) {
