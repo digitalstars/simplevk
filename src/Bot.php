@@ -160,7 +160,7 @@ class Bot {
                         $out .= $row;
                     } elseif (is_bool($row)) {
                         $out .= ($row) ? 'true' : 'false';
-                    } elseif ($stack[0] == 'action' and ($key == 'func' or $key == 'func_after') and is_callable($row)) {
+                    } elseif ($stack[0] == 'action' and ($key === 'func' or $key === 'func_after') and is_callable($row)) {
                         $out .= $this->getFunction(end($stack), $key);
                     } else {
                         $out .= "'" . addslashes($row) . "'";
