@@ -16,12 +16,22 @@ class Bot {
     private $color = 'white';
     private $compile_files = [];
 
-    public function __construct($vk) {
-        $this->vk = $vk;
+    public function __construct($token_or_vk, $version = null, $also_version = null) {
+        if ($token_or_vk instanceof SimpleVK) {
+            $this->vk = $token_or_vk;
+        } else {
+            if (is_null($version))
+                throw new SimpleVkException(0, 'При передачи токена, необходимо передать и версию апи');
+            $this->vk = new SimpleVK($token_or_vk, $version, $also_version);
+        }
     }
 
-    public static function create($vk) {
-        return new self($vk);
+    public static function create($token_or_vk, $version = null, $also_version = null) {
+        return new self($token_or_vk, $version, $also_version);
+    }
+
+    public function vk() {
+        return $this->vk;
     }
 
     public function isStartTextTriggered($start) {
