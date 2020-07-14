@@ -264,6 +264,12 @@ class Bot {
         return Message::create($this->vk, $v, $this, $this->config['btn']);
     }
 
+    public function editBtn($id, $is_save = false) {
+        if (!isset($this->config['btn'][$id]))
+            throw new SimpleVkException(0, "Кнопка с id '$id' не найдена");
+        return Button::create($this->config['btn'][$id], $is_save, $id);
+    }
+
     private function runAction($id, $user_id, $action_id, $result_parse = null, $id_message = null, $is_edit = false) {
         if (isset($this->config['action'][$action_id]['access'])) {
             $flag = false;
@@ -405,5 +411,73 @@ class Bot {
         if (isset($this->config['action']['other']))
             return $this->runAction($id, $user_id, 'other', null, $message_id);
         return null;
+    }
+}
+
+class Button {
+    private $config;
+    private $id;
+
+    public function __construct(&$config, $is_save, $id) {
+        if ($is_save)
+            $this->config = &$config;
+        else
+            $this->config = $config;
+        $this->id = $id;
+    }
+
+    static function create(&$config, $is_save, $id) {
+        return new self($config, $is_save, $id);
+    }
+
+    public function payload($payload) {
+        if (in_array('name', array_keys($payload)))
+            throw new SimpleVkException(0, "Нельзя использовать name в payload");
+        $this->config[1] = ['name' => $this->id] + $payload;
+        return $this;
+    }
+
+    public function getPayload() {
+        return $this->config[1];
+    }
+
+    public function text($text) {
+        if (!in_array($this->config[0], ['text', 'callback', 'open_link', 'open_app']))
+            throw new SimpleVkException(0, "У этого типа кнопок нельзя задать текст");
+        if ($this->config[0] == 'open_link')
+            $this->config[3] = $text;
+        else
+            $this->config[2] = $text;
+        return $this;
+    }
+
+    public function getText() {
+        if (!in_array($this->config[0], ['text', 'callback', 'open_link', 'open_app']))
+            throw new SimpleVkException(0, "У этого типа кнопок нельзя задать текст");
+        if ($this->config[0] == 'open_link')
+            return $this->config[3];
+        else
+            return $this->config[2];
+    }
+
+    public function link($link) {
+        if ($this->config[0] != 'open_link')
+            throw new SimpleVkException(0, "У этого типа кнопок нельзя задать адрес ссылке");
+        $this->config[2] = $link;
+        return $this;
+    }
+
+    public function getLink() {
+        if ($this->config[0] != 'open_link')
+            throw new SimpleVkException(0, "У этого типа кнопок нельзя задать адрес ссылке");
+        return $this->config[2];
+    }
+
+    public function dump() {
+        return $this->config;
+    }
+
+    public function type() {
+        return $this->config['0'];
     }
 }
