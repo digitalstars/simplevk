@@ -17,7 +17,7 @@ function checkWin($map, $s) {   // Проверка на выигрыш или �
     if (in_array([$s, $s, $s], $win_positions)) // Если найдено 3 символа подряд, то это победа
         return true;
     else
-        return in_array('_', array_merge($map[0], $map[1], $map[2])) ? false : 'Ничья'; // Если найдено пустое место - Ничья, иначе игра продолжается
+        return in_array('_', array_merge($map[0], $map[1], $map[2])) ? false : 'Ничья'; // Если НЕ найдено пустое место - Ничья, иначе игра продолжается
 }
 
 function getKeyboard($map, $opponent, $msg_id, $msg_id_enemy, $symbol, $symbol_enemy, $current_hod, $active) {  // Заполняет Payload кнопок
