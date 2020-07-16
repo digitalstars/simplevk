@@ -23,10 +23,10 @@
 [Блог со статьями](https://scripthub.ru)
 --- |
 
-#Почему SimpleVK?
+# Почему SimpleVK?
 SimpleVK - это фреймворк для создания ботов. Вам потребуется минимум кода и времени для создания бота, за счёт встроенного конструктора и реализации многих готовых модулей и функций для работы с VK API.  
 
-##Функционал
+## Функционал
 * Модуль рассылки по сообщениям и беседам
 * Модуль конструктора ботов
 * Модуль обработки команд с помощью регулярок и placeholder'ов
@@ -37,7 +37,7 @@ SimpleVK - это фреймворк для создания ботов. Вам 
 * Встроенное хранилище данных
 * Куча всего остального!
 
-##Поддержка
+## Поддержка
 * `Callback API`
 * `User Long Poll API`
 * `Bots Long Poll API`
@@ -45,7 +45,7 @@ SimpleVK - это фреймворк для создания ботов. Вам 
 * Создание ботов на пользовательских аккаунтах
 * Работа с голосовыми сообщениями и документами
 
-#Подключение
+# Подключение
 ### Используя composer
 ```
 composer require digitalstars/simplevk
@@ -62,8 +62,8 @@ require_once "vendor/autoload.php";
 require_once "simplevk-master/autoload.php";
 ```
 
-##Примеры ботов
-###Минимальный Callback  
+## Примеры ботов
+### Минимальный Callback  
 > Бот отвечает на любое сообщение
 ```php
 require_once "vendor/autoload.php";
@@ -71,7 +71,7 @@ use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
 $vk->reply('Привет, %a_fn%');
 ```
-###Простой Callback  
+### Простой Callback  
 > Бот отвечает на любое сообщение
 ```php
 require_once "vendor/autoload.php";
@@ -83,7 +83,7 @@ if($message == 'Привет') {
     $vk->reply('Привет, %a_fn%');
 }
 ```
-###Простой LongPoll / User LongPoll
+### Простой LongPoll / User LongPoll
 > Если указать токен группы - будет LongPoll.  
 > Если указать токен пользователя - User LongPoll.  
 > А еще можно указать логин и пароль от аккаунта:  
@@ -103,7 +103,7 @@ $vk->listen(function () use ($vk) {
     }
 }
 ```
-###Минимальный Бот на конструкторе (Callback)
+### Минимальный Бот на конструкторе (Callback)
 ```php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
@@ -111,7 +111,7 @@ $bot = Bot::create(ТОКЕН, '5.120');
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
 $bot->run();
 ```
-###Минимальный Бот на конструкторе (LongPoll)
+### Минимальный Бот на конструкторе (LongPoll)
 ```php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, LongPoll};
@@ -122,7 +122,7 @@ $vk->listen(function () use ($bot) {
     $bot->run(); //запускаем обработку события
 });
 ```
-###Бот с обработкой Команд на конструкторе (Callback)
+### Бот с обработкой Команд на конструкторе (Callback)
 ```php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
@@ -141,7 +141,7 @@ $bot->preg_cmd('more_word', "!\!напиши (.*)!")->func(function ($msg, $id, 
 });
 $bot->run();
 ```
-###Бот с обработкой Кнопок на конструкторе (Callback)
+### Бот с обработкой Кнопок на конструкторе (Callback)
 ```php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
@@ -154,5 +154,5 @@ $bot->btn('fish', 'Рыбка')->text('Вы выбрали Рыбку!')->img('f
 $bot->btn('cat', 'Котик')->text('Вы выбрали Котика!')->img('cat.jpg');
 $bot->run();
 ```
-##Больше примеров
+## Больше примеров
 В папке [examples](https://github.com/digitalstars/simplevk/tree/testing/examples) лежат прокомментированные примеры более сложных ботов и функций.
