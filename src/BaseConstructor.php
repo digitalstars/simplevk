@@ -161,6 +161,15 @@ class BaseConstructor {
         return $this->config['func_after'] ?? null;
     }
 
+    public function realId($id) {
+        $this->config['real_id'] = $id;
+        return $this;
+    }
+
+    public function getRealId() {
+        return $this->config['real_id'];
+    }
+
     public function getDoc() {
         return $this->config['doc'] ?? null;
     }
@@ -194,9 +203,9 @@ class BaseConstructor {
         return true;
     }
 
-    protected function preProcessing($id, $var) {
+    protected function preProcessing($var) {
         if (isset($this->config['func']) and is_callable($this->config['func']))
-            if ($this->config['func']($this, $id, $var))
+            if ($this->config['func']($this, $var))
                 return $this->null();
         if (!empty($this->config['func_before_chain']))
             foreach ($this->config['func_before_chain'] as $func) {

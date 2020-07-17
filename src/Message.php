@@ -156,7 +156,11 @@ class Message extends BaseConstructor {
 
     private function assembleMsg($id, $var) {
         $this->config_cache = $this->config;
-        if ($this->preProcessing($id, $var))
+
+        if (isset($this->config['real_id']) and $this->config['real_id'] != 0)
+            $id = $this->config['real_id'];
+
+        if ($this->preProcessing($var))
             return null;
 
         $attachments = [];

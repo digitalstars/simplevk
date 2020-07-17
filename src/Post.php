@@ -17,6 +17,10 @@ class Post extends BaseConstructor {
             else
                 throw new VkApiException('Неверно указан $publish_date');
         }
+
+        if (isset($this->config['real_id']) and $this->config['real_id'] != 0)
+            $id = $this->config['real_id'];
+
         if (empty($this->vk) and isset($vk))
             $this->vk = $vk;
         if (empty($this->vk))
@@ -25,7 +29,7 @@ class Post extends BaseConstructor {
             $id = $this->vk->userInfo()['id'];
         }
         $this->config_cache = $this->config;
-        if ($this->preProcessing($id, null))
+        if ($this->preProcessing(null))
             return null;
 
         $attachments = [];
