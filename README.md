@@ -3,182 +3,187 @@
 </p>
 
 <p align="center">
-<img src="https://img.shields.io/packagist/php-v/digitalstars/vk_api.svg?color=FF6F61" alt="php version">
-<img src="https://img.shields.io/badge/VK_API-%3E=%205.103-8992bb.svg" alt="VK api version">
-<img src="https://img.shields.io/github/release/digitalstars/vk_api.svg?color=green" alt="Latest Stable Version">
-<a href="https://packagist.org/packages/digitalstars/vk_api/"><img src="https://img.shields.io/packagist/dt/digitalstars/vk_api.svg" alt="VK api version"></a>
-<img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License">
+<img src="https://img.shields.io/badge/PHP-%3E=%207.0-8992bb.svg" alt="php version">
+<img src="https://img.shields.io/badge/VK_API-%205.103_--_5.120-8992bb.svg" alt="VK api version">
+<img src="https://img.shields.io/badge/realise-%203.0.0--beta-8992bb.svg" alt="VK api version">
+<img src="https://img.shields.io/packagist/l/digitalstars/simplevk" alt="License">
 </p> 
 
-# SimpleVK
-Беседа Беты: https://vk.me/join/AJQ1d3QhPhLNRfgrG7PGHNDY
-Там публикую инфу, как тестировать новую либу. Документации к этой ветке не будет до релиза.
-# Класс Auth
-## Инициализация
-**Входные параметры** *(Не обязательные)*
-* `$login` - Логин пользователя *(строка)*
-* `$pass` - Пароль пользователя *(строка)*
-```php
-use DigitalStars\simplevk\Auth as Auth;
-$auth = Auth::create($login, $pass); 
+
+> ВАЖНО: Эта ветка находится в ранней бете, предназначена для тестирования. Использование в реальных проектах - на ваш страх и риск
+
+> Документация находится в процессе создания.
+
+[Документация на русском](https://simplevk.scripthub.ru/v3/install/who_simplevk.html)
+--- |  
+
+[Беседа VK](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Telegram](https://t.me/vk_api_chat) | [Discord](https://discord.gg/RFqAWRj)
+--- | --- | --- |
+
+[Блог со статьями](https://scripthub.ru)
+--- |
+
+# Почему SimpleVK?
+SimpleVK - это фреймворк для создания ботов. Вам потребуется минимум кода и времени для создания бота, за счет встроенного конструктора и реализации многих готовых модулей и функций для работы с VK API.  
+
+## Функционал
+* Модуль рассылки по сообщениям и беседам
+* Модуль конструктора ботов
+* Модуль обработки команд с помощью регулярок и placeholder'ов
+* Работа с кнопками
+* Установка прокси
+* placeholder'ы для создания упоминаний
+* Удобный debug модуль
+* Встроенное хранилище данных
+* Куча всего остального!
+
+## Поддержка
+* `Callback API`
+* `User Long Poll API`
+* `Bots Long Poll API`
+* `Streaming API`
+* Карусели
+* Все виды кнопок, в том числе и новые callback кнопки
+* Работа с голосовыми сообщениями и документами
+
+# Подключение
+> UPD: Пока 3.0 находится в ветке testing, через composer ее установить нельзя.
+### Используя composer
+1\. Установить
 ```
-> Это не авторизация, а лишь создание объекта настроек. Для авторизации используйте один из методов: getAccessToken или auth
-## Методы цепочки вызовов
-### login
-**Входные параметры**
-* `$login` - Логин пользователя *(строка)*
-> Задаёт логин пользователя
-### pass
-**Входные параметры**
-* `$pass` - Пароль пользователя *(строка)*
-> Задаёт пароль пользователя
-#### Пример. Поиск верных данных авторизации
+composer require digitalstars/simplevk
+```
+2\. Подключить `autoload.php` внутри бота
 ```php
-$login_arr = [
-    ['login1', 'pass1'],
-    ['login2', 'pass2'],
-    ['login3', 'pass3'],
-    ['login4', 'pass4']
-];
-$auth = Auth::create();
-foreach ($login_arr as $login) {
-    try {
-        $token = $auth->login($login[0])->pass($login[1])->getAccessToken();
-        echo "\nВерные данные: $login[0]:$login[1]";
-    } catch (Exception $e) {
-        continue; // Не удалось авторизоваться
+require_once "vendor/autoload.php";
+```
+### Вручную
+1. Скачать последний релиз c [github](https://github.com/digitalstars/simplevk/tree/testing)
+2. Подключить `autoload.php`.  
+> Вот так будет происходить подключение, если ваш бот находится в той же папке, что и папка `simplevk-testing`
+```php
+require_once "simplevk-testing/autoload.php";
+```
+
+## Примеры ботов
+### Минимальный Callback  
+> Бот отвечает на любое сообщение
+```php
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\SimpleVK as vk;
+$vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
+$vk->reply('Привет, %a_fn%');
+```
+### Простой Callback  
+```php
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\SimpleVK as vk;
+$vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
+$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
+$data = $vk->initVars($id, $message, $payload, $user_id, $type); //инициализация переменных из события
+if($type == 'message_new') {
+    if($message == 'Привет') {
+        $vk->reply('Привет, %a_fn%');
     }
 }
 ```
-### cookie
-**Входные параметры**
-* `$cookie` - JSON куки авторизованного пользователя *(строка)*
-> Задаёт куки авторизованного пользователя
+### Простой LongPoll / User LongPoll
+> Если указать токен группы - будет LongPoll.  
+> Если указать токен пользователя - User LongPoll.  
+> А еще можно указать логин и пароль от аккаунта:  
+> `new LongPoll(ЛОГИН, ПАРОЛЬ, '5.120');`  
+> Но советую создать токен вот по этому [гайду](https://vkhost.github.io/)
 ```php
-$auth = Auth::create('login', 'pass')->cookie('JSON');
-```
-### useragent
-**Входные параметры**
-* `$useragent` - желаемый useragent *(строка)*
-> Задаёт useragent для авторизации. 
-
->Значение по умолчанию - константа DEFAULT_USERAGENT в файле конфигураций
-```php
-$auth = Auth::create('login', 'pass')->useragent('User-Agent');
-```
-### app
-**Входные параметры**
-* `$app` - id приложения для авторизации через приложение или один из идентификаторов ['windows', 'mac', 'android'] для авторизации через официальное приложение *(int или строка)*
-> Задаёт метод авторизации и id приложения. 
-
->По умолчанию используется авторизация через официальное приложение android
-```php
-$auth = Auth::create('login', 'pass')->app(1234567);
-```
-```php
-$auth = Auth::create('login', 'pass')->app('ios');
-```
-### scope
-**Входные параметры**
-* `$scope` - Список прав через запятую, получаемых при авторизации *(строка)*
-> Задаёт список прав, которые будут получены при авторизации.
-
->Значение по умолчанию - константа DEFAULT_SCOPE в файле конфигураций
-```php
-$auth = Auth::create('login', 'pass')->scope('notify,friends,photos');
-```
-### save
-**Входные параметры**
-* `$is` - Сохранять ли авторизационные данные *(bool)*
-> Если true - авторизация будет получена только 1 раз и сохранена в кеш. Если авторизация из кеша устареет, то будет получена повторно.
-
-> Авторизация сохраняется в папку `cache` в директории запускаемого скрипта
-
-> По умолчанию - true
-```php
-$auth = Auth::create('login', 'pass')->save(false);
-```
-### captchaHandler
-**Входные параметры**
-* `$func` - Анонимная функция *(функция)*
-> При поимке каптчи будет вызвана переданная анонимная функция: $func($sid, $img), где $sid - сид каптчи, $img - ссылка на изображение каптчи. Функция должна вернуть решение каптчи (строка)
-
-> Работает только при авторизации через официальное приложение
-#### Пример. Поиск верных данных авторизации с обработкой каптчи
-```php
-$login_arr = [
-    ['login1', 'pass1'],
-    ['login2', 'pass2'],
-    ['login3', 'pass3'],
-    ['login4', 'pass4']
-];
-$auth = Auth::create()->captchaHandler(function ($sid, $img) {
-    echo "\nРешите каптчу: $img\n";
-    return trim(fgets(STDIN));
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\LongPoll;
+$vk = new LongPoll(ТОКЕН, '5.120');
+$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
+$vk->listen(function () use ($vk) {
+    $data = $vk->initVars($id, $message, $payload, $user_id, $type); //инициализация переменных из события
+    if($type == 'message_new') {
+        if($message == 'Привет') {
+            $vk->reply('Привет, %a_fn%');
+        }
+    }
 });
-foreach ($login_arr as $login) {
-    try {
-        $token = $auth->login($login[0])->pass($login[1])->getAccessToken();
-        echo "\nВерные данные: $login[0]:$login[1]";
-    } catch (Exception $e) {
-        continue; // Не удалось авторизоваться
-    }
-}
 ```
-## Методы
-### auth
-> Только для авторизации через неофициаьное приложение
-
-**Возвращает** ***(int)***
-* `0` - Авторизация не удалась
-* `1` - Авторизовано, токен получен
-* `2` - Авторизовано, токен не получен
-> Авторизовывается на сайте ВК и возвращает статус авторизации.
-
-> После метода можно получить авторизационные куки пользователя
+### Минимальный Бот на конструкторе (Callback)
 ```php
-$auth = Auth::create('login', 'pass')->app(1234567);
-$check_auth = $auth->auth();
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\Bot;
+$bot = Bot::create(ТОКЕН, '5.120');
+$bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
+$bot->run(); //запускаем обработку события
 ```
-### dumpCookie
-**Возвращает** ***(строка или false)***
-* `строка` - Куки в JSON
-> Возвращает текущие куки если они есть, иначе false. После авторизации через неофициальное приложение вернёт куки, с которыми можно будет зайти на страницу даже из браузера (При условии одинаковых ip)
+### Минимальный Бот на конструкторе (LongPoll)
 ```php
-$auth = Auth::create('login', 'pass')->app(1234567);
-$check_auth = $auth->auth();
-$cookie_auth = $auth->dumpCookie();
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\{Bot, LongPoll};
+$vk = new LongPoll(ТОКЕН, '5.120');
+$bot = Bot::create($vk);
+$bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
+$vk->listen(function () use ($bot) {
+    $bot->run(); //запускаем обработку события
+});
 ```
-### isAuth
-**Возвращает** ***(int)***
-* `0` - Авторизация не удалась
-* `1` - Авторизовано, токен получен
-* `2` - Авторизовано, токен не получен *(только при авторизации через неофициальное приложение)*
-> Возвращает статус авторизации
-
-> Для проверки используется вызов метода users.get, по этому не желательно использовать часто. При передачи экземпляра $auth в SimpleVK он сам получит новый токен, если этот устарел
+### Бот с обработкой Команд на конструкторе (Callback)
 ```php
-$auth = Auth::create('login', 'pass');
-if (!$auth->isAuth())   // Если токена нет в кеше
-    $token = $auth->getAccessToken();  // Получаем токен
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
+$vk = vk::create(ТОКЕН, '5.120');
+$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
+$bot = Bot::create($vk);
+//отправит картинку с текстом
+$bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
+//обработка команды с параметрами
+$bot->cmd('sum', '!посчитай %n + %n')->func(function ($msg, $id, $params) {
+    $msg->text($params[0] + $params[1]);
+});
+//обработка команды по регулярке
+$bot->preg_cmd('more_word', "!\!напиши (.*)!")->func(function ($msg, $id, $params) {
+    $msg->text("Ваше предложение: $params[1]");
+});
+$bot->run();
 ```
-### getAccessToken
-**Возвращает** ***(строка)***
-* `строка` - Авторизационный токен
-> Получает токен, если он ещё не был получен и возвращает его
+### Бот с обработкой Кнопок на конструкторе (Callback)
 ```php
-$auth = Auth::create('login', 'pass');
-$token = $auth->getAccessToken();
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
+$vk = vk::create(ТОКЕН, '5.120');
+$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
+$bot = Bot::create($vk);
+$bot->redirect('other', 'first'); //если пришла неизвестная кнопка/текст, то выполняем first
+$bot->cmd('first')->kbd([['fish', 'cat']])->text('Выберите животное:'); //срабатывает при нажатии кнопки Начать
+$bot->btn('fish', 'Рыбка')->text('Вы выбрали Рыбку!')->img('fish.jpg');
+$bot->btn('cat', 'Котик')->text('Вы выбрали Котика!')->img('cat.jpg');
+$bot->run();
 ```
-### reloadToken
-**Возвращает** ***(строка)***
-* `строка` - Авторизационный токен
-> Получает новый авторизационный токен
-
-> Вызывается автоматически, когда авторизация устарела
+### Бот на конструкторе, с использованием хранилища (Callback)
 ```php
-$auth = Auth::create('login', 'pass');
-echo "Токен 1: ".$auth->getAccessToken();
-$auth->reloadToken();
-echo "\nТокен 2: ".$auth->getAccessToken()."\n";
+<?php
+require_once "vendor/autoload.php";
+use DigitalStars\SimpleVK\{Bot, Store, SimpleVK as vk};
+$vk = vk::create(ТОКЕН, '5.120');
+$bot = Bot::create($vk);
+$bot->cmd('cmd1', '!запомни %s')->text('Запомнил!')->func(function ($msg, $id, $params) use ($vk) {
+    $vk->initVars($id, $user_id, $payload, $user_id);
+    $store = Store::load($user_id); //загружаем хранилище пользователя
+    $store->sset('str', $params[0]); //записываем в ключ str его слово
+});
+$bot->cmd('cmd2', '!напомни')->func(function ($msg, $id, $params) use ($vk) {
+    $vk->initVars($id, $user_id, $payload, $user_id);
+    $store = Store::load($user_id); //загружаем хранилище пользователя
+    $str = $store->get('str'); //выгружаем из его хранилища строку
+    $msg->text($str); //устанавливаем текст в экземпляре сообщения
+});
+$bot->run();
 ```
+## Больше примеров
+В папке [examples](https://github.com/digitalstars/simplevk/tree/testing/examples) лежат прокомментированные примеры более сложных ботов и функций, а так же можете изучить функции в документации.
