@@ -18,27 +18,27 @@ $bot->btn('first')->text("Команда не найдена" .
 $bot->redirect('other', 'first');
 
 $bot->cmd('sum', '!посчитай %n + %n')
-    ->func(function ($msg, $id, $params) {
+    ->func(function ($msg, $params) {
         $msg->text($params[0] + $params[1]);
     });
 
 $bot->cmd('multiply', '!посчитай %n * %n')
-    ->func(function ($msg, $id, $params) {
+    ->func(function ($msg, $params) {
         $msg->text($params[0] * $params[1]);
     });
 
 $bot->cmd('word', '!напиши мне слово %s')
-    ->func(function ($msg, $id, $params) {
+    ->func(function ($msg, $params) {
         $msg->text("Ваше слово: ".$params[0]);
     });
 
 $bot->preg_cmd('more_word', "!\!напиши (.*)!")
-    ->func(function ($msg, $id, $params) {
+    ->func(function ($msg, $params) {
         $msg->text("Ваше предложение: ".$params[1]);
     });
 
 $bot->cmd('send_btn', '!покажи кнопку %s %s')->text('Ваша кнопка: ')
-    ->func(function ($msg, $id, $params) use ($vk) {
+    ->func(function ($msg, $params) use ($vk) {
         if (!in_array($params[1], ['white', 'blue', 'red', 'green'])) {
             $msg->text("Цвет ".$params[1]." не существует, использую 'white'\n".$msg->getText());
             $params[1] = 'white';

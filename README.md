@@ -142,11 +142,11 @@ $bot = Bot::create($vk);
 //отправит картинку с текстом
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
 //обработка команды с параметрами
-$bot->cmd('sum', '!посчитай %n + %n')->func(function ($msg, $id, $params) {
+$bot->cmd('sum', '!посчитай %n + %n')->func(function ($msg, $params) {
     $msg->text($params[0] + $params[1]);
 });
 //обработка команды по регулярке
-$bot->preg_cmd('more_word', "!\!напиши (.*)!")->func(function ($msg, $id, $params) {
+$bot->preg_cmd('more_word', "!\!напиши (.*)!")->func(function ($msg, $params) {
     $msg->text("Ваше предложение: $params[1]");
 });
 $bot->run();
@@ -172,12 +172,12 @@ require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, Store, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
-$bot->cmd('cmd1', '!запомни %s')->text('Запомнил!')->func(function ($msg, $id, $params) use ($vk) {
+$bot->cmd('cmd1', '!запомни %s')->text('Запомнил!')->func(function ($msg, $params) use ($vk) {
     $vk->initVars($id, $user_id, $payload, $user_id);
     $store = Store::load($user_id); //загружаем хранилище пользователя
     $store->sset('str', $params[0]); //записываем в ключ str его слово
 });
-$bot->cmd('cmd2', '!напомни')->func(function ($msg, $id, $params) use ($vk) {
+$bot->cmd('cmd2', '!напомни')->func(function ($msg, $params) use ($vk) {
     $vk->initVars($id, $user_id, $payload, $user_id);
     $store = Store::load($user_id); //загружаем хранилище пользователя
     $str = $store->get('str'); //выгружаем из его хранилища строку
