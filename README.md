@@ -69,6 +69,7 @@ require_once "simplevk-testing/autoload.php";
 ### Минимальный Callback  
 > Бот отвечает на любое сообщение
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
@@ -76,6 +77,7 @@ $vk->reply('Привет, %a_fn%');
 ```
 ### Простой Callback  
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
@@ -94,6 +96,7 @@ if($type == 'message_new') {
 > `new LongPoll(ЛОГИН, ПАРОЛЬ, '5.120');`  
 > Но советую создать токен вот по этому [гайду](https://vkhost.github.io/)
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\LongPoll;
 $vk = new LongPoll(ТОКЕН, '5.120');
@@ -109,6 +112,7 @@ $vk->listen(function () use ($vk) {
 ```
 ### Минимальный Бот на конструкторе (Callback)
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\Bot;
 $bot = Bot::create(ТОКЕН, '5.120');
@@ -117,6 +121,7 @@ $bot->run(); //запускаем обработку события
 ```
 ### Минимальный Бот на конструкторе (LongPoll)
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, LongPoll};
 $vk = new LongPoll(ТОКЕН, '5.120');
@@ -128,6 +133,7 @@ $vk->listen(function () use ($bot) {
 ```
 ### Бот с обработкой Команд на конструкторе (Callback)
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
@@ -147,6 +153,7 @@ $bot->run();
 ```
 ### Бот с обработкой Кнопок на конструкторе (Callback)
 ```php
+<?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
@@ -160,6 +167,8 @@ $bot->run();
 ```
 ### Бот на конструкторе, с использованием хранилища (Callback)
 ```php
+<?php
+require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, Store, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
