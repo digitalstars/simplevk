@@ -158,5 +158,23 @@ $bot->btn('fish', 'Рыбка')->text('Вы выбрали Рыбку!')->img('f
 $bot->btn('cat', 'Котик')->text('Вы выбрали Котика!')->img('cat.jpg');
 $bot->run();
 ```
+### Бот на конструкторе, с использованием хранилища (Callback)
+```php
+use DigitalStars\SimpleVK\{Bot, Store, SimpleVK as vk};
+$vk = vk::create(ТОКЕН, '5.120');
+$bot = Bot::create($vk);
+$bot->cmd('cmd1', '!запомни %s')->text('Запомнил!')->func(function ($msg, $id, $params) use ($vk) {
+    $vk->initVars($id, $user_id, $payload, $user_id);
+    $store = Store::load($user_id); //загружаем хранилище пользователя
+    $store->sset('str', $params[0]); //записываем в ключ str его слово
+});
+$bot->cmd('cmd2', '!напомни')->func(function ($msg, $id, $params) use ($vk) {
+    $vk->initVars($id, $user_id, $payload, $user_id);
+    $store = Store::load($user_id); //загружаем хранилище пользователя
+    $str = $store->get('str'); //выгружаем из его хранилища строку
+    $msg->text($str); //устанавливаем текст в экземпляре сообщения
+});
+$bot->run();
+```
 ## Больше примеров
 В папке [examples](https://github.com/digitalstars/simplevk/tree/testing/examples) лежат прокомментированные примеры более сложных ботов и функций, а так же можете изучить функции в документации.
