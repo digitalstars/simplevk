@@ -29,6 +29,10 @@ class LongPoll extends SimpleVK {
         $this->getLongPollServer();
     }
 
+    public static function create($token, $version, $also_version = null) {
+        return new self($token, $version, $also_version);
+    }
+
     public function isMultiThread($bool = true) {
         if (!is_callable('pcntl_fork'))
             throw new SimpleVkException(0, "Многопоточная обработка не поддерживается (модуль pcntl не найден)");
