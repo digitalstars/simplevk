@@ -160,6 +160,11 @@ class Message extends BaseConstructor {
         return Carousel::create($config, $this);
     }
 
+    public function clearCarousel() {
+        $this->config['carousel'] = [];
+        return $this;
+    }
+
     private function parseKbd($kbd) {
         foreach ($kbd as $row_index => $row)
             foreach ($row as $col_index => $col) {
