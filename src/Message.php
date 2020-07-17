@@ -154,6 +154,32 @@ class Message extends BaseConstructor {
             throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
     }
 
+    public function carousel() {
+        $config = [];
+        $this->config['carousel'][] = &$config;
+        return Carousel::create($config, $this);
+    }
+
+    private function parseKbd($kbd) {
+        foreach ($kbd as $row_index => $row)
+            foreach ($row as $col_index => $col) {
+                if (!is_string($col)) {
+                    $kbd_result[$row_index][$col_index] = $col;
+                    continue;
+                }
+                if (!isset($this->buttons[$col]))
+                    throw new SimpleVkException(0, "Кнопки с id ".$col." не существует");
+                $btn = $this->buttons[$col];
+                $payload = ['name' => $col];
+                if (is_array($btn[1]))
+                    $btn[1] = array_merge($btn[1], $payload);
+                else
+                    $btn[1] = $payload;
+                $kbd_result[$row_index][$col_index] = $btn;
+            }
+        return $kbd_result;
+    }
+
     private function assembleMsg($id, $var) {
         $this->config_cache = $this->config;
 
@@ -180,30 +206,40 @@ class Message extends BaseConstructor {
         }
         $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
 
-        if (isset($this->buttons) and isset($this->config['kbd']))
-            foreach ($this->config['kbd']['kbd'] as $row_index => $row)
-                foreach ($row as $col_index => $col) {
-                    if (!is_string($col)) {
-                        $kbd[$row_index][$col_index] = $col;
-                        continue;
-                    }
-                    if (!isset($this->buttons[$col]))
-                        throw new SimpleVkException(0, "Кнопки с id ".$col." не существует");
-                    $btn = $this->buttons[$col];
-                    $payload = ['name' => $col];
-                    if (is_array($btn[1]))
-                        $btn[1] = array_merge($btn[1], $payload);
-                    else
-                        $btn[1] = $payload;
-                    $kbd[$row_index][$col_index] = $btn;
+        if (isset($this->config['carousel'])) {
+            $template = ["type" => 'carousel', 'elements' => []];
+            foreach ($this->config['carousel'] as $carousel) {
+                $element['action'] = $carousel['action'];
+                if (isset($carousel['kbd'])) {
+                    $carousel['kbd'] = $this->parseKbd([$carousel['kbd']]);
+                    $carousel['kbd'] = json_decode($this->vk->generateKeyboard($carousel['kbd'], false, false), true)['buttons'][0];
+                    $element['buttons'] = $carousel['kbd'];
                 }
+                if (isset($carousel['title']))
+                    $element['title'] = $carousel['title'];
+                if (isset($carousel['description']))
+                    $element['description'] = $carousel['description'];
+                if (isset($carousel['img'])) {
+                    $immg = $this->vk->getMsgAttachmentUploadImage($id, $carousel['img']);
+                    echo $immg."\n";
+                    $element['photo_id'] = str_replace('photo', '', $immg);
+                    echo $element['photo_id']."\n";
+                }
+                $template['elements'][] = $element;
+            }
+            $template = ['template' => json_encode($template, JSON_UNESCAPED_UNICODE)];
+        } else
+            $template = [];
+
+        if (isset($this->buttons) and isset($this->config['kbd']))
+            $kbd = $this->parseKbd($this->config['kbd']['kbd']);
 
         $kbd = $kbd ?? ($this->config['kbd']['kbd'] ?? null);
         $kbd = !is_null($kbd) ? ['keyboard' => $this->vk->generateKeyboard($kbd, $this->config['kbd']['inline'], $this->config['kbd']['one_time'])] : [];
 
         $params = $this->config['params'] ?? [];
         $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
-        return $text + $params + $attachments + $kbd;
+        return $text + $params + $attachments + $kbd + $template;
     }
 
     public function sendEdit($peer_id, $message_id = null, $conversation_message_id = null, $var = null) {
