@@ -42,7 +42,8 @@ SimpleVK - это фреймворк для создания ботов. Вам 
 * `User Long Poll API`
 * `Bots Long Poll API`
 * `Streaming API`
-* Создание ботов на пользовательских аккаунтах
+* Карусели
+* Все виды кнопок, в том числе и новые callback кнопки
 * Работа с голосовыми сообщениями и документами
 
 # Подключение
@@ -94,7 +95,7 @@ if($type == 'message_new') {
 > Но советую создать токен вот по этому [гайду](https://vkhost.github.io/)
 ```php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\LongPoll
+use DigitalStars\SimpleVK\LongPoll;
 $vk = new LongPoll(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $vk->listen(function () use ($vk) {
@@ -104,12 +105,12 @@ $vk->listen(function () use ($vk) {
             $vk->reply('Привет, %a_fn%');
         }
     }
-}
+});
 ```
 ### Минимальный Бот на конструкторе (Callback)
 ```php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
+use DigitalStars\SimpleVK\Bot;
 $bot = Bot::create(ТОКЕН, '5.120');
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
 $bot->run(); //запускаем обработку события
@@ -129,7 +130,7 @@ $vk->listen(function () use ($bot) {
 ```php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
-$vk = vk::create(ТОКЕН, '5.120')
+$vk = vk::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $bot = Bot::create($vk);
 //отправит картинку с текстом
@@ -148,7 +149,7 @@ $bot->run();
 ```php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
-$vk = vk::create(ТОКЕН, '5.120')
+$vk = vk::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $bot = Bot::create($vk);
 $bot->redirect('other', 'first'); //если пришла неизвестная кнопка/текст, то выполняем first
