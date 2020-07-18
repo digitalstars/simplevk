@@ -219,7 +219,7 @@ class Message extends BaseConstructor {
         }
         $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
 
-        if (isset($this->config['carousel'])) {
+        if (!empty($this->config['carousel'])) {
             $carousels = $this->config['carousel'];
             foreach ($carousels as $key => $carousel)
                 if (isset($carousel['kbd']))
@@ -228,7 +228,7 @@ class Message extends BaseConstructor {
         } else
             $template = [];
 
-        if (isset($this->buttons) and isset($this->config['kbd']))
+        if (isset($this->buttons) and !empty($this->config['kbd']))
             $kbd = $this->parseKbd($this->config['kbd']['kbd']);
 
         $kbd = $kbd ?? ($this->config['kbd']['kbd'] ?? null);
