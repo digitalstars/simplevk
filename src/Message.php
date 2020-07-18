@@ -160,6 +160,14 @@ class Message extends BaseConstructor {
         return Carousel::create($config, $this);
     }
 
+    public function setCarousel($carousel) {
+        if ($carousel instanceof Carousel)
+            $carousel = [$carousel];
+        foreach ($carousel as $element)
+            $this->config['carousel'][] = $element->dump();
+        return $this;
+    }
+
     public function clearCarousel() {
         $this->config['carousel'] = [];
         return $this;
@@ -224,12 +232,8 @@ class Message extends BaseConstructor {
                     $element['title'] = $carousel['title'];
                 if (isset($carousel['description']))
                     $element['description'] = $carousel['description'];
-                if (isset($carousel['img'])) {
-                    $immg = $this->vk->getMsgAttachmentUploadImage($id, $carousel['img']);
-                    echo $immg."\n";
-                    $element['photo_id'] = str_replace('photo', '', $immg);
-                    echo $element['photo_id']."\n";
-                }
+                if (isset($carousel['img']))
+                    $element['photo_id'] = str_replace('photo', '', $this->vk->getMsgAttachmentUploadImage($id, $carousel['img']));
                 $template['elements'][] = $element;
             }
             $template = ['template' => json_encode($template, JSON_UNESCAPED_UNICODE)];

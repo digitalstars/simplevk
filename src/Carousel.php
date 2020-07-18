@@ -60,7 +60,7 @@ class Carousel {
     }
 
     public function kbd($kbd) {
-        if (is_string($kbd) or (isset($kbd[0]) and is_string($kbd[0])))
+        if (is_string($kbd))
             $kbd = [$kbd];
         $this->config['kbd'] = $kbd;
         return $this;
@@ -68,6 +68,15 @@ class Carousel {
 
     public function getKbd() {
         return $this->config['kbd'];
+    }
+
+    public function dump() {
+        return $this->config;
+    }
+
+    public function load($config) {
+        $this->config = $config;
+        return $this;
     }
 
     /** @return Message */
