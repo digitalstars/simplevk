@@ -220,23 +220,11 @@ class Message extends BaseConstructor {
         $attachments = !empty($attachments) ? ['attachment' => join(",", $attachments)] : [];
 
         if (isset($this->config['carousel'])) {
-            $template = ["type" => 'carousel', 'elements' => []];
-            foreach ($this->config['carousel'] as $carousel) {
-                $element['action'] = $carousel['action'];
-                if (isset($carousel['kbd'])) {
-                    $carousel['kbd'] = $this->parseKbd([$carousel['kbd']]);
-                    $carousel['kbd'] = json_decode($this->vk->generateKeyboard($carousel['kbd'], false, false), true)['buttons'][0];
-                    $element['buttons'] = $carousel['kbd'];
-                }
-                if (isset($carousel['title']))
-                    $element['title'] = $carousel['title'];
-                if (isset($carousel['description']))
-                    $element['description'] = $carousel['description'];
-                if (isset($carousel['img']))
-                    $element['photo_id'] = str_replace('photo', '', $this->vk->getMsgAttachmentUploadImage($id, $carousel['img']));
-                $template['elements'][] = $element;
-            }
-            $template = ['template' => json_encode($template, JSON_UNESCAPED_UNICODE)];
+            $carousels = $this->config['carousel'];
+            foreach ($carousels as $key => $carousel)
+                if (isset($carousel['kbd']))
+                    $carousels[$key]['kbd'] = $this->parseKbd([$carousel['kbd']])[0];
+            $template = ['template' => $this->vk->generateCarousel($carousels, $id)];
         } else
             $template = [];
 

@@ -208,6 +208,11 @@ class SimpleVK {
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
     }
 
+    public function sendCarousel($id, $message, $carousel, $params = []) {
+        $carousel = $this->generateCarousel($carousel, $id);
+        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'template' => $carousel] + $params);
+    }
+
     public function buttonLocation($payload = null) {
         return ['location', $payload];
     }
@@ -287,52 +292,71 @@ class SimpleVK {
         return $tmp_str;
     }
 
-    public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
+    private function parseKeyboard($keyboard_raw = []) {
         $keyboard = [];
-        $i = 0;
-        foreach ($keyboard_raw as $button_str) {
-            $j = 0;
-            foreach ($button_str as $button) {
-                $keyboard[$i][$j]['action']['type'] = $button[0];
+        foreach ($keyboard_raw as $row => $button_str) {
+            foreach ($button_str as $col => $button) {
+                $keyboard[$row][$col]['action']['type'] = $button[0];
                 if ($button[1] != null)
-                    $keyboard[$i][$j]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
+                    $keyboard[$row][$col]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
                 switch ($button[0]) {
                     case 'callback':
                     case 'text': {
-                        $keyboard[$i][$j]['color'] = $button[3];
-                        $keyboard[$i][$j]['action']['label'] = $button[2];
+                        $keyboard[$row][$col]['color'] = $button[3];
+                        $keyboard[$row][$col]['action']['label'] = $button[2];
                         break;
                     }
                     case 'vkpay': {
-                        $keyboard[$i][$j]['action']['hash'] = "action={$button[2]}";
-                        $keyboard[$i][$j]['action']['hash'] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id={$button[3]}";
-                        $keyboard[$i][$j]['action']['hash'] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
-                        $keyboard[$i][$j]['action']['hash'] .= (isset($button[5])) ? "&description={$button[5]}" : '';
-                        $keyboard[$i][$j]['action']['hash'] .= (isset($button[6])) ? "&data={$button[6]}" : '';
-                        $keyboard[$i][$j]['action']['hash'] .= '&aid=1';
+                        $keyboard[$row][$col]['action']['hash'] = "action={$button[2]}";
+                        $keyboard[$row][$col]['action']['hash'] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id={$button[3]}";
+                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
+                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[5])) ? "&description={$button[5]}" : '';
+                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[6])) ? "&data={$button[6]}" : '';
+                        $keyboard[$row][$col]['action']['hash'] .= '&aid=1';
                         break;
                     }
                     case 'open_app': {
-                        $keyboard[$i][$j]['action']['label'] = $button[2];
-                        $keyboard[$i][$j]['action']['app_id'] = $button[3];
+                        $keyboard[$row][$col]['action']['label'] = $button[2];
+                        $keyboard[$row][$col]['action']['app_id'] = $button[3];
                         if(isset($button[4]))
-                            $keyboard[$i][$j]['action']['owner_id'] = $button[4];
+                            $keyboard[$row][$col]['action']['owner_id'] = $button[4];
                         if(isset($button[5]))
-                            $keyboard[$i][$j]['action']['hash'] = $button[5];
+                            $keyboard[$row][$col]['action']['hash'] = $button[5];
                         break;
                     }
                     case 'open_link': {
-                        $keyboard[$i][$j]['action']['link'] = $button[2];
-                        $keyboard[$i][$j]['action']['label'] = $button[3];
+                        $keyboard[$row][$col]['action']['link'] = $button[2];
+                        $keyboard[$row][$col]['action']['label'] = $button[3];
                     }
                 }
-                $j++;
             }
-            $i++;
         }
-        $keyboard = ['one_time' => $one_time, 'buttons' => $keyboard, 'inline' => $inline];
-        $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
         return $keyboard;
+    }
+
+    public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
+        return json_encode(['one_time' => $one_time, 'buttons' => $this->parseKeyboard($keyboard_raw), 'inline' => $inline], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function generateCarousel($carousels, $id) {
+        if (!is_array($carousels))
+            $carousels = [$carousels];
+        $template = ["type" => 'carousel', 'elements' => []];
+        foreach ($carousels as $carousel) {
+            if ($carousel instanceof Carousel)
+                $carousel = $carousel->dump();
+            $element['action'] = $carousel['action'];
+            if (isset($carousel['kbd']))
+                $element['buttons'] = $this->parseKeyboard([$carousel['kbd']])[0];
+            if (isset($carousel['title']))
+                $element['title'] = $carousel['title'];
+            if (isset($carousel['description']))
+                $element['description'] = $carousel['description'];
+            if (isset($carousel['img']))
+                $element['photo_id'] = str_replace('photo', '', $this->getMsgAttachmentUploadImage($id, $carousel['img']));
+            $template['elements'][] = $element;
+        }
+        return json_encode($template, JSON_UNESCAPED_UNICODE);
     }
 
     public function json_online($data = null) {
