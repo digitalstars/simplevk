@@ -32,6 +32,9 @@ class Post extends BaseConstructor {
         if ($this->preProcessing(null))
             return null;
 
+        if (isset($this->config['real_id']) and $this->config['real_id'] != 0)
+            $id = $this->config['real_id'];
+
         $attachments = [];
         if (isset($this->config['img']))
             foreach ($this->config['img'] as $img)
