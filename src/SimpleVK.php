@@ -56,7 +56,7 @@ class SimpleVK {
     }
 
     public static function debug($flag = true) {
-        self::$debug_mode = ($flag) ?: false;
+        self::$debug_mode = $flag == true;
     }
 
     public function setConfirm($str) {
