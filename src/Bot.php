@@ -353,12 +353,12 @@ class Bot {
             throw new SimpleVkException(0, "Не пришёл id сообщения");
         if (empty($this->config['action'][$send]))
             throw new SimpleVkException(0, "Событие $send не найдено");
-        $this->vk->initVars($id_now, $message, $payload, $user_id, $type);
+        $this->vk->initVars($id_now, $user_id, $type, $message, $payload);
         return $this->runAction($id, $user_id, $send, null, ['id' => $id_message, 'type' => true], true);
     }
 
     public function run($send = null, $id = null) {
-        $data = $this->vk->initVars($id_now, $message, $payload, $user_id, $type);
+        $data = $this->vk->initVars($id_now, $user_id, $type, $message, $payload);;
         $id = $id ?? $id_now;
         if (isset($send))
             if (isset($this->config['action'][$send]))

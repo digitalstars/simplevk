@@ -132,7 +132,7 @@ class SimpleVK {
         return $result;
     }
 
-    public function initVars(&$id, &$user_id, &$type, &$message, &$payload, &$msg_id, &$attachments) {
+    public function initVars(&$id = null, &$user_id = null, &$type = null, &$message = null, &$payload = null, &$msg_id = null, &$attachments = null) {
         $data = $this->data;
         $type = $data['type'] ?? null;
         $id = $data['object']['peer_id'] ?? null;

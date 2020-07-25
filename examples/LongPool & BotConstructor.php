@@ -1,16 +1,15 @@
 <?php
 require_once __DIR__ . '/../autoload.php';
 
-use DigitalStars\simplevk\Bot as Bot;
-use DigitalStars\SimpleVK\LongPoll as lp;
+use DigitalStars\simplevk\{Bot, LongPoll};
 
-$vk = new lp("", "5.110");
+$vk = LongPoll::create("TOKEN", "5.110");
 $bot = Bot::create($vk); // Инициализация конструктора ботов
 
 $bot->btn('animals', $vk->buttonText("Животные", 'blue'))->text("Вы выбрали животных\nТип:")->kbd([['animal_1', 'animal_2', 'animal_3'], ['animal_random'], ['back_first']]);
-$bot->btn('animal_1', $vk->buttonText("Млекопитающие", 'blue'))->text("Вы выбрали Млекопитающих\nКонкретнее?")->kbd([['animal_1_1', 'animal_1_2', 'animal_1_3'],['in_first'],['to_animals']]);
-$bot->btn('animal_2', $vk->buttonText("Моллюски", 'blue'))->text("Вы выбрали Молюсков\nКонкретнее?")->kbd([['animal_2_1', 'animal_2_2', 'animal_2_3'],['in_first'],['to_animals']]);
-$bot->btn('animal_3', $vk->buttonText("Иглокожие", 'blue'))->text("Вы выбрали Иглокожих\nКонкретнее?")->kbd([['animal_3_1', 'animal_3_2', 'animal_3_3'],['in_first'],['to_animals']]);
+$bot->btn('animal_1', $vk->buttonText("Млекопитающие", 'blue'))->text("Вы выбрали Млекопитающих\nКонкретнее?")->kbd([['animal_1_1', 'animal_1_2', 'animal_1_3'], ['in_first'], ['to_animals']]);
+$bot->btn('animal_2', $vk->buttonText("Моллюски", 'blue'))->text("Вы выбрали Молюсков\nКонкретнее?")->kbd([['animal_2_1', 'animal_2_2', 'animal_2_3'], ['in_first'], ['to_animals']]);
+$bot->btn('animal_3', $vk->buttonText("Иглокожие", 'blue'))->text("Вы выбрали Иглокожих\nКонкретнее?")->kbd([['animal_3_1', 'animal_3_2', 'animal_3_3'], ['in_first'], ['to_animals']]);
 $bot->btn('animal_1_1', $vk->buttonText('Медведь', 'blue'))->text("Вы выбрали медведя!")->img("img\a11.jpg");
 $bot->btn('animal_1_2', $vk->buttonText('Волк', 'white'))->text("Вы выбрали волка!")->img("./img/a12.jpg");
 $bot->btn('animal_1_3', $vk->buttonText('Суслик', 'green'))->text("Вы выбрали суслика!")->img("./img/a13.jpg");
@@ -26,9 +25,9 @@ $bot->btn('animal_random', $vk->buttonText("Случайный вид живот
 });
 
 $bot->btn('mush', $vk->buttonText("Грибы", 'white'))->text("Вы выбрали грибы\nТип:")->kbd([['mush_1', 'mush_2', 'mush_3'], ['mush_random'], ['back_first']]);
-$bot->btn('mush_1', $vk->buttonText("Съедобные", 'blue'))->text("Вы выбрали Съедобные\nКонкретнее?")->kbd([['mush_1_1', 'mush_1_2', 'mush_1_3'],['in_first'],['to_mush']]);
-$bot->btn('mush_2', $vk->buttonText("Условно съедобные", 'blue'))->text("Вы выбрали Условно съедобные\nКонкретнее?")->kbd([['mush_2_1', 'mush_2_2', 'mush_2_3'],['in_first'],['to_mush']]);
-$bot->btn('mush_3', $vk->buttonText("Ядовитые", 'blue'))->text("Вы выбрали Ядовитые\nКонкретнее?")->kbd([['mush_3_1', 'mush_3_2', 'mush_3_3'],['in_first'],['to_mush']]);
+$bot->btn('mush_1', $vk->buttonText("Съедобные", 'blue'))->text("Вы выбрали Съедобные\nКонкретнее?")->kbd([['mush_1_1', 'mush_1_2', 'mush_1_3'], ['in_first'], ['to_mush']]);
+$bot->btn('mush_2', $vk->buttonText("Условно съедобные", 'blue'))->text("Вы выбрали Условно съедобные\nКонкретнее?")->kbd([['mush_2_1', 'mush_2_2', 'mush_2_3'], ['in_first'], ['to_mush']]);
+$bot->btn('mush_3', $vk->buttonText("Ядовитые", 'blue'))->text("Вы выбрали Ядовитые\nКонкретнее?")->kbd([['mush_3_1', 'mush_3_2', 'mush_3_3'], ['in_first'], ['to_mush']]);
 $bot->btn('mush_1_1', $vk->buttonText('Подберёзовик', 'blue'))->text("Вы выбрали подберёзовик!")->img("./img/m11.jpg");
 $bot->btn('mush_1_2', $vk->buttonText('Опята', 'white'))->text("Вы выбрали опята!")->img("./img/m12.jpg");
 $bot->btn('mush_1_3', $vk->buttonText('Лисичка', 'green'))->text("Вы выбрали лисичку!")->img("./img/m13.jpg");
@@ -44,9 +43,9 @@ $bot->btn('mush_random', $vk->buttonText("Случайный вид грибов
 });
 
 $bot->btn('tree', $vk->buttonText("Растения", 'green'))->text("Вы выбрали деревья\nТип:")->kbd([['tree_1', 'tree_2', 'tree_3'], ['tree_random'], ['back_first']]);
-$bot->btn('tree_1', $vk->buttonText("Хвойные", 'blue'))->text("Вы выбрали Хвойные\nКонкретнее?")->kbd([['tree_1_1', 'tree_1_2'],['in_first'],['to_tree']]);
-$bot->btn('tree_2', $vk->buttonText("Лиственные", 'blue'))->text("Вы выбрали Лиственницу\nКонкретнее?")->kbd([['tree_2_1', 'tree_2_2', 'tree_2_3'],['in_first'],['to_tree']]);
-$bot->btn('tree_3', $vk->buttonText("Кустарники", 'blue'))->text("Вы выбрали Кустарники\nКонкретнее?")->kbd([['tree_3_1', 'tree_3_2', 'tree_3_3'],['in_first'],['to_tree']]);
+$bot->btn('tree_1', $vk->buttonText("Хвойные", 'blue'))->text("Вы выбрали Хвойные\nКонкретнее?")->kbd([['tree_1_1', 'tree_1_2'], ['in_first'], ['to_tree']]);
+$bot->btn('tree_2', $vk->buttonText("Лиственные", 'blue'))->text("Вы выбрали Лиственницу\nКонкретнее?")->kbd([['tree_2_1', 'tree_2_2', 'tree_2_3'], ['in_first'], ['to_tree']]);
+$bot->btn('tree_3', $vk->buttonText("Кустарники", 'blue'))->text("Вы выбрали Кустарники\nКонкретнее?")->kbd([['tree_3_1', 'tree_3_2', 'tree_3_3'], ['in_first'], ['to_tree']]);
 $bot->btn('tree_1_1', $vk->buttonText('Ель', 'blue'))->text("Вы выбрали ель!")->img("./img/t11.jpg");
 $bot->btn('tree_1_2', $vk->buttonText('Сосна', 'white'))->text("Вы выбрали сосну!")->img("./img/t12.jpg");
 $bot->btn('tree_2_1', $vk->buttonText('Дуб', 'blue'))->text("Вы выбрали дуб!")->img("./img/t21.jpg");

@@ -82,7 +82,7 @@ require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
-$data = $vk->initVars($id, $message, $payload, $user_id, $type); //инициализация переменных из события
+$data = $vk->initVars($peer_id, $user_id, $type, $message); //инициализация переменных из события
 if($type == 'message_new') {
     if($message == 'Привет') {
         $vk->reply('Привет, %a_fn%');
@@ -99,10 +99,10 @@ if($type == 'message_new') {
 <?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\LongPoll;
-$vk = new LongPoll(ТОКЕН, '5.120');
+$vk = LongPoll::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $vk->listen(function () use ($vk) {
-    $data = $vk->initVars($id, $message, $payload, $user_id, $type); //инициализация переменных из события
+    $data = $vk->initVars($peer_id, $user_id, $type, $message); //инициализация переменных из события
     if($type == 'message_new') {
         if($message == 'Привет') {
             $vk->reply('Привет, %a_fn%');
@@ -124,7 +124,7 @@ $bot->run(); //запускаем обработку события
 <?php
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\{Bot, LongPoll};
-$vk = new LongPoll(ТОКЕН, '5.120');
+$vk = LongPoll::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
 $vk->listen(function () use ($bot) {
