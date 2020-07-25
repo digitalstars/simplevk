@@ -73,14 +73,35 @@ class SimpleVK {
         exit('security error');
     }
 
+    public function initPeerId(&$id) {
+        $id = $this->data['object']['peer_id'] ?? null;
+        return $this;
+    }
+
+    public function initText(&$text) {
+        $text = $this->data['object']['text'] ?? null;
+        return $this;
+    }
+
+    public function initPayload(&$payload) {
+        if (isset($this->data['object']['payload'])) {
+            if (is_string($this->data['object']['payload'])) {
+                $payload = json_decode($this->data['object']['payload'], true) ?? $this->data['object']['payload'];
+            } else
+                $payload = $this->data['object']['payload'];
+        } else
+            $payload = null;
+        return $this;
+    }
+
     public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null) {
         $data = $this->data;
         $type = $data['type'] ?? null;
         $id = $data['object']['peer_id'] ?? null;
         $message = $data['object']['text'] ?? null;
         $user_id = $data['object']['from_id'] ?? ($data['object']['user_id'] ?? null);
-        if(isset($data['object']['payload'])) {
-            if(is_string($data['object']['payload'])) {
+        if (isset($data['object']['payload'])) {
+            if (is_string($data['object']['payload'])) {
                 $payload = json_decode($data['object']['payload'], true) ?? $data['object']['payload'];
             } else
                 $payload = $data['object']['payload'];
@@ -169,12 +190,12 @@ class SimpleVK {
 
     public function eventAnswerEditKeyboard($keyboard, $inline = false, $one_time = false, $params = []) {
         $this->request('messages.edit', [
-            'peer_id' => $this->data['object']['peer_id'],
-            'keep_forward_messages' => 1,
-            'keep_snippets' => 1,
-            'conversation_message_id' => $this->data['object']['conversation_message_id'],
-            'keyboard' => $this->generateKeyboard($keyboard, $inline, $one_time)
-        ] + $params);
+                'peer_id' => $this->data['object']['peer_id'],
+                'keep_forward_messages' => 1,
+                'keep_snippets' => 1,
+                'conversation_message_id' => $this->data['object']['conversation_message_id'],
+                'keyboard' => $this->generateKeyboard($keyboard, $inline, $one_time)
+            ] + $params);
     }
 
     public function reply($message, $params = []) {
@@ -256,84 +277,6 @@ class SimpleVK {
         'green' => 'positive'
     ];
 
-    protected function placeholders($id, $message) {
-        if($id >= 2e9) {
-            $id = $this->data['object']['from_id'] ?? null;
-        }
-        if (strpos($message, '%') !== false) {
-            $data = $this->userInfo($id);
-            $f = $data['first_name'];
-            $l = $data['last_name'];
-            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
-            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
-            return str_replace($tag, $replace, $message);
-        } else
-            return $message;
-    }
-
-    protected function lengthMessageProcessing($id, $str) {
-        $bytes = 0;
-        $tmp_str = '';
-        $this->is_test_len_str = false;
-        $anon = function ($a) use (&$tmp_str, &$bytes, $id) {
-            $byte = strlen((@iconv('UTF-8', 'cp1251', $a[0]))
-                ?: "$#".(unpack('V', iconv('UTF-8', 'UCS-4LE', $a[0]))[1]).";");
-            $bytes += $byte;
-            if ($bytes > 4096) {
-                $this->sendMessage($id, $tmp_str);
-                $bytes = $byte;
-                $tmp_str = $a[0];
-            } else
-                $tmp_str .= $a[0];
-            return "";
-        };
-        preg_replace_callback('/./u', $anon, $str);
-        $this->is_test_len_str = true;
-        return $tmp_str;
-    }
-
-    private function parseKeyboard($keyboard_raw = []) {
-        $keyboard = [];
-        foreach ($keyboard_raw as $row => $button_str) {
-            foreach ($button_str as $col => $button) {
-                $keyboard[$row][$col]['action']['type'] = $button[0];
-                if ($button[1] != null)
-                    $keyboard[$row][$col]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
-                switch ($button[0]) {
-                    case 'callback':
-                    case 'text': {
-                        $keyboard[$row][$col]['color'] = $button[3];
-                        $keyboard[$row][$col]['action']['label'] = $button[2];
-                        break;
-                    }
-                    case 'vkpay': {
-                        $keyboard[$row][$col]['action']['hash'] = "action={$button[2]}";
-                        $keyboard[$row][$col]['action']['hash'] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id={$button[3]}";
-                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
-                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[5])) ? "&description={$button[5]}" : '';
-                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[6])) ? "&data={$button[6]}" : '';
-                        $keyboard[$row][$col]['action']['hash'] .= '&aid=1';
-                        break;
-                    }
-                    case 'open_app': {
-                        $keyboard[$row][$col]['action']['label'] = $button[2];
-                        $keyboard[$row][$col]['action']['app_id'] = $button[3];
-                        if(isset($button[4]))
-                            $keyboard[$row][$col]['action']['owner_id'] = $button[4];
-                        if(isset($button[5]))
-                            $keyboard[$row][$col]['action']['hash'] = $button[5];
-                        break;
-                    }
-                    case 'open_link': {
-                        $keyboard[$row][$col]['action']['link'] = $button[2];
-                        $keyboard[$row][$col]['action']['label'] = $button[3];
-                    }
-                }
-            }
-        }
-        return $keyboard;
-    }
-
     public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
         return json_encode(['one_time' => $one_time, 'buttons' => $this->parseKeyboard($keyboard_raw), 'inline' => $inline], JSON_UNESCAPED_UNICODE);
     }
@@ -363,7 +306,7 @@ class SimpleVK {
         if (is_null($data))
             $data = $this->data;
         $json = is_array($data) ? json_encode($data) : $data;
-        $name = time().random_int(-2147483648, 2147483647);
+        $name = time() . random_int(-2147483648, 2147483647);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -444,17 +387,17 @@ class SimpleVK {
         return $this->generatorRequest('groups.getMembers', [
                 'fields' => (is_array($fields) ? join(',', $fields) : ''),
                 'group_id' => $group_id]
-                + ($filter ? ['filter' => $filter] : [])
-                + ($sort ? ['sort' => $sort] : []), 1000);
+            + ($filter ? ['filter' => $filter] : [])
+            + ($sort ? ['sort' => $sort] : []), 1000);
     }
 
     public function getAllGroupsFromUser($user_id = null, $extended = 0, $filter = null, $fields = null) {
         $extended = (!is_null($fields) || $extended);
         return $this->generatorRequest('groups.get', [
                 'extended' => $extended]
-                + ($filter ? ['filter' => $filter] : [])
-                + ($fields ? ['fields' => $fields] : [])
-                + ($user_id ? ['user_id' => $user_id] : []), 1000);
+            + ($filter ? ['filter' => $filter] : [])
+            + ($fields ? ['fields' => $fields] : [])
+            + ($user_id ? ['user_id' => $user_id] : []), 1000);
     }
 
     public function getAllWalls($id = null, $extended = 0, $filter = null, $fields = null) {
@@ -539,8 +482,44 @@ class SimpleVK {
         return false;
     }
 
+    protected function placeholders($id, $message) {
+        if ($id >= 2e9) {
+            $id = $this->data['object']['from_id'] ?? null;
+        }
+        if (strpos($message, '%') !== false) {
+            $data = $this->userInfo($id);
+            $f = $data['first_name'];
+            $l = $data['last_name'];
+            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
+            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
+            return str_replace($tag, $replace, $message);
+        } else
+            return $message;
+    }
+
+    protected function lengthMessageProcessing($id, $str) {
+        $bytes = 0;
+        $tmp_str = '';
+        $this->is_test_len_str = false;
+        $anon = function ($a) use (&$tmp_str, &$bytes, $id) {
+            $byte = strlen((@iconv('UTF-8', 'cp1251', $a[0]))
+                ?: "$#" . (unpack('V', iconv('UTF-8', 'UCS-4LE', $a[0]))[1]) . ";");
+            $bytes += $byte;
+            if ($bytes > 4096) {
+                $this->sendMessage($id, $tmp_str);
+                $bytes = $byte;
+                $tmp_str = $a[0];
+            } else
+                $tmp_str .= $a[0];
+            return "";
+        };
+        preg_replace_callback('/./u', $anon, $str);
+        $this->is_test_len_str = true;
+        return $tmp_str;
+    }
+
     protected function checkTypeEvent() {
-        if($this->data['type'] != 'message_event')
+        if ($this->data['type'] != 'message_event')
             throw new SimpleVkException(0, "eventAnswerSnackbar можно использовать только при событии message_event");
     }
 
@@ -637,5 +616,51 @@ class SimpleVK {
             $this->token = $token;
             $this->version = $version;
         }
+    }
+
+    private function parseKeyboard($keyboard_raw = []) {
+        $keyboard = [];
+        foreach ($keyboard_raw as $row => $button_str) {
+            foreach ($button_str as $col => $button) {
+                $keyboard[$row][$col]['action']['type'] = $button[0];
+                if ($button[1] != null)
+                    $keyboard[$row][$col]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
+                switch ($button[0]) {
+                    case 'callback':
+                    case 'text':
+                    {
+                        $keyboard[$row][$col]['color'] = $button[3];
+                        $keyboard[$row][$col]['action']['label'] = $button[2];
+                        break;
+                    }
+                    case 'vkpay':
+                    {
+                        $keyboard[$row][$col]['action']['hash'] = "action={$button[2]}";
+                        $keyboard[$row][$col]['action']['hash'] .= ($button[3] < 0) ? "&group_id=" . $button[3] * -1 : "&user_id={$button[3]}";
+                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
+                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[5])) ? "&description={$button[5]}" : '';
+                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[6])) ? "&data={$button[6]}" : '';
+                        $keyboard[$row][$col]['action']['hash'] .= '&aid=1';
+                        break;
+                    }
+                    case 'open_app':
+                    {
+                        $keyboard[$row][$col]['action']['label'] = $button[2];
+                        $keyboard[$row][$col]['action']['app_id'] = $button[3];
+                        if (isset($button[4]))
+                            $keyboard[$row][$col]['action']['owner_id'] = $button[4];
+                        if (isset($button[5]))
+                            $keyboard[$row][$col]['action']['hash'] = $button[5];
+                        break;
+                    }
+                    case 'open_link':
+                    {
+                        $keyboard[$row][$col]['action']['link'] = $button[2];
+                        $keyboard[$row][$col]['action']['label'] = $button[3];
+                    }
+                }
+            }
+        }
+        return $keyboard;
     }
 }

@@ -1,5 +1,6 @@
 <?php
-namespace DigitalStars\simplevk;
+
+namespace DigitalStars\SimpleVK;
 
 class LongPoll extends SimpleVK {
     use ErrorHandler;
@@ -128,10 +129,10 @@ class LongPoll extends SimpleVK {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            if(isset(self::$proxy['ip'])) {
+            if (isset(self::$proxy['ip'])) {
                 curl_setopt($ch, CURLOPT_PROXYTYPE, self::$proxy_types[self::$proxy['type']]);
                 curl_setopt($ch, CURLOPT_PROXY, self::$proxy['ip']);
-                if(isset(self::$proxy['user_pwd'])) {
+                if (isset(self::$proxy['user_pwd'])) {
                     curl_setopt($ch, CURLOPT_PROXYUSERPWD, self::$proxy['user_pwd']);
                 }
             }

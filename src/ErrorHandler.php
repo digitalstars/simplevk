@@ -1,5 +1,7 @@
 <?php
-namespace DigitalStars\simplevk;
+
+namespace DigitalStars\SimpleVK;
+
 require_once('config_simplevk.php');
 
 trait ErrorHandler {
@@ -29,7 +31,8 @@ trait ErrorHandler {
                     foreach ($ids as $id) {
                         $this->request('messages.send', ['peer_id' => $id, 'message' => "$errors[$errno][$errno] $errstr ($errfile на $errline строке)"]);
                     }
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                }
             }
             return TRUE; // не запускаем внутренний обработчик ошибок PHP
         };

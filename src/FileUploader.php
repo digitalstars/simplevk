@@ -1,7 +1,6 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
+namespace DigitalStars\SimpleVK;
 
 use CURLFile;
 
@@ -34,7 +33,7 @@ trait FileUploader {
             }
             $mime_type = mime_content_type($tmp_filename);
             $post_fields = [
-                $type => new CURLFile($tmp_filename, '$mime_type', 'file.'.explode('/', $mime_type)[1])
+                $type => new CURLFile($tmp_filename, '$mime_type', 'file.' . explode('/', $mime_type)[1])
             ];
         }
 
@@ -58,7 +57,7 @@ trait FileUploader {
         if (isset($tmp_file))
             fclose($tmp_file);
         if ($output == '')
-            throw new SimpleVkException(0,'Не удалось загрузить файл на сервер');
+            throw new SimpleVkException(0, 'Не удалось загрузить файл на сервер');
         return $output;
     }
 
@@ -145,7 +144,7 @@ trait FileUploader {
             $id *= -1;
             $upload_file = $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'group_id' => $id]);
         } else {
-            $upload_file =  $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'user_id' => $id]);
+            $upload_file = $this->request('photos.saveWallPhoto', ['photo' => $photo, 'server' => $server, 'hash' => $hash, 'user_id' => $id]);
         }
         return "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
     }

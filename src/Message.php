@@ -1,8 +1,6 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
-
+namespace DigitalStars\SimpleVK;
 
 class Message extends BaseConstructor {
     private $buttons;
@@ -181,7 +179,7 @@ class Message extends BaseConstructor {
                     continue;
                 }
                 if (!isset($this->buttons[$col]))
-                    throw new SimpleVkException(0, "Кнопки с id ".$col." не существует");
+                    throw new SimpleVkException(0, "Кнопки с id " . $col . " не существует");
                 $btn = $this->buttons[$col];
                 $payload = ['name' => $col];
                 if (is_array($btn[1]))

@@ -1,8 +1,6 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
-
+namespace DigitalStars\SimpleVK;
 
 class Post extends BaseConstructor {
     public static function create($vk = null, &$cfg = null) {

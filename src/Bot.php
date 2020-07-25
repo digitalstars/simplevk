@@ -1,7 +1,6 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
+namespace DigitalStars\SimpleVK;
 
 class Bot {
     use FileUploader;
@@ -205,8 +204,8 @@ class Bot {
                             $flag = 1;
                         else if ($token[0] !== T_WHITESPACE and $token[0] !== T_OPEN_TAG)
                             $flag = 2;
-                    else if ($token[0] == T_COMMENT or $token[0] == T_DOC_COMMENT or $token[0] == T_INLINE_HTML)
-                        continue;
+                        else if ($token[0] == T_COMMENT or $token[0] == T_DOC_COMMENT or $token[0] == T_INLINE_HTML)
+                            continue;
                 $var = is_array($token) ? $token[1] : $token;
                 if ($flag == 1) {
                     $namespaces .= $var;
@@ -229,11 +228,11 @@ class Bot {
             else
                 $check_arr_namespace[] = $check_space;
         }
-        $source = "<?php ".PHP_EOL.join(PHP_EOL, $namespaces_all).PHP_EOL.$source;
+        $source = "<?php " . PHP_EOL . join(PHP_EOL, $namespaces_all) . PHP_EOL . $source;
 
-        file_put_contents(DIRNAME."/".$file.".php", $source);
+        file_put_contents(DIRNAME . "/" . $file . ".php", $source);
         if ($is_write)
-            echo "Процесс компиляции завершён".PHP_EOL;
+            echo "Процесс компиляции завершён" . PHP_EOL;
         return $source;
     }
 
@@ -291,7 +290,7 @@ class Bot {
             if ($id_message['type'])
                 $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, $id_message['id'], null, $result_parse);
             else
-                $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, null,  $id_message['id'], $result_parse);
+                $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, null, $id_message['id'], $result_parse);
         } else
             $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
         $this->status = 0;
@@ -310,7 +309,7 @@ class Bot {
 
         $source = file($filename);
         $body = implode("", array_slice($source, $start_line, $length));
-        $tokens = token_get_all("<?php ".$body);
+        $tokens = token_get_all("<?php " . $body);
         $flag = 0;
         $brackets = 0;
         $result = '';
@@ -377,7 +376,7 @@ class Bot {
             if (isset($this->config['mask'])) {
                 $arr_msg = explode(' ', $message);
                 foreach ($this->config['mask'] as $action => $masks)
-                    foreach ($masks[0] as $mask){
+                    foreach ($masks[0] as $mask) {
                         $mask_words = explode(' ', $mask);
                         if (count($mask_words) != count($arr_msg))
                             continue;

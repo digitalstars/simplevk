@@ -1,11 +1,8 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
-
+namespace DigitalStars\SimpleVK;
 
 class Carousel {
-
     private $config;
     private $msg;
 

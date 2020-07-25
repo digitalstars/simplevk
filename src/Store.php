@@ -1,23 +1,21 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
-
+namespace DigitalStars\SimpleVK;
 
 class Store {
     public $data = null;
-    public static $path = DIRNAME."/cache";
+    public static $path = DIRNAME . "/cache";
     private $file;
     private $full_path;
     private $is_writable = false;
 
     public function __construct($filename = 0) {
-        $this->full_path = self::$path."/".$filename.".php";
+        $this->full_path = self::$path . "/" . $filename . ".php";
         if (!is_dir(self::$path))
             mkdir(self::$path);
 
-        $this->file = fopen( $this->full_path, 'c+' );
-        if (!flock( $this->file, LOCK_SH ))
+        $this->file = fopen($this->full_path, 'c+');
+        if (!flock($this->file, LOCK_SH))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $line = '';
         while (!feof($this->file))
@@ -39,7 +37,7 @@ class Store {
                 fwrite($this->file, "<?php http_response_code(404);exit('404');?>\n" . json_encode($this->data));
             }
         }
-        if (!flock( $this->file, LOCK_SH ))
+        if (!flock($this->file, LOCK_SH))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $this->is_writable = false;
     }
@@ -79,7 +77,7 @@ class Store {
     public function getWriteLock() {
         if ($this->is_writable)
             return $this;
-        if (!flock( $this->file, LOCK_EX ))
+        if (!flock($this->file, LOCK_EX))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $this->is_writable = true;
         return $this;

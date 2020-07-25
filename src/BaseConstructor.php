@@ -1,8 +1,6 @@
 <?php
 
-
-namespace DigitalStars\simplevk;
-
+namespace DigitalStars\SimpleVK;
 
 class BaseConstructor {
     protected $config;
@@ -30,7 +28,7 @@ class BaseConstructor {
         if (is_callable($func))
             $this->config[$prefix][] = ['f' => $func, 'args' => $arguments];
         else
-            throw new SimpleVkException(0, 'Функция '.$func.' недоступна');
+            throw new SimpleVkException(0, 'Функция ' . $func . ' недоступна');
         return $this;
     }
 
@@ -229,7 +227,7 @@ class BaseConstructor {
 
     protected function postProcessing($id, $result, $var) {
         if (isset($this->config['func_after']) and is_callable($this->config['func_after']))
-            if($this->config['func_after']($result, $var))
+            if ($this->config['func_after']($result, $var))
                 return $this->null();
         if (!empty($this->config['func_after_chain']))
             foreach ($this->config['func_after_chain'] as $func) {
