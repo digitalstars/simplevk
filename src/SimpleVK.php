@@ -73,7 +73,7 @@ class SimpleVK {
         exit('security error');
     }
 
-    public function initPeerId(&$id) {
+    public function initPeerID(&$id) {
         $id = $this->data['object']['peer_id'] ?? null;
         return $this;
     }
@@ -84,36 +84,29 @@ class SimpleVK {
     }
 
     public function initPayload(&$payload) {
-        if (isset($this->data['object']['payload'])) {
-            if (is_string($this->data['object']['payload'])) {
-                $payload = json_decode($this->data['object']['payload'], true) ?? $this->data['object']['payload'];
-            } else
-                $payload = $this->data['object']['payload'];
-        } else
-            $payload = null;
+        $payload = $this->getPayload();
         return $this;
     }
 
-    public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null) {
-        $data = $this->data;
-        $type = $data['type'] ?? null;
-        $id = $data['object']['peer_id'] ?? null;
-        $message = $data['object']['text'] ?? null;
-        $user_id = $data['object']['from_id'] ?? ($data['object']['user_id'] ?? null);
-        if (isset($data['object']['payload'])) {
-            if (is_string($data['object']['payload'])) {
-                $payload = json_decode($data['object']['payload'], true) ?? $data['object']['payload'];
-            } else
-                $payload = $data['object']['payload'];
-        } else
-            $payload = null;
-        return $this->data_backup;
+    public function initUserID(&$user_id) {
+        $user_id = $this->data['object']['from_id'] ?? $this->data['object']['user_id'] ?? null;
+        return $this;
+    }
+
+    public function initType(&$type) {
+        $type = $this->data['type'] ?? null;
+        return $this;
+    }
+
+    public function initData(&$data) {
+        $data = $this->data_backup;
+        return $this;
     }
 
     public function getAttachments() {
         $data = $this->data;
         if (!isset($data['object']['attachments']))
-            return false;
+            return null;
         $result = [];
         foreach ($data['object']['attachments'] as $attachment) {
             $type = $attachment['type'];
@@ -137,6 +130,18 @@ class SimpleVK {
             $result[$type][] = $attachment;
         }
         return $result;
+    }
+
+    public function initVars(&$id, &$user_id, &$type, &$message, &$payload, &$msg_id, &$attachments) {
+        $data = $this->data;
+        $type = $data['type'] ?? null;
+        $id = $data['object']['peer_id'] ?? null;
+        $message = $data['object']['text'] ?? null;
+        $user_id = $data['object']['from_id'] ?? $data['object']['user_id'] ?? null;
+        $msg_id = $data['id'] ?? null;
+        $payload = $this->getPayload();
+        $attachments = $this->getAttachments();
+        return $this->data_backup;
     }
 
     public function clientSupport(&$keyboard, &$inline, &$buttons) {
@@ -482,6 +487,17 @@ class SimpleVK {
         return false;
     }
 
+    protected function getPayload() {
+        if (isset($this->data['object']['payload'])) {
+            if (is_string($this->data['object']['payload'])) {
+                $payload = json_decode($this->data['object']['payload'], true) ?? $this->data['object']['payload'];
+            } else
+                $payload = $this->data['object']['payload'];
+        } else
+            $payload = null;
+        return $payload;
+    }
+
     protected function placeholders($id, $message) {
         if ($id >= 2e9) {
             $id = $this->data['object']['from_id'] ?? null;
@@ -577,6 +593,10 @@ class SimpleVK {
     }
 
     protected function sendOK() {
+        if (empty($_SERVER['SERVER_SIGNATURE'])) {
+            throw new \Exception("Текущий веб-сервер не поддерживает изменение заголовков. 
+                SimpleVK не может нормально работать на этом сервере/хостинге.", 0);
+        }
         set_time_limit(0);
         ini_set('display_errors', 'Off');
         ob_end_clean();
@@ -592,6 +612,7 @@ class SimpleVK {
         // для Apache
         ignore_user_abort(true);
 
+        PHP_EOL;
         ob_start();
         header('Content-Encoding: none');
         header('Content-Length: 2');
