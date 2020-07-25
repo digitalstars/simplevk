@@ -55,8 +55,8 @@ class SimpleVK {
             self::$proxy['user_pwd'] = $pass;
     }
 
-    public static function debug($flag = true) {
-        self::$debug_mode = $flag == true;
+    public static function disableSendOK() {
+        self::$debug_mode = true;
     }
 
     public function setConfirm($str) {
