@@ -529,7 +529,7 @@ class SimpleVK {
                 $tmp_str .= $a[0];
             return "";
         };
-        preg_replace_callback('/./u', $anon, $str);
+        preg_replace_callback('/./us', $anon, $str);
         $this->is_test_len_str = true;
         return $tmp_str;
     }
