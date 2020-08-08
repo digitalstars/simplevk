@@ -43,9 +43,10 @@ class LongPoll extends SimpleVK {
     public function listen($anon) {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
-                if ($this->is_multi_thread)
+                if ($this->is_multi_thread) {
+                    while (pcntl_wait($status, WNOHANG | WUNTRACED) > 0) {}
                     $pid = pcntl_fork();
-                else
+                } else
                     $pid = 0;
                 if ($pid == 0) {
                     unset($this->data);
