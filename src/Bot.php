@@ -33,6 +33,11 @@ class Bot {
         return $this->vk;
     }
 
+    public function setConfirm($str) {
+        $this->vk->setConfirm($str);
+        return $this;
+    }
+
     public function isStartTextTriggered($start) {
         $this->is_text_start = $start;
         return $this;
