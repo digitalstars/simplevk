@@ -38,6 +38,11 @@ class Bot {
         return $this;
     }
 
+    public function setSecret($str) {
+        $this->vk->setSecret($str);
+        return $this;
+    }
+
     public function isStartTextTriggered($start) {
         $this->is_text_start = $start;
         return $this;
