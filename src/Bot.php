@@ -14,6 +14,7 @@ class Bot {
     private $status = 1;
     private $color = 'white';
     private $compile_files = [];
+    private $events = ['message_new', 'message_event'];
 
     public function __construct($token_or_vk, $version = null, $also_version = null) {
         if ($token_or_vk instanceof SimpleVK) {
@@ -40,6 +41,26 @@ class Bot {
 
     public function setSecret($str) {
         $this->vk->setSecret($str);
+        return $this;
+    }
+
+    public function getEvents() {
+        return $this->events;
+    }
+
+    public function addEvents($events) {
+        if (is_array($events))
+            $this->events = array_merge($this->events, $events);
+        else
+            $this->events[] = $events;
+        return $this;
+    }
+
+    public function events($events) {
+        if (is_array($events))
+            $this->events = $events;
+        else
+            $this->events = [$events];
         return $this;
     }
 
@@ -375,7 +396,7 @@ class Bot {
                 return $this->runAction($id, $user_id, $send);
             else
                 throw new SimpleVkException(0, "События с ID '$send' не существует");
-        if ($type != 'message_new' and $type != 'message_event')
+        if (!in_array($type, $this->events))
             return null;
         $message_id = ['id' => $data['object']['conversation_message_id'] ?? null, 'type' => false];
         if (isset($payload['name']) and isset($this->config['action'][$payload['name']]))
