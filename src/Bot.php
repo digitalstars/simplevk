@@ -385,7 +385,7 @@ class Bot {
         if (empty($this->config['action'][$send]))
             throw new SimpleVkException(0, "Событие $send не найдено");
         $this->vk->initVars($id_now, $user_id, $type, $message, $payload);
-        return $this->runAction($id, $user_id, $send, null, ['id' => $id_message, 'type' => true], true);
+        return $this->runAction($id, $user_id, $send, $payload, ['id' => $id_message, 'type' => true], true);
     }
 
     public function run($send = null, $id = null) {
@@ -393,16 +393,16 @@ class Bot {
         $id = $id ?? $id_now;
         if (isset($send))
             if (isset($this->config['action'][$send]))
-                return $this->runAction($id, $user_id, $send);
+                return $this->runAction($id, $user_id, $send, $payload);
             else
                 throw new SimpleVkException(0, "События с ID '$send' не существует");
         if (!in_array($type, $this->events))
             return null;
         $message_id = ['id' => $data['object']['conversation_message_id'] ?? null, 'type' => false];
         if (isset($payload['name']) and isset($this->config['action'][$payload['name']]))
-            return $this->runAction($id, $user_id, $payload['name'], null, $message_id);
+            return $this->runAction($id, $user_id, $payload['name'], $payload, $message_id);
         if ((isset($payload['command']) and $payload['command'] == 'start') or $this->is_text_start)
-            return $this->runAction($id, $user_id, 'first', null, $message_id);
+            return $this->runAction($id, $user_id, 'first', $payload, $message_id);
         if (!empty($message)) {
             if (isset($this->config['mask'])) {
                 $arr_msg = explode(' ', $message);
@@ -470,7 +470,7 @@ class Button {
     public function addPayload($payload) {
         if (in_array('name', array_keys($payload)))
             throw new SimpleVkException(0, "Нельзя использовать name в payload");
-        $this->config[1] = array_merge($this->config[1], $payload, ['name' => $this->id]);
+        $this->config[1] = array_merge($this->config[1] ?? [], $payload, ['name' => $this->id]);
         return $this;
     }
 
