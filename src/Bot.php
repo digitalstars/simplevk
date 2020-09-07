@@ -463,7 +463,14 @@ class Button {
     public function payload($payload) {
         if (in_array('name', array_keys($payload)))
             throw new SimpleVkException(0, "Нельзя использовать name в payload");
-        $this->config[1] = ['name' => $this->id] + $payload;
+        $this->config[1] = array_merge($payload, ['name' => $this->id]);
+        return $this;
+    }
+
+    public function addPayload($payload) {
+        if (in_array('name', array_keys($payload)))
+            throw new SimpleVkException(0, "Нельзя использовать name в payload");
+        $this->config[1] = array_merge($this->config[1], $payload, ['name' => $this->id]);
         return $this;
     }
 
