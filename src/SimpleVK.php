@@ -297,6 +297,15 @@ class SimpleVK {
         return $this->request('wall.createComment', ['owner_id' => $owner_id, 'post_id' => $post_id, 'message' => $message]);
     }
 
+    public function dateRegistration($id) {
+        $site = file_get_contents("https://vk.com/foaf.php?id={$id}");
+        preg_match('<ya:created dc:date="(.*?)">', $site, $data);
+        $data = explode('T', $data[1]);
+        $date = date("d.m.Y", strtotime($data[0]));
+        $time = mb_substr($data[1], 0, 8);
+        return "$time $date";
+    }
+
     public function sendKeyboard($id, $message, $keyboard = [], $inline = false, $one_time = False, $params = []) {
         $keyboard = $this->generateKeyboard($keyboard, $inline, $one_time);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
