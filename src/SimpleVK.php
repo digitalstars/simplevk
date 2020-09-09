@@ -165,6 +165,35 @@ class SimpleVK {
         return $data;
     }
 
+    public function sendAllDialogs(Message $message) {
+        $ids = [];
+        $i = 0;
+        $count = 0;
+        $members = $this->request('messages.getConversations', ['count' => 1])['count'];
+        foreach ($this->getAllDialogs() as $dialog) {
+            if($dialog['conversation']['can_write']['allowed']) {
+                $user_id = $dialog['conversation']['peer']['id'];
+                if($user_id < 2e9) {
+                    $ids[] = $user_id;
+                    $i++;
+                }
+            }
+            if($i == 100) {
+                $return = $message->send($ids);
+                $i = 0;
+                $ids = [];
+                $current_count = count(array_column($return, 'message_id'));
+                $count += $current_count;
+                print "Отправлено $count/$members" . PHP_EOL;
+            }
+        }
+        $return = $message->send($ids);
+        $current_count = count(array_column($return, 'message_id'));
+        $count += $current_count;
+        print "Всего было отправлено $count/$members сообщений" . PHP_EOL;
+        print "Запретили отправлять сообщения ".($members-$count)." человек(либо это были чаты)";
+    }
+
     public function sendAllChats(Message $message) {
         $images = [];
         foreach ($message->getImg() as $img_path) {
