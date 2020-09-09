@@ -171,14 +171,14 @@ class SimpleVK {
         $count = 0;
         $members = $this->request('messages.getConversations', ['count' => 1])['count'];
         foreach ($this->getAllDialogs() as $dialog) {
-            if($dialog['conversation']['can_write']['allowed']) {
+            if ($dialog['conversation']['can_write']['allowed']) {
                 $user_id = $dialog['conversation']['peer']['id'];
-                if($user_id < 2e9) {
+                if ($user_id < 2e9) {
                     $ids[] = $user_id;
                     $i++;
                 }
             }
-            if($i == 100) {
+            if ($i == 100) {
                 $return = $message->send($ids);
                 $i = 0;
                 $ids = [];
@@ -191,7 +191,7 @@ class SimpleVK {
         $current_count = count(array_column($return, 'message_id'));
         $count += $current_count;
         print "Всего было отправлено $count/$members сообщений" . PHP_EOL;
-        print "Запретили отправлять сообщения ".($members-$count)." человек(либо это были чаты)";
+        print "Запретили отправлять сообщения " . ($members - $count) . " человек(либо это были чаты)";
     }
 
     public function sendAllChats(Message $message) {
@@ -521,7 +521,7 @@ class SimpleVK {
 
     public function request($method, $params = []) {
         if (isset($params['message'])) {
-            $params['message'] = $this->placeholders($params['peer_id'] ?? null, $params['message']);
+            $params['message'] = $this->placeholders($params['message'], $params['peer_id'] ?? null);
             if ($this->is_test_len_str and mb_strlen($params['message']) > 544)
                 $params['message'] = $this->lengthMessageProcessing($params['peer_id'] ?? null, $params['message']);
         }
@@ -562,17 +562,42 @@ class SimpleVK {
         return $payload;
     }
 
-    protected function placeholders($id, $message) {
+    public function placeholders($message, $id = null) {
         if ($id >= 2e9) {
             $id = $this->data['object']['from_id'] ?? null;
         }
-        if (strpos($message, '%') !== false) {
-            $data = $this->userInfo($id);
-            $f = $data['first_name'];
-            $l = $data['last_name'];
-            $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
-            $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
-            return str_replace($tag, $replace, $message);
+        if (strpos($message, '~') !== false) {
+            $message = preg_replace_callback(
+                "|~(.*?)~|",
+                function ($matches) use ($id) {
+                    $ex1 = explode('|', $matches[1]);
+                    if(isset($ex1[1])) {
+                        $id = $ex1[1];
+                    }
+                    $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
+                    if(in_array($ex1[0], $tag) && $id) {
+                        if($id >= 0) {
+                            $data = $this->userInfo($id);
+                            $f = $data['first_name'];
+                            $l = $data['last_name'];
+                            $replace = ["@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)", $f, $l, "$f $l"];
+                            return str_replace($tag, $replace, $ex1[0]);
+                        } else {
+                            $id = -$id;
+                            $group_name = $this->request('groups.getById', ['group_id' => $id])[0]['name'];
+                            return "@club{$id}({$group_name})";
+                        }
+                    } else {
+                        if($id >= 0) {
+                            return "@id$id($ex1[0])";
+                        } else {
+                            $id = -$id;
+                            return "@club$id($ex1[0])";
+                        }
+                    }
+
+                }, $message);
+            return $message;
         } else
             return $message;
     }
