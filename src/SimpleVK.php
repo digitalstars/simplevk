@@ -293,6 +293,10 @@ class SimpleVK {
         }
     }
 
+    public function sendWallComment($owner_id, $post_id, $message) {
+        return $this->request('wall.createComment', ['owner_id' => $owner_id, 'post_id' => $post_id, 'message' => $message]);
+    }
+
     public function sendKeyboard($id, $message, $keyboard = [], $inline = false, $one_time = False, $params = []) {
         $keyboard = $this->generateKeyboard($keyboard, $inline, $one_time);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
