@@ -7,6 +7,15 @@ class Post extends BaseConstructor {
         return new self($vk, $cfg);
     }
 
+    public function load($cfg = []) {
+        if ($cfg instanceof Post) {
+            $this->vk = $cfg->vk;
+            $this->config = $cfg->config;
+        } else
+            $this->config = $cfg;
+        return $this;
+    }
+
     public function send($id = null, $publish_date = null, $vk = null) {
         $params = [];
         if (!is_null($publish_date)) {
