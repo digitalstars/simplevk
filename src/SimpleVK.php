@@ -73,6 +73,19 @@ class SimpleVK {
         exit('security error');
     }
 
+    public function isAdmin($user_id, $chat_id) { //возвращает привелегию по id
+        try {
+            $members = $this->request('messages.getConversationMembers', ['peer_id' => $chat_id])['items'];
+        } catch (\Exception $e) {
+            throw new SimpleVkException(0, 'Бот не админ в этой беседе, или бота нет в этой беседе');
+        }
+        foreach ($members as $key) {
+            if ($key['member_id'] == $user_id)
+                return (isset($key["is_owner"])) ? 'owner' : ((isset($key["is_admin"])) ? 'admin' : false);
+        }
+        return null;
+    }
+
     public function initPeerID(&$id) {
         $id = $this->data['object']['peer_id'] ?? null;
         return $this;
@@ -150,6 +163,28 @@ class SimpleVK {
         $inline = $data['inline_keyboard'];
         $buttons = $data['button_actions'];
         return $data;
+    }
+
+    public function sendAllChats(Message $message) {
+        $images = [];
+        foreach ($message->getImg() as $img_path) {
+            $img_path = $img_path[0];
+            $images[] = $this->getMsgAttachmentUploadImage(0, $img_path);
+        };
+        $message->img()->attachment(array_merge($message->getAttachment(), $images));
+
+        $count = 0;
+        print "Начинаю рассылку\n";
+        for ($i = 1; ; $i = $i + 100) {
+            $return = $message->send(range(2e9 + $i, 2e9 + $i + 99));
+            $current_count = count(array_column($return, 'message_id'));
+            $count += $current_count;
+            print "Отправлено $count" . PHP_EOL;
+            if ($current_count != 100) {
+                print "Всего было разослано в $count бесед";
+                break;
+            }
+        }
     }
 
     public function eventAnswerSnackbar($text) {
