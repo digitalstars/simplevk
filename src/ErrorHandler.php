@@ -27,12 +27,7 @@ trait ErrorHandler {
                     E_DEPRECATED => 'E_DEPRECATED',
                     E_USER_DEPRECATED => 'E_USER_DEPRECATED',
                 ];
-                try {
-                    foreach ($ids as $id) {
-                        $this->request('messages.send', ['peer_id' => $id, 'message' => "$errors[$errno][$errno] $errstr ($errfile на $errline строке)"]);
-                    }
-                } catch (\Exception $e) {
-                }
+                $this->request('messages.send', ['peer_id' => $ids, 'message' => "$errors[$errno][$errno] $errstr ($errfile на $errline строке)"]);
             }
             return TRUE; // не запускаем внутренний обработчик ошибок PHP
         };

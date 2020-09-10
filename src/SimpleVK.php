@@ -538,6 +538,10 @@ class SimpleVK {
             if ($this->is_test_len_str and mb_strlen($params['message']) > 544)
                 $params['message'] = $this->lengthMessageProcessing($params['peer_id'] ?? null, $params['message']);
         }
+        if(isset($params['peer_id']) && is_array($params['peer_id'])) { //возможно везде заменить на peer_ids в методах
+            $params['peer_ids'] = join(',',$params['peer_id']);
+            unset($params['peer_id']);
+        }
         for ($iteration = 0; $iteration < 6; ++$iteration) {
             try {
                 return $this->request_core($method, $params);
@@ -588,7 +592,9 @@ class SimpleVK {
                         $id = $ex1[1];
                     }
                     $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
-                    if(in_array($ex1[0], $tag) && $id) {
+                    if(in_array($ex1[0], $tag) && !$id) {
+                        return $matches[1];
+                    } else if(in_array($ex1[0], $tag) && $id) {
                         if($id >= 0) {
                             $data = $this->userInfo($id);
                             $f = $data['first_name'];
