@@ -147,6 +147,12 @@ class Message extends BaseConstructor {
         return $this;
     }
 
+    public function redirect($id) {
+        $this->checkBot();
+        echo "$this->id_action, $id\n";
+        return $this->bot->redirect($this->id_action, $id);
+    }
+
     private function checkBot() {
         if (is_null($this->bot))
             throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
