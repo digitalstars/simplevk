@@ -25,7 +25,7 @@ class Message extends BaseConstructor {
     }
 
     public function getVoice() {
-        return $this->config['voice'];
+        return $this->config['voice'] ?? null;
     }
 
     public function load($cfg = []) {
@@ -46,7 +46,7 @@ class Message extends BaseConstructor {
     }
 
     public function getKbd() {
-        return $this->config['kbd'];
+        return $this->config['kbd'] ?? null;
     }
 
     public function a_run($id) {

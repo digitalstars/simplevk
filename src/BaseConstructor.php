@@ -48,7 +48,7 @@ class BaseConstructor {
     }
 
     public function getChainAfter() {
-        return $this->config['func_after_chain'];
+        return $this->config['func_after_chain'] ?? null;
     }
 
     public function clearChainBefore() {
@@ -57,7 +57,7 @@ class BaseConstructor {
     }
 
     public function getChainBefore() {
-        return $this->config['func_before_chain'];
+        return $this->config['func_before_chain'] ?? null;
     }
 
     public function text($text) {
@@ -165,7 +165,7 @@ class BaseConstructor {
     }
 
     public function getRealId() {
-        return $this->config['real_id'];
+        return $this->config['real_id'] ?? null;
     }
 
     public function getDoc() {

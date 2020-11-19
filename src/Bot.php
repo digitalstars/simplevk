@@ -135,7 +135,7 @@ class Bot {
     }
 
     public function getAccess($id) {
-        return $this->config['action'][$id]['access'];
+        return $this->config['action'][$id]['access'] ?? null;
     }
 
     public function notAccess($id, $access) {
@@ -144,7 +144,7 @@ class Bot {
     }
 
     public function getNotAccess($id) {
-        return $this->config['action'][$id]['not_access'];
+        return $this->config['action'][$id]['not_access'] ?? null;
     }
 
     public function preg_cmd($id, $mask = null) {
