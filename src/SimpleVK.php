@@ -8,7 +8,6 @@ require_once('config_simplevk.php');
 
 class SimpleVK {
     use ErrorHandler;
-    use FileUploader;
     protected $version;
     protected $data = [];
     protected $data_backup = [];
@@ -73,10 +72,14 @@ class SimpleVK {
         exit('security error');
     }
 
+    public function msg() {
+        return Message::create($this);
+    }
+
     public function isAdmin($user_id, $chat_id) { //возвращает привелегию по id
         try {
             $members = $this->request('messages.getConversationMembers', ['peer_id' => $chat_id])['items'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new SimpleVkException(0, 'Бот не админ в этой беседе, или бота нет в этой беседе');
         }
         foreach ($members as $key) {
@@ -116,6 +119,16 @@ class SimpleVK {
         return $this;
     }
 
+    public function initMsgID(&$id) {
+        $id = $this->data['object']['id'] ?? null;
+        return $this;
+    }
+
+    public function initConversationMsgID(&$id) {
+        $id = $this->data['object']['conversation_message_id'] ?? null;
+        return $this;
+    }
+
     public function getAttachments() {
         $data = $this->data;
         if (!isset($data['object']['attachments']))
@@ -151,7 +164,7 @@ class SimpleVK {
         $id = $data['object']['peer_id'] ?? null;
         $message = $data['object']['text'] ?? null;
         $user_id = $data['object']['from_id'] ?? $data['object']['user_id'] ?? null;
-        $msg_id = $data['id'] ?? null;
+        $msg_id = $data['object']['id'] ?? null;
         $payload = $this->getPayload();
         $attachments = $this->getAttachments();
         return $this->data_backup;
@@ -195,13 +208,7 @@ class SimpleVK {
     }
 
     public function sendAllChats(Message $message) {
-        $images = [];
-        foreach ($message->getImg() as $img_path) {
-            $img_path = $img_path[0];
-            $images[] = $this->getMsgAttachmentUploadImage(0, $img_path);
-        };
-        $message->img()->attachment(array_merge($message->getAttachment(), $images));
-
+        $message->uploadAllImages();
         $count = 0;
         print "Начинаю рассылку\n";
         for ($i = 1; ; $i = $i + 100) {
@@ -257,29 +264,6 @@ class SimpleVK {
         ]);
     }
 
-    public function eventAnswerEditKeyboard($keyboard, $inline = false, $one_time = false, $params = []) {
-        $this->request('messages.edit', [
-                'peer_id' => $this->data['object']['peer_id'],
-                'keep_forward_messages' => 1,
-                'keep_snippets' => 1,
-                'conversation_message_id' => $this->data['object']['conversation_message_id'],
-                'keyboard' => $this->generateKeyboard($keyboard, $inline, $one_time)
-            ] + $params);
-    }
-
-    public function reply($message, $params = []) {
-        return $this->request('messages.send', ['message' => $message, 'peer_id' => $this->data['object']['peer_id']] + $params);
-    }
-
-    public function sendMessage($id, $message, $params = []) {
-        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
-    }
-
-    public function forward($id, $id_messages, $params = []) {
-        $forward_messages = (is_array($id_messages)) ? join(',', $id_messages) : $id_messages;
-        return $this->request('messages.send', ['peer_id' => $id, 'forward_messages' => $forward_messages] + $params);
-    }
-
     public function userInfo($user_url = '', $scope = []) {
         $scope = ["fields" => join(",", $scope)];
         if (isset($user_url)) {
@@ -304,16 +288,6 @@ class SimpleVK {
         $date = date("d.m.Y", strtotime($data[0]));
         $time = mb_substr($data[1], 0, 8);
         return "$time $date";
-    }
-
-    public function sendKeyboard($id, $message, $keyboard = [], $inline = false, $one_time = False, $params = []) {
-        $keyboard = $this->generateKeyboard($keyboard, $inline, $one_time);
-        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'keyboard' => $keyboard] + $params);
-    }
-
-    public function sendCarousel($id, $message, $carousel, $params = []) {
-        $carousel = $this->generateCarousel($carousel, $id);
-        return $this->request('messages.send', ['message' => $message, 'peer_id' => $id, 'template' => $carousel] + $params);
     }
 
     public function buttonLocation($payload = null) {
@@ -358,31 +332,6 @@ class SimpleVK {
         'red' => 'negative',
         'green' => 'positive'
     ];
-
-    public function generateKeyboard($keyboard_raw = [], $inline = false, $one_time = False) {
-        return json_encode(['one_time' => $one_time, 'buttons' => $this->parseKeyboard($keyboard_raw), 'inline' => $inline], JSON_UNESCAPED_UNICODE);
-    }
-
-    public function generateCarousel($carousels, $id) {
-        if (!is_array($carousels))
-            $carousels = [$carousels];
-        $template = ["type" => 'carousel', 'elements' => []];
-        foreach ($carousels as $carousel) {
-            if ($carousel instanceof Carousel)
-                $carousel = $carousel->dump();
-            $element['action'] = $carousel['action'];
-            if (isset($carousel['kbd']))
-                $element['buttons'] = $this->parseKeyboard([$carousel['kbd']])[0];
-            if (isset($carousel['title']))
-                $element['title'] = $carousel['title'];
-            if (isset($carousel['description']))
-                $element['description'] = $carousel['description'];
-            if (isset($carousel['img']))
-                $element['photo_id'] = str_replace('photo', '', $this->getMsgAttachmentUploadImage($id, $carousel['img']));
-            $template['elements'][] = $element;
-        }
-        return json_encode($template, JSON_UNESCAPED_UNICODE);
-    }
 
     public function json_online($data = null) {
         if (is_null($data))
@@ -515,23 +464,6 @@ class SimpleVK {
         return $this;
     }
 
-    public function sendImage($id, $local_file_paths, $params = []) {
-        if (!is_array($local_file_paths))
-            $local_file_paths = [$local_file_paths];
-        $attachments = [];
-        foreach ($local_file_paths as $path)
-            $attachments[] = $this->getMsgAttachmentUploadImage($id, $path);
-        return $this->request('messages.send', ['attachment' => join(',', $attachments), 'peer_id' => $id] + $params);
-    }
-
-    public function sendDoc($id, $local_file_path, $title = null, $params = []) {
-        return $this->request('messages.send', ['attachment' => $this->getMsgAttachmentUploadDoc($id, $local_file_path, $title), 'peer_id' => $id] + $params);
-    }
-
-    public function sendVoice($id, $local_file_path, $params = []) {
-        return $this->request('messages.send', ['attachment' => $this->getMsgAttachmentUploadVoice($id, $local_file_path), 'peer_id' => $id] + $params);
-    }
-
     public function request($method, $params = []) {
         if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['message'], $params['peer_id'] ?? null);
@@ -630,7 +562,7 @@ class SimpleVK {
                 ?: "$#" . (unpack('V', iconv('UTF-8', 'UCS-4LE', $a[0]))[1]) . ";");
             $bytes += $byte;
             if ($bytes > 4096) {
-                $this->sendMessage($id, $tmp_str);
+                $this->request('messages.send', ['message' => $tmp_str, 'peer_id' => $id]); // Отправка части сообщения
                 $bytes = $byte;
                 $tmp_str = $a[0];
             } else
@@ -702,7 +634,7 @@ class SimpleVK {
 
     protected function sendOK() {
         if (empty($_SERVER['SERVER_SIGNATURE'])) {
-            throw new \Exception("Текущий веб-сервер не поддерживает изменение заголовков. 
+            throw new Exception("Текущий веб-сервер не поддерживает изменение заголовков. 
                 SimpleVK не может нормально работать на этом сервере/хостинге.", 0);
         }
         set_time_limit(0);
@@ -745,51 +677,5 @@ class SimpleVK {
             $this->token = $token;
             $this->version = $version;
         }
-    }
-
-    private function parseKeyboard($keyboard_raw = []) {
-        $keyboard = [];
-        foreach ($keyboard_raw as $row => $button_str) {
-            foreach ($button_str as $col => $button) {
-                $keyboard[$row][$col]['action']['type'] = $button[0];
-                if ($button[1] != null)
-                    $keyboard[$row][$col]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
-                switch ($button[0]) {
-                    case 'callback':
-                    case 'text':
-                    {
-                        $keyboard[$row][$col]['color'] = $button[3];
-                        $keyboard[$row][$col]['action']['label'] = $button[2];
-                        break;
-                    }
-                    case 'vkpay':
-                    {
-                        $keyboard[$row][$col]['action']['hash'] = "action={$button[2]}";
-                        $keyboard[$row][$col]['action']['hash'] .= ($button[3] < 0) ? "&group_id=" . $button[3] * -1 : "&user_id={$button[3]}";
-                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
-                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[5])) ? "&description={$button[5]}" : '';
-                        $keyboard[$row][$col]['action']['hash'] .= (isset($button[6])) ? "&data={$button[6]}" : '';
-                        $keyboard[$row][$col]['action']['hash'] .= '&aid=1';
-                        break;
-                    }
-                    case 'open_app':
-                    {
-                        $keyboard[$row][$col]['action']['label'] = $button[2];
-                        $keyboard[$row][$col]['action']['app_id'] = $button[3];
-                        if (isset($button[4]))
-                            $keyboard[$row][$col]['action']['owner_id'] = $button[4];
-                        if (isset($button[5]))
-                            $keyboard[$row][$col]['action']['hash'] = $button[5];
-                        break;
-                    }
-                    case 'open_link':
-                    {
-                        $keyboard[$row][$col]['action']['link'] = $button[2];
-                        $keyboard[$row][$col]['action']['label'] = $button[3];
-                    }
-                }
-            }
-        }
-        return $keyboard;
     }
 }

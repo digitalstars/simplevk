@@ -159,12 +159,12 @@ class BaseConstructor {
         return $this->config['func_after'] ?? null;
     }
 
-    public function realId($id) {
+    public function finalSendID($id) {
         $this->config['real_id'] = $id;
         return $this;
     }
 
-    public function getRealId() {
+    public function getFinalSendID() {
         return $this->config['real_id'] ?? null;
     }
 
