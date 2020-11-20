@@ -140,7 +140,7 @@ class Message extends BaseConstructor {
     }
 
     public function getForward() {
-        return $this->config['forward']['forward_messages'] ?: $this->config['forward']['forward'] ?? null;
+        return $this->config['forward']['forward_messages'] ?? $this->config['forward']['forward'] ?? null;
     }
 
     public function clearForward() {
@@ -406,7 +406,7 @@ class Message extends BaseConstructor {
         if (!empty($this->config['real_id']))
             $id = $this->config['real_id'];
         if (empty($id))
-            $this->vk->initVars($id);
+            $this->vk->initPeerID($id);
 
         $query = $this->assembleMsg($id, $var);
         if (is_null($query))
