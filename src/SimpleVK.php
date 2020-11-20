@@ -72,8 +72,8 @@ class SimpleVK {
         exit('security error');
     }
 
-    public function msg() {
-        return Message::create($this);
+    public function msg($text = null) {
+        return Message::create($this)->text($text);
     }
 
     public function isAdmin($user_id, $chat_id) { //возвращает привелегию по id

@@ -20,6 +20,6 @@ $lp->setUserLogError(12345); // В случае ошибки отправить 
 $lp->listen(function ($data) use ($lp) {                       // Получение событий из LongPool
     $lp->initVars($id, $user_id, $type, $message, $payload, $msg_id, $attachments);   // Парсинг полученных событий
     if ($type == 'message_new') {                                     // Если событие - новое сообщение
-        $lp->reply("Тестовое сообщение");                       // Отправка ответного сообщения
+        $lp->msg("Тестовое сообщение")->send();                       // Отправка ответного сообщения
     }
 });

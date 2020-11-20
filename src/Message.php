@@ -378,7 +378,7 @@ class Message extends BaseConstructor {
         } else
             $forward = $this->config['forward'] ?? [];
 
-        $text = isset($this->config['text']) ? ['message' => $this->config['text']] : [];
+        $text = !empty($this->config['text']) ? ['message' => $this->config['text']] : [];
         return $text + $params + $attachments + $kbd + $template + $forward;
     }
 
