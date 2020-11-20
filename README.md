@@ -73,7 +73,7 @@ require_once "simplevk-testing/autoload.php";
 require_once "vendor/autoload.php";
 use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
-$vk->reply('Привет, %a_fn%');
+$vk->msg('Привет, %a_fn%')->send();
 ```
 ### Простой Callback  
 ```php
@@ -85,7 +85,7 @@ $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отп
 $data = $vk->initVars($peer_id, $user_id, $type, $message); //инициализация переменных из события
 if($type == 'message_new') {
     if($message == 'Привет') {
-        $vk->reply('Привет, %a_fn%');
+        $vk->msg('Привет, %a_fn%')->send();
     }
 }
 ```
@@ -105,7 +105,7 @@ $vk->listen(function () use ($vk) {
     $data = $vk->initVars($peer_id, $user_id, $type, $message); //инициализация переменных из события
     if($type == 'message_new') {
         if($message == 'Привет') {
-            $vk->reply('Привет, %a_fn%');
+            $vk->msg('Привет, %a_fn%')->send();
         }
     }
 });
