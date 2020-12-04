@@ -6,7 +6,8 @@ require_once('config_simplevk.php');
 
 trait ErrorHandler {
     public function setUserLogError($ids) {
-        $ids = is_numeric($ids) ? [$ids] : $ids;
+        if (is_numeric($ids))
+            $ids = [$ids];
         $error_handler = function ($errno, $errstr, $errfile, $errline) use ($ids) {
             // если ошибка попадает в отчет (при использовании оператора "@" error_reporting() вернет 0)
             if (error_reporting() & $errno) {
@@ -27,7 +28,10 @@ trait ErrorHandler {
                     E_DEPRECATED => 'E_DEPRECATED',
                     E_USER_DEPRECATED => 'E_USER_DEPRECATED',
                 ];
-                $this->request('messages.send', ['peer_id' => $ids, 'message' => "$errors[$errno][$errno] $errstr ($errfile на $errline строке)"]);
+                if (is_callable($ids))
+                    call_user_func_array($ids, [$errors[$errno], $errstr, $errfile, $errline, "$errors[$errno][$errno] $errstr ($errfile на $errline строке)"]);
+                else
+                    $this->request('messages.send', ['peer_id' => $ids, 'message' => "$errors[$errno][$errno] $errstr ($errfile на $errline строке)"]);
             }
             return TRUE; // не запускаем внутренний обработчик ошибок PHP
         };
