@@ -19,7 +19,6 @@
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-fileinfo": "*",
-        "ext-pcntl": "*",
         "ext-posix": "*",
         "ext-iconv": "*"
     },

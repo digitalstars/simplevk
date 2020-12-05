@@ -47,11 +47,10 @@ SimpleVK - это фреймворк для создания ботов. Вам 
 * Работа с голосовыми сообщениями и документами
 
 # Подключение
-> UPD: Пока 3.0 находится в ветке testing, через composer ее установить нельзя.
 ### Используя composer
 1\. Установить
 ```
-composer require digitalstars/simplevk
+composer require digitalstars/simplevk:dev-testing
 ```
 2\. Подключить `autoload.php` внутри бота
 ```php
