@@ -344,13 +344,13 @@ class Message extends BaseConstructor {
         if (!empty($this->config['carousel'])) {
             $carousels = $this->config['carousel'];
             foreach ($carousels as $key => $carousel)
-                if (isset($carousel['kbd']))
+                if (!empty($carousel['kbd']))
                     $carousels[$key]['kbd'] = $this->parseKbd([$carousel['kbd']])[0];
             $template = ['template' => $this->generateCarousel($carousels, $id)];
         } else
             $template = [];
 
-        if (isset($this->buttons) and !empty($this->config['kbd']))
+        if (isset($this->buttons) and !empty($this->config['kbd']['kbd']))
             $kbd = $this->parseKbd($this->config['kbd']['kbd']);
 
         $kbd = $kbd ?? ($this->config['kbd']['kbd'] ?? null);
