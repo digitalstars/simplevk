@@ -290,8 +290,8 @@ class Bot {
         return $this;
     }
 
-    public function msg() {
-        return Message::create($this->vk, $v, $this, $this->config['btn']);
+    public function msg($text = null) {
+        return Message::create($this->vk, $v, $this, $this->config['btn'])->text($text);
     }
 
     public function editBtn($id, $is_save = false) {
