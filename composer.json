@@ -18,8 +18,9 @@
         "ext-curl": "*",
         "ext-json": "*",
         "ext-mbstring": "*",
-        "ext-fileinfo": "*",
+        "ext-pcntl": "*",
         "ext-posix": "*",
+        "ext-fileinfo": "*",
         "ext-iconv": "*"
     },
     "autoload": {

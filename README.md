@@ -48,9 +48,14 @@ SimpleVK - это фреймворк для создания ботов. Вам 
 
 # Подключение
 ### Используя composer
-1\. Установить
+1\. Установка в *Unix
 ```
 composer require digitalstars/simplevk:dev-testing
+```
+1\. Установка в Windows
+> В Windows нет 2х модулей, из-за которых не работает многопоточность. Поэтому ставим с игнорированием зависимостей
+```
+composer require digitalstars/simplevk:dev-testing --ignore-platform-reqs
 ```
 2\. Подключить `autoload.php` внутри бота
 ```php
