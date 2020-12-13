@@ -57,9 +57,9 @@ composer require digitalstars/simplevk:dev-testing
 ```
 composer require digitalstars/simplevk:dev-testing --ignore-platform-reqs
 ```
-2\. Подключить `autoload.php` внутри бота
+2\. Подключить `autoload.php` напрямую внутри бота
 ```php
-require_once 'vendor/digitalstars/simplevk/autoload.php';
+require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
 ```
 ### Вручную
 1. Скачать последний релиз c [github](https://github.com/digitalstars/simplevk/tree/testing)
