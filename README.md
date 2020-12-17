@@ -69,6 +69,20 @@ require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
 require_once "simplevk-testing/autoload.php";
 ```
 
+## Проверка готовности сервера
+Чтобы убедится, что ваш сервер готов к работе с simplevk, необходимо создать и запустить следующий скрипт:
+```php
+require_once 'vendor/autoload.php';
+\DigitalStars\SimpleVK\Diagnostics::run();
+```
+> Если вы делаете longpoll бота, то запускайте диагностику через консоль  
+> Если вы делаете callback бота, то запускайте диагностику через браузер
+
+### Примерный вывод диагностики:
+<p align="left">
+  <img src="http://images.vfl.ru/ii/1608248228/eea9ef11/32696142.jpg"/>
+</p>
+
 ## Примеры ботов
 ### Минимальный Callback  
 > Бот отвечает на любое сообщение
