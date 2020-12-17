@@ -9,8 +9,14 @@ class Diagnostics {
     private static $final_text = '';
 
     static public function run() {
-        self::$final_text .= self::cyan("Диагностика системы для работы с SimpleVK", PHP_EOL, '').PHP_EOL;
-        self::$final_text .= self::cyan("Информация о системе", PHP_EOL, '');
+        $EOL = self::EOL();
+
+        if(PHP_SAPI != 'cli') {
+            self::$final_text .= '<html><body bgcolor="black">';
+        }
+
+        self::$final_text .= self::cyan("Диагностика системы для работы с SimpleVK", $EOL, '').$EOL;
+        self::$final_text .= self::cyan("Информация о системе", $EOL, '');
 
         if(PHP_MAJOR_VERSION >= 7)
             self::$final_text .= self::green("PHP: ".PHP_VERSION);
@@ -40,28 +46,40 @@ class Diagnostics {
             self::$final_text .= self::red("CURL: не доступен");
         }
 
-        self::$final_text .= PHP_EOL.self::cyan("Проверка работы с файлами", PHP_EOL, '');
+        self::$final_text .= $EOL.self::cyan("Проверка работы с файлами", $EOL, '');
 
         self::checkFileJob();
 
 
-        self::$final_text .= PHP_EOL.self::cyan("Проверка активации Обязательных модулей в php.ini", PHP_EOL, '');
+        self::$final_text .= $EOL.self::cyan("Проверка активации Обязательных модулей в php.ini", $EOL, '');
         self::checkImportantModules();
 
-        self::$final_text .= PHP_EOL;
+        self::$final_text .= $EOL;
 
-        self::$final_text .= PHP_EOL.self::cyan("Проверка активации Опциональных модулей в php.ini", PHP_EOL, '');
+        self::$final_text .= $EOL.self::cyan("Проверка активации Опциональных модулей в php.ini", $EOL, '');
         self::checkNoImportantModules();
 
-        self::$final_text .= PHP_EOL;
+        self::$final_text .= $EOL;
 
         if ($type != 'cli') {
             //проверка заголовков
         }
 
-        self::$final_text .= PHP_EOL.self::yellow("Не забудьте удалить скрипт, чтобы другие не смогли узнать информацию о вашем сервере (если скрипт доступен в сети)", PHP_EOL, '');
+        self::$final_text .= $EOL.self::yellow("Не забудьте удалить скрипт, чтобы другие не смогли узнать информацию о вашем сервере (если скрипт доступен в сети)", $EOL, '');
+
+        if(PHP_SAPI != 'cli') {
+            self::$final_text .= '</body></html>';
+        }
 
         print self::$final_text;
+    }
+
+    private static function EOL() {
+        if(PHP_SAPI != 'cli') {
+            return '<br>';
+        } else {
+            return PHP_EOL;
+        }
     }
 
     private static function checkFileJob() {
@@ -115,29 +133,41 @@ class Diagnostics {
     private static function red($string, $add = PHP_EOL, $add_first = '· '): string {
         if(PHP_SAPI == 'cli')
             return "\033[" . "0;31m" . $add_first.$string . "\033[0m".$add;
-        else
-            return '<span style="color: red">'.$add_first.$string.'</span>';
+        else {
+            if($add == PHP_EOL)
+                $add = '<br>';
+            return '<span style="color: red">' . $add_first . $string . '</span>' . $add;
+        }
     }
 
     private static function green($string, $add = PHP_EOL, $add_first = '· '): string {
         if(PHP_SAPI == 'cli')
             return "\033[" . "0;32m" . $add_first.$string . "\033[0m".$add;
-        else
-            return '<span style="color: green">'.$add_first.$string.'</span>';
+        else {
+            if ($add == PHP_EOL)
+                $add = '<br>';
+            return '<span style="color: green">' . $add_first . $string . '</span>' . $add;
+        }
     }
 
     private static function cyan($string, $add = PHP_EOL, $add_first = '· '): string {
         if(PHP_SAPI == 'cli')
             return "\033[" . "0;36m" . $add_first.$string . "\033[0m".$add;
-        else
-            return '<span style="color: cyan">'.$add_first.$string.'</span>';
+        else {
+            if ($add == PHP_EOL)
+                $add = '<br>';
+            return '<span style="color: cyan">' . $add_first . $string . '</span>' . $add;
+        }
     }
 
     private static function yellow($string, $add = PHP_EOL, $add_first = '· '): string {
         if(PHP_SAPI == 'cli')
             return "\033[" . "1;33m" . $add_first.$string . "\033[0m".$add;
-        else
-            return '<span style="color: yellow">'.$add_first.$string.'</span>';
+        else {
+            if ($add == PHP_EOL)
+                $add = '<br>';
+            return '<span style="color: yellow">' . $add_first . $string . '</span>' . $add;
+        }
     }
 
     private static function webServerOrCli() {
