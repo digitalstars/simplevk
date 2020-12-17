@@ -72,18 +72,20 @@ require_once "simplevk-testing/autoload.php";
 ## Примеры ботов
 ### Минимальный Callback  
 > Бот отвечает на любое сообщение
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\SimpleVK as vk;
+use DigitalStars\simplevk\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
 $vk->msg('Привет, ~!fn~')->send();
 ```
-### Простой Callback  
+### Простой Callback
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\SimpleVK as vk;
+use DigitalStars\simplevk\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $data = $vk->initVars($peer_id, $user_id, $type, $message); //инициализация переменных из события
@@ -99,10 +101,11 @@ if($type == 'message_new') {
 > А еще можно указать логин и пароль от аккаунта:  
 > `new LongPoll(ЛОГИН, ПАРОЛЬ, '5.120');`  
 > Но советую создать токен вот по этому [гайду](https://vkhost.github.io/)
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\LongPoll;
+use DigitalStars\simplevk\LongPoll;
 $vk = LongPoll::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $vk->listen(function () use ($vk) {
@@ -115,19 +118,21 @@ $vk->listen(function () use ($vk) {
 });
 ```
 ### Минимальный Бот на конструкторе (Callback)
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\Bot;
+use DigitalStars\simplevk\Bot;
 $bot = Bot::create(ТОКЕН, '5.120');
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
 $bot->run(); //запускаем обработку события
 ```
 ### Минимальный Бот на конструкторе (LongPoll)
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\{Bot, LongPoll};
+use DigitalStars\simplevk\{Bot, LongPoll};
 $vk = LongPoll::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
@@ -136,10 +141,11 @@ $vk->listen(function () use ($bot) {
 });
 ```
 ### Бот с обработкой Команд на конструкторе (Callback)
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
+use DigitalStars\simplevk\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $bot = Bot::create($vk);
@@ -156,10 +162,11 @@ $bot->preg_cmd('more_word', "!\!напиши (.*)!")->func(function ($msg, $para
 $bot->run();
 ```
 ### Бот с обработкой Кнопок на конструкторе (Callback)
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
+use DigitalStars\simplevk\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $bot = Bot::create($vk);
@@ -170,10 +177,11 @@ $bot->btn('cat', 'Котик')->text('Вы выбрали Котика!')->img('
 $bot->run();
 ```
 ### Бот на конструкторе, с использованием хранилища (Callback)
+
 ```php
 <?php
 require_once "vendor/autoload.php";
-use DigitalStars\SimpleVK\{Bot, Store, SimpleVK as vk};
+use DigitalStars\simplevk\{Bot, Store, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
 $bot->cmd('cmd1', '!запомни %s')->text('Запомнил!')->func(function ($msg, $params) use ($vk) {
