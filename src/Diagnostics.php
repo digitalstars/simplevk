@@ -137,7 +137,7 @@ class Diagnostics {
         if(PHP_SAPI == 'cli')
             return "\033[" . "1;33m" . $add_first.$string . "\033[0m".$add;
         else
-            return '<span style="color: cyan">'.$add_first.$string.'</span>';
+            return '<span style="color: yellow">'.$add_first.$string.'</span>';
     }
 
     private static function webServerOrCli() {
