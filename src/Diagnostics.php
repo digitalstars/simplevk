@@ -65,7 +65,7 @@ class Diagnostics {
             //проверка заголовков
         }
 
-        if(PHP_SAPI != 'cli') {
+        if(PHP_SAPI != 'cli')
             self::$final_text .= $EOL.self::yellow("Не забудьте удалить скрипт, чтобы другие не смогли узнать информацию о вашем сервере (если скрипт доступен в сети)", $EOL, '');
 
         if(PHP_SAPI != 'cli') {
