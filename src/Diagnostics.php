@@ -65,19 +65,19 @@ class Diagnostics {
     }
 
     private static function checkFileJob() {
-        @rmdir('test_simplevk');
-        $result = @mkdir('test_simplevk');
+        @rmdir('test_simplevk357475');
+        $result = @mkdir('test_simplevk357475');
         if($result === false) {
-            self::$final_text .= self::red("Не удалось создать папку test_simplevk");
+            self::$final_text .= self::red("Не удалось создать папку test_simplevk357475");
         } else {
             self::$final_text .= self::green("Создание папок: разрешено");
-            $result = @file_put_contents('test_simplevk/test.txt', '123');
+            $result = @file_put_contents('test_simplevk357475/test.txt', '123');
             if($result === false) {
-                self::$final_text .= self::red("Не удалось создать файл ./test_simplevk/test.txt");
+                self::$final_text .= self::red("Не удалось создать файл ./test_simplevk357475/test.txt");
             } else {
                 self::$final_text .= self::green("Создание файлов: разрешено");
                 self::$canCreateFile = 1;
-                $result = @file_get_contents('test_simplevk/test.txt');
+                $result = @file_get_contents('test_simplevk357475/test.txt');
                 if($result === false) {
                     self::$final_text .= self::red("Чтение файлов: запрещено");
                 } else {
@@ -95,16 +95,16 @@ class Diagnostics {
     }
 
     private static function deleteTest() {
-        if(file_exists('test_simplevk/test.txt')) {
-            $result = @unlink('test_simplevk/test.txt');
+        if(file_exists('test_simplevk357475/test.txt')) {
+            $result = @unlink('test_simplevk357475/test.txt');
             if($result === false)
                 self::$final_text .= self::red("Удаление файлов: запрещено");
             else
                 self::$final_text .= self::green("Удаление файлов: разрешено");
         }
 
-        if(file_exists('test_simplevk')) {
-            $result = @rmdir('test_simplevk');
+        if(file_exists('test_simplevk357475')) {
+            $result = @rmdir('test_simplevk357475');
             if($result === false)
                 self::$final_text .= self::red("Удаление папок: запрещено");
             else
