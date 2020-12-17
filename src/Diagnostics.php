@@ -1,6 +1,7 @@
 <?php
-
 namespace DigitalStars\SimpleVK;
+
+require_once 'config_simplevk.php';
 
 class Diagnostics {
 
@@ -15,7 +16,7 @@ class Diagnostics {
             self::$final_text .= '<html><body bgcolor="black">';
         }
 
-        self::$final_text .= self::cyan("Диагностика системы для работы с SimpleVK", $EOL, '').$EOL;
+        self::$final_text .= self::cyan("Диагностика системы для работы с SimpleVK ".SIMPLEVK_VERSION, $EOL, '').$EOL;
         self::$final_text .= self::cyan("Информация о системе", $EOL, '');
 
         if(PHP_MAJOR_VERSION >= 7)
