@@ -334,7 +334,8 @@ class Diagnostics {
 
         if($ram_max && $ram_free) {
             return self::green("ОЗУ занято: ".($ram_max-$ram_free)." / ".$ram_max." GB");
-        }
+        } else
+            return self::yellow("Не удалось получить информацию об ОЗУ");
     }
 
     private static function num_cpus() {
