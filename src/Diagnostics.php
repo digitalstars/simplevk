@@ -379,5 +379,3 @@ class Diagnostics {
             return self::yellow("Не удалось получить количество ядер процессора");
     }
 }
-
-Diagnostics::run();
