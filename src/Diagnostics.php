@@ -14,7 +14,14 @@ class Diagnostics {
         $EOL = self::EOL();
 
         if (PHP_SAPI != 'cli') {
-            self::$final_text .= '<html><body style="background-color: black">';
+            if (isset($_GET['type']) && $_GET['type'] == 'check_send_ok')
+                exit(self::sendOK());
+            if (isset($_GET['type']) && $_GET['type'] == 'check_headers')
+                exit((isset($_SERVER['HTTP_RETRY_AFTER']) && $_SERVER['HTTP_RETRY_AFTER'] == 'test_1' &&
+                        isset($_SERVER['HTTP_X_RETRY_COUNTER']) && $_SERVER['HTTP_X_RETRY_COUNTER'] == 'test_2')
+                    ? 'ok' : 'no');
+            self::$final_text .= '<html><body style="background-color: black">' .
+                '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>';
         }
 
         self::$final_text .= self::cyan("Диагностика системы для работы с SimpleVK " . SIMPLEVK_VERSION, $EOL, '') . $EOL;
@@ -25,8 +32,7 @@ class Diagnostics {
         else
             self::$final_text .= self::red("PHP: " . PHP_VERSION);
 
-        list($type, $text) = self::webServerOrCli();
-        self::$final_text .= $text;
+        self::$final_text .= self::webServerOrCli();
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             self::$final_text .= self::yellow("ОС: " . PHP_OS . " (На Windows модули pcntl и posix недоступны, поэтому параллельный режим longpoll не будет работать)");
@@ -63,18 +69,73 @@ class Diagnostics {
 
         self::$final_text .= $EOL;
 
-        if ($type != 'cli') {
-            ;//проверка заголовков
-        }
-
-        if (PHP_SAPI != 'cli')
-            self::$final_text .= $EOL . self::yellow("Не забудьте удалить скрипт, чтобы другие не смогли узнать информацию о вашем сервере", $EOL, '');
-
         if (PHP_SAPI != 'cli') {
-            self::$final_text .= '</body></html>';
+            self::$final_text .= $EOL . self::cyan("Проверка sendOK и получение кастомных заголовков", $EOL, '') .
+                '<span id="test_send_ok" style="color: white">· Выполняется фоновая проверка...</span><br>' .
+                '<span id="test_check_header" style="color: white">· Выполняется фоновая проверка...</span><br>' .
+                $EOL . self::yellow("Не забудьте удалить скрипт, чтобы другие не смогли узнать информацию о вашем сервере", $EOL, '') .
+                '<script type="text/javascript">
+    $.ajax({
+      url: window.location.href,
+      data: "type=check_send_ok",
+      success: function (response) {
+        let test_send_ok = $("#test_send_ok");
+        if (response == "ok") {
+          test_send_ok.text("· sendOK работает");
+          test_send_ok.css("color", "green");
+        } else {
+          test_send_ok.text("· sendOK не работает на вашем веб сервере");
+          test_send_ok.css("color", "red");
+        }
+      }
+    });
+  $.ajax({
+      url: window.location.href,
+      data: "type=check_headers",
+      headers: {"Retry-After": "test_1", "X-Retry-Counter": "test_2"},
+      success: function (response) {
+        let test_headers = $("#test_check_header");
+        if (response == "ok") {
+          test_headers.text("· php получает кастомные заголовки");
+          test_headers.css("color", "green");
+        } else {
+          test_headers.text("· php не получает кастомные заголовки на вашем веб сервере");
+          test_headers.css("color", "red");
+        }
+      }
+    });
+</script>
+</body></html>';
         }
 
         print self::$final_text;
+    }
+
+    private static function sendOK() {
+        echo 'Test?';
+        set_time_limit(0);
+        ini_set('display_errors', 'Off');
+        ob_end_clean();
+
+        // для Nginx
+        if (is_callable('fastcgi_finish_request')) {
+            echo 'ok';
+            session_write_close();
+            fastcgi_finish_request();
+            return True;
+        }
+        // для Apache
+        ignore_user_abort(true);
+
+        PHP_EOL;
+        ob_start();
+        header('Content-Encoding: none');
+        header('Content-Length: 2');
+        header('Connection: close');
+        echo 'ok';
+        ob_end_flush();
+        flush();
+        return True;
     }
 
     private static function EOL() {
@@ -181,7 +242,7 @@ class Diagnostics {
         } else {
             $text = self::red("Запущен через: Веб-сервер, но DOCUMENT_ROOT и REQUEST_URI не удалось получить");
         }
-        return [PHP_SAPI, $text];
+        return $text;
     }
 
     private static function checkImportantModules() {
@@ -211,5 +272,3 @@ class Diagnostics {
         }
     }
 }
-
-Diagnostics::run();
