@@ -18,7 +18,7 @@ class Diagnostics {
                 exit(self::sendOK());
             if (isset($_GET['type']) && $_GET['type'] == 'check_headers')
                 exit((isset($_SERVER['HTTP_RETRY_AFTER']) && $_SERVER['HTTP_RETRY_AFTER'] == 'test_1' &&
-                        isset($_SERVER['HTTP_X_RETRY_COUNTER']) && $_SERVER['HTTP_X_RETRY_COUNTER'] == 'test_2')
+                    isset($_SERVER['HTTP_X_RETRY_COUNTER']) && $_SERVER['HTTP_X_RETRY_COUNTER'] == 'test_2')
                     ? 'ok' : 'no');
             self::$final_text .= '<html><body style="background-color: black">' .
                 '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>';
@@ -48,11 +48,15 @@ class Diagnostics {
             }
         }
 
+        self::$final_text .= self::num_cpus();
+        self::$final_text .= self::get_memory();
+
         if (is_callable('curl_init')) {
             self::$final_text .= self::green("CURL: доступен");
         } else {
             self::$final_text .= self::red("CURL: не доступен");
         }
+        self::$final_text .= self::testPingVK();
 
         self::$final_text .= $EOL . self::cyan("Проверка работы с файлами", $EOL, '');
 
@@ -70,7 +74,7 @@ class Diagnostics {
         self::$final_text .= $EOL;
 
         if (PHP_SAPI != 'cli') {
-            self::$final_text .= $EOL . self::cyan("Проверка sendOK и получение кастомных заголовков", $EOL, '') .
+            self::$final_text .= $EOL . self::cyan("Проверка работы с сетью", $EOL, '') .
                 '<span id="test_send_ok" style="color: white">· Выполняется фоновая проверка...</span><br>' .
                 '<span id="test_check_header" style="color: white">· Выполняется фоновая проверка...</span><br>' .
                 $EOL . self::yellow("Не забудьте удалить скрипт, чтобы другие не смогли узнать информацию о вашем сервере", $EOL, '') .
@@ -81,10 +85,10 @@ class Diagnostics {
       success: function (response) {
         let test_send_ok = $("#test_send_ok");
         if (response == "ok") {
-          test_send_ok.text("· sendOK работает");
+          test_send_ok.text("· PHP может изменять заголовки ответа");
           test_send_ok.css("color", "green");
         } else {
-          test_send_ok.text("· sendOK не работает на вашем веб сервере");
+          test_send_ok.text("· PHP не может изменять заголовки ответа. sendOK() не работает");
           test_send_ok.css("color", "red");
         }
       }
@@ -96,10 +100,10 @@ class Diagnostics {
       success: function (response) {
         let test_headers = $("#test_check_header");
         if (response == "ok") {
-          test_headers.text("· php получает кастомные заголовки");
+          test_headers.text("· PHP получает кастомные заголовки");
           test_headers.css("color", "green");
         } else {
-          test_headers.text("· php не получает кастомные заголовки на вашем веб сервере");
+          test_headers.text("· PHP не получает кастомные заголовки на этом веб-сервере");
           test_headers.css("color", "red");
         }
       }
@@ -270,5 +274,106 @@ class Diagnostics {
         } else {
             self::$final_text .= self::red($name, ', ', '');
         }
+    }
+
+    private static function testPingVK() {
+        if (function_exists('curl_init')) {
+            $arr = [];
+            $ch = curl_init();
+            for ($i = 0; $i < 15; $i++) {
+                curl_setopt($ch, CURLOPT_URL, 'api.vk.com');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                $check = curl_exec($ch);
+                if($check === false) {
+                    print self::red("Не удалось выполнить сетевой запрос через curl, возможно проблемы с сетью");
+                    return;
+                }
+                $info = curl_getinfo($ch);
+                if($i>5)
+                    $arr[] = $info['total_time'];
+            }
+            curl_close($ch);
+            $ms = round(array_sum($arr)/count($arr)*1000, 1);
+            if($ms <= 40)
+                return self::green("Пинг до api.vk.com: {$ms}мс");
+            else if($ms > 40 && $ms < 100)
+                return self::yellow("Пинг до api.vk.com: {$ms}мс");
+            else
+                return self::red("Пинг до api.vk.com: {$ms}мс");
+        }
+    }
+
+    private static function get_memory() {
+        $ram_max = 0;
+        $ram_free = 0;
+
+        if ('WIN' == strtoupper(substr(PHP_OS, 0, 3))) {
+            @exec("wmic OS get TotalVisibleMemorySize" . " 2>&1", $s);
+            $ram_max = isset($s[1]) ? round(((int)$s[1])/1024/1024, 2) : 0;
+
+            @exec('wmic OS get FreePhysicalMemory /Value 2>&1', $output, $return);
+            $ram_free = substr($output[2],19);
+            $ram_free = round($ram_free/1024/1024,2);
+        } else {
+            $meminfo_text = @file_get_contents("/proc/meminfo");
+            if($meminfo_text !== false) {
+                $data = explode("\n", $meminfo_text);
+                $meminfo = [];
+                foreach ($data as $line) {
+                    list($key, $val) = @explode(":", $line);
+                    $val = explode(' ',trim($val))[0] ?? null;
+                    if($val)
+                        $meminfo[$key] = round($val/1024/1024,2);
+                }
+            }
+            $ram_max = $meminfo['MemTotal'] ?? null;
+            $ram_free = $meminfo['MemAvailable'] ?? null;
+        }
+
+        if($ram_max && $ram_free) {
+            return self::green("ОЗУ занято: ".($ram_max-$ram_free)." / ".$ram_max." GB");
+        }
+    }
+
+    private static function num_cpus() {
+        $numCpus = 0;
+
+        if ('WIN' == strtoupper(substr(PHP_OS, 0, 3))) {
+            $process = @popen('wmic cpu get NumberOfCores', 'rb');
+
+            if (false !== $process) {
+                @fgets($process);
+                $numCpus = intval(@fgets($process));
+
+                @pclose($process);
+            }
+        } else {
+            if (@is_file('/proc/cpuinfo')) {
+                $cpuinfo = @file_get_contents('/proc/cpuinfo');
+                preg_match_all('/^processor/m', $cpuinfo, $matches);
+
+                $numCpus = count($matches[0]);
+            } else {
+                $process = @popen('sysctl -a', 'rb');
+
+                if (false !== $process) {
+                    $output = @stream_get_contents($process);
+
+                    preg_match('/hw.ncpu: (\d+)/', $output, $matches);
+                    if ($matches) {
+                        $numCpus = intval($matches[1][0]);
+                    }
+
+                    @pclose($process);
+                }
+            }
+        }
+
+        if($numCpus != 0)
+            return self::green("Количество ядер процессора: ".$numCpus);
+        else
+            return self::yellow("Не удалось получить количество ядер процессора");
     }
 }
