@@ -287,8 +287,7 @@ class Diagnostics {
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
                 $check = curl_exec($ch);
                 if($check === false) {
-                    print self::red("Не удалось выполнить сетевой запрос через curl, возможно проблемы с сетью");
-                    return;
+                    return self::red("Не удалось выполнить сетевой запрос через curl, возможно проблемы с сетью");
                 }
                 $info = curl_getinfo($ch);
                 if($i>5)
