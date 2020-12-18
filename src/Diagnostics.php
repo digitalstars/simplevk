@@ -322,7 +322,9 @@ class Diagnostics {
                 $data = explode("\n", $meminfo_text);
                 $meminfo = [];
                 foreach ($data as $line) {
-                    list($key, $val) = @explode(":", $line);
+                    $ex = @explode(":", $line);
+                    $key = $ex[0] ?? null;
+                    $val = $ex[1] ?? null;
                     $val = explode(' ',trim($val))[0] ?? null;
                     if($val)
                         $meminfo[$key] = round($val/1024/1024,2);
@@ -378,3 +380,5 @@ class Diagnostics {
             return self::yellow("Не удалось получить количество ядер процессора");
     }
 }
+
+Diagnostics::run();
