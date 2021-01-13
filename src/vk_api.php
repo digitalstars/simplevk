@@ -190,7 +190,6 @@ class vk_api {
             $id = isset($this->data->object->from_id) ? $this->data->object->from_id : null;
         }
         if($id == null) {
-            print "Попытка использовать заполнители при передаче id беседы";
             return $message;
         } else {
             if (strpos($message, '%') !== false) {
