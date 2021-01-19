@@ -56,6 +56,9 @@ class Diagnostics {
         } else {
             self::$final_text .= self::red("CURL: не доступен");
         }
+        if (PHP_SAPI != 'cli') {
+            self::$final_text .= '<span id="test_server" style="color: white">· Веб-сервер: Выполняется фоновая проверка...</span><br>';
+        }
         self::$final_text .= self::testPingVK();
 
         self::$final_text .= $EOL . self::cyan("Проверка работы с файлами", $EOL, '');
@@ -82,14 +85,23 @@ class Diagnostics {
     $.ajax({
       url: window.location.href,
       data: "type=check_send_ok",
-      success: function (response) {
-        let test_send_ok = $("#test_send_ok");
+      success: function (response, status, xhr) {
+        let test_send_ok = $("#test_send_ok"), 
+            test_server = $("#test_server")
+            server = xhr.getResponseHeader("server");
         if (response == "ok") {
-          test_send_ok.text("· PHP может изменять заголовки ответа");
+          test_send_ok.text("· PHP может разрывать соединение с вк");
           test_send_ok.css("color", "green");
         } else {
-          test_send_ok.text("· PHP не может изменять заголовки ответа. sendOK() не работает");
+          test_send_ok.text("· PHP не может разрывать соединение с вк. sendOK() не работает");
           test_send_ok.css("color", "red");
+        }
+        if (server) {
+          test_server.text("· Веб-сервер: " + server);
+          test_server.css("color", "green");
+        } else {
+          test_server.text("· Веб-сервер: Нет данных");
+          test_server.css("color", "red");
         }
       }
     });

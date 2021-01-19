@@ -161,7 +161,7 @@ $vk->listen(function () use ($bot) {
 require_once "vendor/autoload.php";
 use DigitalStars\simplevk\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
-$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
+$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникшие в скрипте
 $bot = Bot::create($vk);
 //отправит картинку с текстом
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
@@ -182,7 +182,7 @@ $bot->run();
 require_once "vendor/autoload.php";
 use DigitalStars\simplevk\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
-$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
+$vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникшие в скрипте
 $bot = Bot::create($vk);
 $bot->redirect('other', 'first'); //если пришла неизвестная кнопка/текст, то выполняем first
 $bot->cmd('first')->kbd([['fish', 'cat']])->text('Выберите животное:'); //срабатывает при нажатии кнопки Начать
