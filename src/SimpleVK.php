@@ -135,6 +135,8 @@ class SimpleVK {
             return null;
         $result = [];
         foreach ($data['object']['attachments'] as $attachment) {
+            if(isset($attachment['attach1_type'])) //TODO временная заглушка для user longpoll
+                return null;
             $type = $attachment['type'];
             $attachment = $attachment[$type];
             if (isset($attachment['sizes'])) {
