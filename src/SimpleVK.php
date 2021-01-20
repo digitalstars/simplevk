@@ -136,7 +136,9 @@ class SimpleVK {
         $result = [];
         if(isset($data['object']['attachments']['attach1_type'])) //TODO временная заглушка для user longpoll
             return null;
-        foreach ($data['object']['attachments'] as $attachment) {
+        foreach ($data['object']['attachments'] as $key => $attachment) {
+            if($key == 'attach1_type') //TODO временная заглушка для user longpoll
+                return null;
             $type = $attachment['type'];
             $attachment = $attachment[$type];
             if (isset($attachment['sizes'])) {
@@ -635,10 +637,6 @@ class SimpleVK {
     }
 
     protected function sendOK() {
-        if (empty($_SERVER['SERVER_SIGNATURE'])) {
-            throw new Exception("Текущий веб-сервер не поддерживает изменение заголовков. 
-                SimpleVK не может нормально работать на этом сервере/хостинге.", 0);
-        }
         set_time_limit(0);
         ini_set('display_errors', 'Off');
         ob_end_clean();
