@@ -232,6 +232,7 @@ class Message extends BaseConstructor {
     }
 
     private function parseKbd($kbd) {
+        $kbd_result = null;
         foreach ($kbd as $row_index => $row)
             foreach ($row as $col_index => $col) {
                 if (!is_string($col)) {
@@ -350,17 +351,14 @@ class Message extends BaseConstructor {
         } else
             $template = [];
 
-        if (isset($this->buttons) and !empty($this->config['kbd']['kbd']))
-            $kbd = $this->parseKbd($this->config['kbd']['kbd']);
-
-        $kbd = $kbd ?? ($this->config['kbd']['kbd'] ?? null);
-        $kbd = !is_null($kbd)
-            ? ['keyboard' => json_encode([
-                    'one_time' => $this->config['kbd']['one_time'],
-                    'buttons' => $this->parseKeyboard($kbd),
-                    'inline' => $this->config['kbd']['inline']
-                ], JSON_UNESCAPED_UNICODE)]
-            : [];
+        if (!empty($this->config['kbd']['kbd']))
+            $kbd = ['keyboard' => json_encode([
+                'one_time' => $this->config['kbd']['one_time'],
+                'buttons' => $this->parseKeyboard($this->parseKbd($this->config['kbd']['kbd'])),
+                'inline' => $this->config['kbd']['inline']
+            ], JSON_UNESCAPED_UNICODE)];
+        else
+            $kbd = [];
 
         $params = $this->config['params'] ?? [];
 
