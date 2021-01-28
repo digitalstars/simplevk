@@ -9,6 +9,7 @@ class LongPoll extends SimpleVK {
     private $ts;
     private $auth_type;
     private $is_multi_thread = false;
+    private $event_flags = [];
     public static $use_user_long_poll = 0;
 
     public function __construct($token, $version, $also_version = null) {
@@ -44,7 +45,8 @@ class LongPoll extends SimpleVK {
         while ($data = $this->processingData()) {
             foreach ($data['updates'] as $event) {
                 if ($this->is_multi_thread) {
-                    while (pcntl_wait($status, WNOHANG | WUNTRACED) > 0) {}
+                    while (pcntl_wait($status, WNOHANG | WUNTRACED) > 0) {
+                    }
                     $pid = pcntl_fork();
                 } else
                     $pid = 0;
@@ -112,7 +114,7 @@ class LongPoll extends SimpleVK {
         $default_params = ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' => 25];
         try {
             if ($this->auth_type == 'user') {
-                $params = ['mode' => 490, 'version' => 10];
+                $params = ['mode' => 2 | 8 | 32 | 64 | 128, 'version' => 10];
                 $data = $this->request_core_lp('https://' . $this->server . '?', $default_params + $params);
             } else {
                 $data = $this->request_core_lp($this->server . '?', $default_params);
@@ -161,41 +163,119 @@ class LongPoll extends SimpleVK {
         return $result;
     }
 
-    private function userLongPoll($anon) {
-        $data = $this->data;
-        switch ($data[0]) {
-            case 4:
-            { //входящее сообщение
-                if (!$this->checkFlags(2)) { //не обрабатывать, если это исходящее
-                    $this->data = [];
-                    $this->data['object']['id'] = $data[1] ?? null;
-                    $this->data['object']['peer_id'] = $data[3] ?? null;
-                    $this->data['object']['date'] = $data[4] ?? null;
-                    $this->data['object']['text'] = $data[5] ?? null;
-                    $this->data['object']['attachments'] = $data[7] ?? null;
-                    $this->data['object']['random_id'] = (isset($data[8]) && !empty($data[8])) ? $data[8] : null;
-                    $this->data['object']['conversation_message_id'] = $data[9] ?? null;
-                    $this->data['object']['from_id'] = isset($data[6]['from']) ? $data[6]['from'] : $this->data['object']['peer_id'];
-                    $this->data['type'] = 'message_new';
-                    $this->data_backup = $this->data;
-                    $anon($data);
-                }
-                break;
-            }
-            default:
-            {
-                $anon($data);
-            }
-        }
+    function print2($var) {
+        print $var . PHP_EOL;
     }
 
-    private function checkFlags($flag) {
-        $all = [];
+//    private function parseBeginningMessageStruct($data) {
+//        $this->data['object']['id'] = $data[1];
+//        $this->data['object']['peer_id'] = $data[3];
+//        $this->data_backup = $this->data;
+//    }
+
+    private function userLongPoll($anon) {
         $data = $this->data;
-        foreach ([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 65536] as $key) {
-            if ($data[2] & $key)
-                $all[] = $key;
+        $this->data = [];
+        if(isset($data[2]))
+            $this->initFlags($data[2]);
+        switch ($data[0]) {
+            case 2:
+            { //Установка флагов сообщения
+                $this->data['type'] = 'set_message_flags';
+                $this->parseMessageStruct($data);
+                $this->data['flags']['important'] = $this->flag(3);
+                $this->data['flags']['spam'] = $this->flag(6);
+                $this->data['flags']['deleted'] = $this->flag(7);
+                $this->data['flags']['deleted_all'] = (int) ($this->flag(7) && $this->flag(17));
+                $this->data['flags']['audio_listened'] = $this->flag(12);
+                break;
+            }
+            case 3:
+            { //Сбор флагов сообщения
+                $this->data['type'] = 'unset_message_flags';
+                $this->parseMessageStruct($data);
+                $this->data['flags']['important'] = $this->flag(3);
+                $this->data['flags']['cancel_spam'] = (int) ($this->flag(6) && $this->flag(15));
+                $this->data['flags']['deleted'] = $this->flag(7);
+                break;
+            }
+            case 4:
+            { //входящее/исходящее сообщение
+                $this->data['type'] = $this->flag(1) ? "message_reply" : "message_new";
+                $this->parseMessageStruct($data);
+                $this->parseMessageFlags();
+                break;
+            }
+            case 5:
+            { //редактирование сообщения
+                $this->data['type'] = 'message_edit';
+                $this->parseMessageStruct($data);
+                $this->parseMessageFlags();
+                break;
+            }
+            case 18:
+            { //добавление сниппсета к сообщению
+                $this->data['type'] = 'vk_add_snippet';
+                $this->parseMessageStruct($data);
+                $this->parseMessageFlags();
+                break;
+            }
         }
-        return (!in_array($flag, $all)) ? false : true;
+        if($data[0] == 4) {
+//            print_r($data);
+            print_r($this->data);
+        }
+        $this->data_backup = $this->data;
+        $anon($data);
+    }
+
+    private function parseMessageFlags() {
+        $this->data['flags']['unread'] = $this->flag(0);
+        $this->data['flags']['chat'] = $this->flag(4);
+        $this->data['flags']['friends'] = $this->flag(5);
+        $this->data['flags']['chat2'] = $this->flag(13);
+        $this->data['flags']['hidden'] = $this->flag(16);
+        $this->data['flags']['chat_in'] = $this->flag(19);
+        $this->data['flags']['silent'] = $this->flag(20);
+        $this->data['flags']['reply_msg'] = $this->flag(21);
+    }
+
+    private function parseMessageStruct($data) {
+        $this->data['object']['id'] = $data[1] ?? null;
+        $this->data['object']['peer_id'] = $data[3] ?? null;
+        if(isset($data[4])) {
+            $this->data['object']['date'] = $data[4] ?? null;
+            $this->data['object']['text'] = $data[5] ?? null;
+            $this->data['object']['from_id'] = $data[6]['from'] ?? $this->data['object']['peer_id'];
+
+            if(isset($data[6]['source_act'])) {
+                $this->data['object']['source'] = $data[6];
+            } else {
+                $this->data['object']['temp']['emoji'] = $data[6]['emoji'] ?? null;
+                $this->data['object']['temp']['marked_users'] = $data[6]['marked_users'][0][1] ?? null;
+                $this->data['object']['temp']['keyboard'] = $data[6]['keyboard'] ?? null;
+                $this->data['object']['temp']['expire_ttl'] = $data[6]['expire_ttl'] ?? null;
+                $this->data['object']['temp']['ttl'] = $data[6]['ttl'] ?? null;
+                $this->data['object']['temp']['is_expired'] = $data[6]['is_expired'] ?? null;
+            }
+
+            $this->data['object']['attachments'] = $data[7] ?? null;
+            $this->data['object']['random_id'] = (isset($data[8]) && !empty($data[8])) ? $data[8] : null;
+            $this->data['object']['conversation_message_id'] = $data[9] ?? null;
+            $this->data['object']['edit_time'] = $data[10] ?? null; // 0 (не редактировалось) или timestamp (время редактирования)
+        }
+        $this->data_backup = $this->data;
+    }
+
+    private function initFlags($data) {
+        $flags = str_split(strrev(decbin($data)));
+        array_walk($flags, function ($key, $sym) {
+            return $sym * 2 ^ $key;
+        });
+        $this->event_flags = $flags;
+    }
+
+    private function flag($f) {
+        return $this->event_flags[$f] ?? 0;
     }
 }

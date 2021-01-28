@@ -266,9 +266,10 @@ class Diagnostics {
         self::module('curl');
         self::module('json');
         self::module('mbstring');
-        if (PHP_SAPI == 'cli')
+        if (PHP_SAPI == 'cli') {
             self::module('pcntl');
-        self::module('posix');
+            self::module('posix');
+        }
         self::module('fileinfo');
         self::module('iconv');
     }
