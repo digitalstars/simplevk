@@ -223,7 +223,7 @@ class LongPoll extends SimpleVK {
         }
         if($data[0] == 4) {
 //            print_r($data);
-            print_r($this->data);
+//            print_r($this->data);
         }
         $this->data_backup = $this->data;
         $anon($data);
