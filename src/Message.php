@@ -240,7 +240,7 @@ class Message extends BaseConstructor {
                     continue;
                 }
                 if (!isset($this->buttons[$col]))
-                    throw new SimpleVkException(0, "Кнопки с id " . $col . " не существует");
+                    throw new SimpleVkException(0, "Кнопки с id " . $col . " не найдена. Возможно вы используете для отправки сообщения не тот экземпляр класса, в котором была создана эта кнопка.");
                 $btn = $this->buttons[$col];
                 $payload = ['name' => $col];
                 if (is_array($btn[1]))
