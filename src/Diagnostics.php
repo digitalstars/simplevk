@@ -50,6 +50,7 @@ class Diagnostics {
 
         self::$final_text .= self::num_cpus();
         self::$final_text .= self::get_memory();
+        self::$final_text .= self::get_memory(2);
 
         if (is_callable('curl_init')) {
             self::$final_text .= self::green("CURL: доступен");
@@ -316,17 +317,19 @@ class Diagnostics {
         }
     }
 
-    private static function get_memory() {
-        $ram_max = 0;
-        $ram_free = 0;
-
-        if ('WIN' == strtoupper(substr(PHP_OS, 0, 3))) {
+    private static function get_memory($type = 1) {
+        if ('WIN' == strtoupper(substr(PHP_OS, 0, 3)) && $type === 1) {
             @exec("wmic OS get TotalVisibleMemorySize" . " 2>&1", $s);
             $ram_max = isset($s[1]) ? round(((int)$s[1])/1024/1024, 2) : 0;
 
             @exec('wmic OS get FreePhysicalMemory /Value 2>&1', $output, $return);
             $ram_free = substr($output[2],19);
             $ram_free = round($ram_free/1024/1024,2);
+
+            if($ram_max && $ram_free)
+                return self::green("ОЗУ занято: $ram_free / $ram_max GB");
+            else
+                return self::yellow("Не удалось получить информацию об ОЗУ");
         } else {
             $meminfo_text = @file_get_contents("/proc/meminfo");
             if($meminfo_text !== false) {
@@ -338,17 +341,25 @@ class Diagnostics {
                     $val = $ex[1] ?? null;
                     $val = explode(' ',trim($val))[0] ?? null;
                     if($val)
-                        $meminfo[$key] = round($val/1024/1024,2);
+                        $meminfo[$key] = $val;
                 }
             }
             $ram_max = $meminfo['MemTotal'] ?? null;
-            $ram_free = $meminfo['MemAvailable'] ?? null;
-        }
+            $ram_buffers = $meminfo['Buffers'] ?? null;
+            $ram_cached = $meminfo['Cached'] ?? null;
+            $ram_active = $meminfo['Active'] ?? null;
 
-        if($ram_max && $ram_free) {
-            return self::green("ОЗУ занято: ".($ram_max-$ram_free)." / ".$ram_max." GB");
-        } else
-            return self::yellow("Не удалось получить информацию об ОЗУ");
+            if($ram_max && $ram_buffers && $ram_cached && $ram_active) {
+                $ram_free = round(($ram_buffers+$ram_active)/1024/1024,2);
+                $ram_free2 = round(($ram_buffers+$ram_active+$ram_cached)/1024/1024,2);
+                $ram_max = round($ram_max/1024/1024,2);
+                if($type === 1)
+                    return self::green("ОЗУ занято: $ram_free / $ram_max GB (".(round($ram_free / $ram_max * 100))."%) (без учета cached)");
+                else
+                    return self::green("ОЗУ занято: $ram_free2 / $ram_max GB (".(round($ram_free2 / $ram_max * 100))."%) (с учетом cached)");
+            } else
+                return self::yellow("Не удалось получить информацию об ОЗУ");
+        }
     }
 
     private static function num_cpus() {
