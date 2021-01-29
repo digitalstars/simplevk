@@ -232,7 +232,7 @@ class Message extends BaseConstructor {
     }
 
     private function parseKbd($kbd) {
-        $kbd_result = null;
+        $kbd_result = $kbd;
         foreach ($kbd as $row_index => $row)
             foreach ($row as $col_index => $col) {
                 if (!is_string($col)) {
@@ -351,7 +351,7 @@ class Message extends BaseConstructor {
         } else
             $template = [];
 
-        if (!empty($this->config['kbd']['kbd']))
+        if (isset($this->config['kbd']['kbd']))
             $kbd = ['keyboard' => json_encode([
                 'one_time' => $this->config['kbd']['one_time'],
                 'buttons' => $this->parseKeyboard($this->parseKbd($this->config['kbd']['kbd'])),
