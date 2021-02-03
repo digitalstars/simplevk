@@ -633,7 +633,8 @@ class SimpleVK {
     protected function sendOK() {
         set_time_limit(0);
         ini_set('display_errors', 'Off');
-        ob_end_clean();
+        if(ob_get_contents())
+            ob_end_clean();
 
         // для Nginx
         if (is_callable('fastcgi_finish_request')) {
@@ -646,7 +647,6 @@ class SimpleVK {
         // для Apache
         ignore_user_abort(true);
 
-        PHP_EOL;
         ob_start();
         header('Content-Encoding: none');
         header('Content-Length: 2');
