@@ -4,7 +4,7 @@ namespace DigitalStars\SimpleVK;
 
 const SIMPLEVK_VERSION = '3.0.0';
 // массив кодов ошибок ВК, при которых сообщение об ошибке игнорируется и отправляется повторный запрос к api (может уйти в рекурсию)
-const REQUEST_IGNORE_ERROR = [1, 6, 9, 10, 14];
+const REQUEST_IGNORE_ERROR = [1, 6, 9, 10, 14, 38];
 // максимальное количество попыток загрузки файла
 const COUNT_TRY_SEND_FILE = 5;
 // Прокси по умолчанию

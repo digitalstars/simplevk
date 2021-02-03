@@ -610,13 +610,7 @@ class SimpleVK {
             $result = json_decode(curl_exec($ch), True);
             curl_close($ch);
         } else {
-            $result = json_decode(file_get_contents($url, true, stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                    'content' => http_build_query($params)
-                ]
-            ])), true);
+            throw new SimpleVkException(77777, 'Curl недоступен. Не удается выполнить запрос');
         }
         if (!isset($result)) {
             throw new SimpleVkException(77777, 'Запрос к вк вернул пустоту.');
