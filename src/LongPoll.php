@@ -268,6 +268,7 @@ class LongPoll extends SimpleVK {
     }
 
     private function initFlags($data) {
+        $data = is_array($data) ? $data[0] : $data;
         $flags = str_split(strrev(decbin($data)));
         array_walk($flags, function ($key, $sym) {
             return $sym * 2 ^ $key;
