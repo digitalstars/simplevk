@@ -8,13 +8,21 @@ use Throwable;
 require_once('config_simplevk.php');
 
 class SimpleVkException extends Exception {
+    /**
+     * Логирование ошибок в файл
+     * @var true
+     */
+    private static $write_error = true;
+
     public function __construct($code, $message, Throwable $previous = null) {
-        if (!is_dir(DIRNAME . '/error')) {
-            if (mkdir(DIRNAME . '/error')) {
+        if(self::$write_error === true) {
+            if (!is_dir(DIRNAME . '/error')) {
+                if (mkdir(DIRNAME . '/error')) {
+                    $this->printError($code, $message);
+                }
+            } else
                 $this->printError($code, $message);
-            }
-        } else
-            $this->printError($code, $message);
+        }
         parent::__construct(PHP_EOL . PHP_EOL . "CODE: $code" . PHP_EOL . "MESSAGE: $message" . PHP_EOL . PHP_EOL, $code, $previous);
     }
 
@@ -61,5 +69,13 @@ class SimpleVkException extends Exception {
     private static function createNewLogFile($path) {
         if (!file_exists($path))
             file_put_contents($path, "<?php http_response_code(404);exit(\"404\");?>\r\nLOGS:\r\n\r\n");
+    }
+
+    /**
+     * Выключить логирование ошибок в файл
+     * По умолчанию ошибки записываются
+     */
+    public static function disableWriteError(){
+        self::$write_error = false;
     }
 }
