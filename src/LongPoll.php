@@ -13,6 +13,7 @@ class LongPoll extends SimpleVK {
     public static $use_user_long_poll = 0;
 
     public function __construct($token, $version, $also_version = null) {
+        if (php_sapi_name() !== "cli") throw new SimpleVkException(0, "Запуск longpoll возможен только в cli");
         $this->processAuth($token, $version, $also_version);
         $data = $this->userInfo();
         if ($data != false || self::$use_user_long_poll) {
