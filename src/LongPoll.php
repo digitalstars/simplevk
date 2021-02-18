@@ -13,7 +13,7 @@ class LongPoll extends SimpleVK {
     public static $use_user_long_poll = 0;
 
     public function __construct($token, $version, $also_version = null) {
-        if (php_sapi_name() !== "cli") throw new SimpleVkException(0, "Запуск longpoll возможен только в cli");
+        if (php_sapi_name() !== "cli") die("Запуск longpoll возможен только в cli");
         $this->multiThread();
         $this->processAuth($token, $version, $also_version);
         $data = $this->userInfo();
@@ -42,7 +42,7 @@ class LongPoll extends SimpleVK {
      */
     private function multiThread()
     {
-        is_callable('pcntl_fork') ? $this->is_multi_thread = true : $this->is_multi_thread = false;
+        extension_loaded('posix') and extension_loaded('pcntl') ? $this->is_multi_thread = true : $this->is_multi_thread = false;
     }
 
     public function listen($anon) {
