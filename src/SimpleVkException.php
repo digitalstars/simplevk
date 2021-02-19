@@ -23,6 +23,7 @@ class SimpleVkException extends Exception {
             } else
                 $this->printError($code, $message);
         }
+
         parent::__construct(PHP_EOL . PHP_EOL . "CODE: $code" . PHP_EOL . "MESSAGE: $message" . PHP_EOL . PHP_EOL, $code, $previous);
     }
 

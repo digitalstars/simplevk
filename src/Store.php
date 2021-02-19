@@ -34,7 +34,7 @@ class Store {
             if ($this->is_writable) {
                 ftruncate($this->file, 0);
                 rewind($this->file);
-                fwrite($this->file, "<?php http_response_code(404);exit('404');?>\n" . json_encode($this->data));
+                fwrite($this->file, "<?php http_response_code(404);exit('404');?>\n" . json_encode($this->data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             }
         }
         if (!flock($this->file, LOCK_SH))

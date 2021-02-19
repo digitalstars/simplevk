@@ -8,7 +8,7 @@ vk::setProxy("socks4://149.56.1.48:8181");  // Задаём прокси
 $auth = Auth::create('LOGIN', 'PASS')           // Авторизация через пользователя
 ->app('ios')                        // Через официальное приложение для ios
 ->captchaHandler(function ($sid, $img) {    // Отлов каптчи при авторизации
-    echo "\nIMG: $img\n";
+//    echo "\nIMG: $img\n";
     return trim(fgets(STDIN));      // Ожидание и ввод из консоли решения каптчи
 });
 

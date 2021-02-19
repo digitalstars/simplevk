@@ -258,7 +258,7 @@ class Message extends BaseConstructor {
             foreach ($button_str as $col => $button) {
                 $keyboard[$row][$col]['action']['type'] = $button[0];
                 if ($button[1] != null)
-                    $keyboard[$row][$col]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE);
+                    $keyboard[$row][$col]['action']['payload'] = json_encode($button[1], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 switch ($button[0]) {
                     case 'callback':
                     case 'text':
@@ -316,7 +316,7 @@ class Message extends BaseConstructor {
                 $element['photo_id'] = str_replace('photo', '', $this->getMsgAttachmentUploadImage($id, $carousel['img']));
             $template['elements'][] = $element;
         }
-        return json_encode($template, JSON_UNESCAPED_UNICODE);
+        return json_encode($template, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     private function assembleMsg($id, $var) {

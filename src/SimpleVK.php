@@ -495,7 +495,7 @@ class SimpleVK {
                 } else if ($e->getCode() == 77777) {
                     if ($iteration == 5) {
                         $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
-                                  Метод:$method\nПараметры:\n" . json_encode($params);
+                                  Метод:$method\nПараметры:\n" . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                         throw new SimpleVkException(77777, $error_message);
                     }
                     continue;
@@ -636,7 +636,13 @@ class SimpleVK {
             throw new SimpleVkException(77777, 'Запрос к вк вернул пустоту.');
         }
         if (isset($result['error'])) {
-            throw new SimpleVkException($result['error']['error_code'], json_encode($result));
+            unset($params['access_token']);
+//            if(isset($params['keyboard'])) {
+//                $params['keyboard'] = $params['keyboard'];
+//            }
+            $result['error']['request_params'] = $params;
+            $result =  $result['error'];
+            throw new SimpleVkException($result['error_code'], print_r($result, 1).PHP_EOL);
         }
         if (isset($result['response']))
             return $result['response'];

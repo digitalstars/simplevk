@@ -137,7 +137,7 @@ class Streaming {
             throw new SimpleVkException(77777, 'Вк вернул пустой ответ');
         }
         if ($result['code'] == 400) {
-            throw new SimpleVkException($result['code'], json_encode($result));
+            throw new SimpleVkException($result['code'], json_encode($result, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
         return $result;
     }

@@ -116,7 +116,7 @@ class Auth {
     public function dumpCookie() {
         if ($this->cookie == null or $this->method == 1)
             return false;
-        return json_encode($this->cookie);
+        return json_encode($this->cookie, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function isAuth() {
@@ -224,7 +224,7 @@ class Auth {
                     [$response_auth['captcha_sid'], $response_auth['captcha_img']]), $response_auth['captcha_sid']);
         }
         if (isset($response_auth['error']))
-            throw new SimpleVkException(0, json_encode($response_auth));
+            throw new SimpleVkException(0, json_encode($response_auth, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     private function saveCashed() {
