@@ -93,9 +93,12 @@ trait FileUploader {
     }
 
     public function getMsgAttachmentUploadDoc($id, $local_file_path, $title = null) {
-        if (!isset($title))
-            $title = preg_replace("!.*?/!", '', $local_file_path);
-        $upload_url = $this->getUploadServerMessages($id)['upload_url'];
+        return $this->uploadDoc($this->getUploadServerMessages($id)['upload_url'], $local_file_path, $title);
+    }
+
+    private function uploadDoc(string $upload_url, string $local_file_path, $title = null)
+    {
+        !isset($title) ?: $title = preg_replace("!.*?/!", '', $local_file_path);
         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
             try {
                 $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
@@ -121,22 +124,7 @@ trait FileUploader {
     }
 
     public function getWallAttachmentUploadDoc($id, $local_file_path, $title = null) {
-        if (!isset($title))
-            $title = preg_replace("!.*?/!", '', $local_file_path);
-        $upload_url = $this->getUploadServerPost($id)['upload_url'];
-        for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
-            try {
-                $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
-                return $this->saveDocuments($answer_vk['file'], $title);
-            } catch (SimpleVkException $e) {
-                sleep(1);
-                $exception = json_decode($e->getMessage(), true);
-                if ($exception['error']['error_code'] != 121)
-                    throw new SimpleVkException($exception['error']['error_code'], $e->getMessage());
-            }
-        }
-        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
-        return $this->saveDocuments($answer_vk['file'], $title);
+        return $this->uploadDoc($this->getUploadServerPost($id)['upload_url'], $local_file_path, $title);
     }
 
     private function savePhotoWall($photo, $server, $hash, $id) {
