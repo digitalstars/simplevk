@@ -64,6 +64,12 @@ class Diagnostics {
 
         self::$final_text .= $EOL . self::cyan("Проверка работы с файлами", $EOL, '');
 
+        if(ini_get('open_basedir')) {
+            self::$final_text .= self::red("open_basedir != none. Из-за этого могут быть ошибки.");
+        } else {
+            self::$final_text .= self::green("open_basedir == none");
+        }
+
         self::checkFileJob();
 
 
@@ -94,7 +100,7 @@ class Diagnostics {
           test_send_ok.text("· PHP может разрывать соединение с вк");
           test_send_ok.css("color", "green");
         } else {
-          test_send_ok.text("· PHP не может разрывать соединение с вк. sendOK() не работает");
+          test_send_ok.text("· PHP не может разрывать соединение с ВК. sendOK() не работает");
           test_send_ok.css("color", "red");
         }
         if (server) {
