@@ -15,6 +15,7 @@ class Bot {
     private $color = 'white';
     private $compile_files = [];
     private $events = ['message_new', 'message_event'];
+    private $before_run = null;
 
     public function __construct($token_or_vk, $version = null, $also_version = null) {
         if ($token_or_vk instanceof SimpleVK) {
@@ -61,6 +62,11 @@ class Bot {
             $this->events = $events;
         else
             $this->events = [$events];
+        return $this;
+    }
+
+    public function beforeRun($func) {
+        $this->before_run = $func;
         return $this;
     }
 
@@ -301,6 +307,9 @@ class Bot {
     }
 
     private function runAction($id, $user_id, $action_id, $result_parse = null, $id_message = null, $is_edit = false) {
+        if (is_callable($this->before_run))
+            if(call_user_func($this->before_run, $action_id, $id, $user_id, $result_parse, $id_message, $is_edit))
+                return null;
         if (isset($this->config['action'][$action_id]['access'])) {
             $flag = false;
             foreach ($this->config['action'][$action_id]['access'] as $access)
