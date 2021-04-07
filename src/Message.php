@@ -192,7 +192,6 @@ class Message extends BaseConstructor {
 
     public function redirect($id) {
         $this->checkBot();
-        echo "$this->id_action, $id\n";
         return $this->bot->redirect($this->id_action, $id);
     }
 
