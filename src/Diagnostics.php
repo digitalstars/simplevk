@@ -97,7 +97,7 @@ class Diagnostics {
             test_server = $("#test_server")
             server = xhr.getResponseHeader("server");
         if (response == "ok") {
-          test_send_ok.text("· PHP может разрывать соединение с вк");
+          test_send_ok.text("· PHP может разрывать соединение с ВК");
           test_send_ok.css("color", "green");
         } else {
           test_send_ok.text("· PHP не может разрывать соединение с ВК. sendOK() не работает");

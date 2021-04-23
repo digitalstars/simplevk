@@ -14,6 +14,7 @@ class SimpleVK {
     protected $api_url = 'https://api.vk.com/method/';
     protected $token;
     private static $debug_mode = false;
+    private static $retry_requests_processing = false;
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     public static $proxy = PROXY;
@@ -27,6 +28,10 @@ class SimpleVK {
     }
 
     public function __construct($token, $version, $also_version = null) {
+        if(!self::$retry_requests_processing && isset(getallheaders()['X-Retry-Counter'])) {
+            exit('ok');
+        }
+
         $this->ch = $this->curlInit();
         $this->processAuth($token, $version, $also_version);
         $this->data = json_decode(file_get_contents('php://input'), 1);
@@ -37,7 +42,7 @@ class SimpleVK {
             } else {
                 $this->sendOK();
             }
-            if (isset($this->data['object']['message']) and $this->data['type'] == 'message_new') {
+            if (isset($this->data['object']['message']) && $this->data['type'] == 'message_new') {
                 $this->data['object'] = $this->data['object']['message'];
             }
         }
@@ -54,6 +59,10 @@ class SimpleVK {
         self::$proxy['type'] = explode(':', $proxy)[0];
         if ($pass)
             self::$proxy['user_pwd'] = $pass;
+    }
+
+    public static function enableRetryRequestsProcessing() {
+        self::$retry_requests = true;
     }
 
     public static function disableSendOK() {
