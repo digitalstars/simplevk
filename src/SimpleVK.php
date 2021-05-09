@@ -561,11 +561,7 @@ class SimpleVK {
 
                     }
 
-                    if ($id >= 0) {
-                        return "@id$id($ex1[0])";
-                    }
-
-                    return "@club-$id($ex1[0])";
+                    return false;
 
                 }, $message);
         }
