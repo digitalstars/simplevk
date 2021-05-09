@@ -290,18 +290,38 @@ class SimpleVK {
         ]);
     }
 
-    public function userInfo($user_url = '', $scope = []) {
-        $scope = ["fields" => join(",", $scope)];
-        if (isset($user_url)) {
-            $user_url = preg_replace("!.*?/!", '', $user_url);
-            $user_url = ($user_url == '') ? [] : ["user_ids" => $user_url];
+    public function userInfo($user_url, $scope = [])
+    {
+        function parserUrl($user_url)
+        {
+            $url = preg_replace("!.*?/!", '', $user_url);
+            return $url === '' ? false : $url;
         }
+
+        if (is_array($user_url)) {
+            foreach ($user_url as $url) {
+                $url = parserUrl($url);
+                if ($url !== false) {
+                    $user_ids[] = $url;
+                }
+            }
+        } else {
+            $url = parserUrl($user_url);
+            if ($url !== false) {
+                $user_ids[] = $url;
+            }
+        }
+
+        $param_ids = ['user_ids' => implode(',', $user_ids)];
+        $scope = ["fields" => implode(",", $scope)];
+
         try {
-            return current($this->request('users.get', $user_url + $scope));
+            return $this->request('users.get',  $param_ids + $scope);
         } catch (Exception $e) {
             return false;
         }
     }
+
 
     public function sendWallComment($owner_id, $post_id, $message) {
         return $this->request('wall.createComment', ['owner_id' => $owner_id, 'post_id' => $post_id, 'message' => $message]);
@@ -527,19 +547,20 @@ class SimpleVK {
     }
 
     public function placeholders($message, $id = null){
+        $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
+
         if ($id >= 2e9) {
             $id = $this->data['object']['from_id'] ?? null;
         }
         if (strpos($message, '~') !== false) {
             return preg_replace_callback(
                 "|~(.*?)~|",
-                function ($matches) use ($id) {
+                function ($matches) use ($tag, $id) {
                     $ex1 = explode('|', $matches[1]);
                     if (isset($ex1[1])) {
                         $id = $ex1[1];
                     }
 
-                    $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
                     if (in_array($ex1[0], $tag)) {
                         if (!$id) {
                             return $matches[1];
