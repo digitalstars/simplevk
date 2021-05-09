@@ -515,46 +515,50 @@ class SimpleVK {
         return false;
     }
 
-    public function placeholders($message, $id = null) {
+    public function placeholders($message, $id = null){
         if ($id >= 2e9) {
             $id = $this->data['object']['from_id'] ?? null;
         }
         if (strpos($message, '~') !== false) {
-            $message = preg_replace_callback(
+            return preg_replace_callback(
                 "|~(.*?)~|",
                 function ($matches) use ($id) {
                     $ex1 = explode('|', $matches[1]);
-                    if(isset($ex1[1])) {
+                    if (isset($ex1[1])) {
                         $id = $ex1[1];
                     }
+
                     $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
-                    if(in_array($ex1[0], $tag) && !$id) {
-                        return $matches[1];
-                    } else if(in_array($ex1[0], $tag) && $id) {
-                        if($id >= 0) {
+                    if (in_array($ex1[0], $tag)) {
+                        if (!$id) {
+                            return $matches[1];
+                        }
+
+                        if ($id > 0) {
                             $data = $this->userInfo($id);
                             $f = $data['first_name'];
                             $l = $data['last_name'];
                             $replace = ["@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)", $f, $l, "$f $l"];
                             return str_replace($tag, $replace, $ex1[0]);
-                        } else {
-                            $id = -$id;
+                        }
+
+                        if ($id < 0) {
                             $group_name = $this->request('groups.getById', ['group_id' => $id])[0]['name'];
                             return "@club{$id}({$group_name})";
                         }
-                    } else {
-                        if($id >= 0) {
-                            return "@id$id($ex1[0])";
-                        } else {
-                            $id = -$id;
-                            return "@club$id($ex1[0])";
-                        }
+
                     }
 
+                    if ($id >= 0) {
+                        return "@id$id($ex1[0])";
+                    }
+
+                    return "@club-$id($ex1[0])";
+
                 }, $message);
-            return $message;
-        } else
-            return $message;
+        }
+
+        return $message;
     }
 
     protected function getPayload() {
