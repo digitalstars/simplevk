@@ -22,7 +22,7 @@ trait FileUploader {
     private function sendFiles($url, $local_file_path, $type = 'file') {
         if (filter_var($local_file_path, FILTER_VALIDATE_URL) === false) {
             $file = realpath($local_file_path);
-            if (!file_exists($file)){
+            if (!is_readable($file)){
                 throw new SimpleVkException(0, "Файл для загрузки не найден" . PHP_EOL . $file);
             }
             $post_fields = [
