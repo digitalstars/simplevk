@@ -554,8 +554,9 @@ class SimpleVK {
                         }
 
                         if ($id < 0) {
-                            $group_name = $this->request('groups.getById', ['group_id' => $id])[0]['name'];
-                            return "@club{$id}({$group_name})";
+                            $group_id = substr($id, 1);
+                            $group_name = $this->request('groups.getById', ['group_id' => $group_id])[0]['name'];
+                            return "@club{$group_id}({$group_name})";
                         }
 
                     }
