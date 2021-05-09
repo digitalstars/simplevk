@@ -20,11 +20,15 @@ trait FileUploader {
     }
 
     private function sendFiles($url, $local_file_path, $type = 'file') {
-        if (filter_var($local_file_path, FILTER_VALIDATE_URL) === false)
+        if (filter_var($local_file_path, FILTER_VALIDATE_URL) === false) {
+            $file = realpath($local_file_path);
+            if (!file_exists($file)){
+                throw new SimpleVkException(0, "Файл для загрузки не найден" . PHP_EOL . $file);
+            }
             $post_fields = [
                 $type => new CURLFile(realpath($local_file_path))
             ];
-        else {
+        } else {
             $tmp_file = tmpfile();
             $tmp_filename = stream_get_meta_data($tmp_file)['uri'];
             if (!copy($local_file_path, $tmp_filename)) {
