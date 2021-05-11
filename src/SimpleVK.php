@@ -28,6 +28,17 @@ class SimpleVK {
     }
 
     public function __construct($token, $version, $also_version = null) {
+        if (!function_exists('getallheaders')) {
+            function getallheaders() {
+                $headers = [];
+                foreach ($_SERVER as $name => $value) {
+                    if (substr($name, 0, 5) == 'HTTP_') {
+                        $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                    }
+                }
+                return $headers;
+            }
+        }
         if(!self::$retry_requests_processing && isset(getallheaders()['X-Retry-Counter'])) {
             exit('ok');
         }
@@ -279,18 +290,38 @@ class SimpleVK {
         ]);
     }
 
-    public function userInfo($user_url = '', $scope = []) {
-        $scope = ["fields" => join(",", $scope)];
-        if (isset($user_url)) {
-            $user_url = preg_replace("!.*?/!", '', $user_url);
-            $user_url = ($user_url == '') ? [] : ["user_ids" => $user_url];
+    public function userInfo($user_url, $scope = [])
+    {
+        function parserUrl($user_url)
+        {
+            $url = preg_replace("!.*?/!", '', $user_url);
+            return $url === '' ? false : $url;
         }
+
+        if (is_array($user_url)) {
+            foreach ($user_url as $url) {
+                $url = parserUrl($url);
+                if ($url !== false) {
+                    $user_ids[] = $url;
+                }
+            }
+        } else {
+            $url = parserUrl($user_url);
+            if ($url !== false) {
+                $user_ids[] = $url;
+            }
+        }
+
+        $param_ids = ['user_ids' => implode(',', $user_ids)];
+        $scope = ["fields" => implode(",", $scope)];
+
         try {
-            return current($this->request('users.get', $user_url + $scope));
+            return $this->request('users.get',  $param_ids + $scope);
         } catch (Exception $e) {
             return false;
         }
     }
+
 
     public function sendWallComment($owner_id, $post_id, $message) {
         return $this->request('wall.createComment', ['owner_id' => $owner_id, 'post_id' => $post_id, 'message' => $message]);
@@ -515,46 +546,48 @@ class SimpleVK {
         return false;
     }
 
-    public function placeholders($message, $id = null) {
+    public function placeholders($message, $id = null){
+        $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
+
         if ($id >= 2e9) {
             $id = $this->data['object']['from_id'] ?? null;
         }
         if (strpos($message, '~') !== false) {
-            $message = preg_replace_callback(
+            return preg_replace_callback(
                 "|~(.*?)~|",
-                function ($matches) use ($id) {
+                function ($matches) use ($tag, $id) {
                     $ex1 = explode('|', $matches[1]);
-                    if(isset($ex1[1])) {
+                    if (isset($ex1[1])) {
                         $id = $ex1[1];
                     }
-                    $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
-                    if(in_array($ex1[0], $tag) && !$id) {
-                        return $matches[1];
-                    } else if(in_array($ex1[0], $tag) && $id) {
-                        if($id >= 0) {
+
+                    if (in_array($ex1[0], $tag)) {
+                        if (!$id) {
+                            return $matches[1];
+                        }
+
+                        if ($id > 0) {
                             $data = $this->userInfo($id);
                             $f = $data['first_name'];
                             $l = $data['last_name'];
                             $replace = ["@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)", $f, $l, "$f $l"];
                             return str_replace($tag, $replace, $ex1[0]);
-                        } else {
-                            $id = -$id;
-                            $group_name = $this->request('groups.getById', ['group_id' => $id])[0]['name'];
-                            return "@club{$id}({$group_name})";
                         }
-                    } else {
-                        if($id >= 0) {
-                            return "@id$id($ex1[0])";
-                        } else {
-                            $id = -$id;
-                            return "@club$id($ex1[0])";
+
+                        if ($id < 0) {
+                            $group_id = substr($id, 1);
+                            $group_name = $this->request('groups.getById', ['group_id' => $group_id])[0]['name'];
+                            return "@club{$group_id}({$group_name})";
                         }
+
                     }
 
+                    return false;
+
                 }, $message);
-            return $message;
-        } else
-            return $message;
+        }
+
+        return $message;
     }
 
     protected function getPayload() {
