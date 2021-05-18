@@ -290,29 +290,34 @@ class SimpleVK {
         ]);
     }
 
-    public function userInfo($user_url, $scope = [])
+    public function userInfo($user_url = null, $scope = [])
     {
         function parserUrl($user_url)
         {
-            $url = preg_replace("!.*?/!", '', $user_url);
-            return $url === '' ? false : $url;
+        $url = preg_replace("!.*?/!", '', $user_url);
+        return $url === '' ? false : $url;
         }
 
-        if (is_array($user_url)) {
-            foreach ($user_url as $url) {
-                $url = parserUrl($url);
+        if ($user_url !== null) {
+            if (is_array($user_url)) {
+                $user_ids = array_map(static function($url){
+                    if(parserUrl($url) !== false){
+                        return $url;
+                    }
+                },$user_url);
+
+            } else {
+                $url = parserUrl($user_url);
                 if ($url !== false) {
                     $user_ids[] = $url;
                 }
             }
-        } else {
-            $url = parserUrl($user_url);
-            if ($url !== false) {
-                $user_ids[] = $url;
-            }
-        }
 
-        $param_ids = ['user_ids' => implode(',', $user_ids)];
+            $param_ids = ['user_ids' => implode(',', $user_ids)];
+        } else {
+            $user_ids = [];
+            $param_ids = [];
+        }
         $scope = ["fields" => implode(",", $scope)];
 
         try {
