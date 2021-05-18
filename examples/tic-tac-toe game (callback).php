@@ -160,7 +160,7 @@ try {
                 $store->sset('winAll', 1);
             }
             $loseAll2 = $store2->get('loseAll');
-            if($winAll) {
+            if($loseAll2) {
                 $store2->sset('loseAll', $loseAll2++);
             } else {
                 $store2->sset('loseAll', 1);
