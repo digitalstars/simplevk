@@ -666,15 +666,15 @@ class vk_api {
     }
 
     /**
-     * @param $groupID
+     * @param $group_id
      * @param $local_file_path
      * @param null $title
      * @return mixed
      *
      * @throws VkApiException
      */
-    public function uploadDocsGroup($groupID, $local_file_path, $title = null) {
-        return $this->uploadDocs($groupID, $local_file_path, $title);
+    public function uploadDocsGroup($group_id, $local_file_path, $title = null) {
+        return $this->uploadDocs($group_id, $local_file_path, $title);
     }
 
     /**
