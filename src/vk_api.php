@@ -849,7 +849,7 @@ class vk_api {
      * @throws VkApiException
      */
     public function uploadDocsUser($local_file_path, $title = null) {
-        return $this->uploadDocs([], $local_file_path, $title);
+        return $this->uploadDocs(0, $local_file_path, $title);
     }
 
     /**
