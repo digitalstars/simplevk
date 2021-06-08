@@ -394,8 +394,6 @@ class vk_api {
      * @throws VkApiException
      */
     public function sendMessage($id, $message, $params = []) {
-        if ($id < 1)
-            return 0;
         $message = $this->placeholders($id, $message);
         return $this->request('messages.send', ['message' => $message, 'peer_id' => $id] + $params);
     }
@@ -681,17 +679,14 @@ class vk_api {
     }
 
     /**
-     * @param array $peer_id
+     * @param int $group_id
      * @return mixed
      * @throws VkApiException
      */
-    private function getUploadServerPost($peer_id = []) {
-        if ($peer_id < 0)
-            $peer_id = ['group_id' => $peer_id * -1];
-        else
-            $peer_id = [];
-        $result = $this->request('docs.getUploadServer', $peer_id);
-        return $result;
+    private function getUploadServerPost($group_id = 0) {
+        return $this->request('docs.getUploadServer',
+            $group_id==0?[]:
+                ['group_id' => $group_id]);
     }
 
     /**
@@ -862,7 +857,7 @@ class vk_api {
             switch ($selector) {
                 case "images":
                     foreach ($massiv as $image) {
-                        $upload_file = $upload_file = $this->uploadImage($id, $image);
+                        $upload_file = $this->uploadImage($id, $image);
                         $send_attachment[] = "photo" . $upload_file[0]['owner_id'] . "_" . $upload_file[0]['id'];
                     }
                     break;
@@ -962,6 +957,7 @@ class vk_api {
      * @param $id_vk_vars
      */
     protected function setAllDataclass($id_vk_vars) {
-        list($this->token, $this->version, $this->auth, $this->request_ignore_error, $this->try_count_resend_file) = $id_vk_vars;
+        list($this->token, $this->version, $this->auth, $this->request_ignore_error,
+            $this->try_count_resend_file) = $id_vk_vars;
     }
 }
