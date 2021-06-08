@@ -6,6 +6,7 @@
  * Time: 0:41
  */
 namespace DigitalStar\vk_api;
+
 const SIMPLEVK_VERSION = '2.14.0';
 // массив кодов ошибок ВК, при которых сообщение об ошибке игнорируется и отправляется повторный запрос к api
 const REQUEST_IGNORE_ERROR = [1,6,9,10,14];
