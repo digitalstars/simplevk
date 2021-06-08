@@ -123,7 +123,6 @@ class Diagnostics {
         // для Apache
         ignore_user_abort(true);
 
-        PHP_EOL;
         ob_start();
         header('Content-Encoding: none');
         header('Content-Length: 2');
