@@ -16,8 +16,8 @@ class Execute extends vk_api {
     public function __destruct() {
         $this->exec();
     }
-	
-	/**
+
+    /**
      * @param null $id
      * @param null $message
      * @param null $payload
@@ -176,7 +176,7 @@ while ((temp_count + start_offset) < count && count_apis < 25) {
 	count_apis = count_apis + 1;
 }
 return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed": write_allowed, "ids": ids};';
-//        $code = 'return API.messages.getConversations({"count": 200, "offset": 0})["count"];';
+        //        $code = 'return API.messages.getConversations({"count": 200, "offset": 0})["count"];';
         return $this->request("execute", ["code" => $code]);
     }
 
@@ -200,16 +200,16 @@ return {"count": count, "offset_ok": (temp_count + start_offset),"write_allowed"
         return $ids;
     }
 
-//     public function sendAllDialogs($message) {
-//         $ids = $this->getConversationsIds();
-//         $ids = array_chunk($ids, 100);
-//         foreach ($ids as $ids_chunk) {
-//             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => rand(-2147483648, 2147483647)];
-//             $this->counter += 1;
-//             $this->checkExec();
-//         }
-//         echo "COUNT = ".$this->counter."\n";
-//     }
+    //     public function sendAllDialogs($message) {
+    //         $ids = $this->getConversationsIds();
+    //         $ids = array_chunk($ids, 100);
+    //         foreach ($ids as $ids_chunk) {
+    //             $this->messages[] = ['user_ids' => join(',', $ids_chunk), 'message' => $message, "random_id" => rand(-2147483648, 2147483647)];
+    //             $this->counter += 1;
+    //             $this->checkExec();
+    //         }
+    //         echo "COUNT = ".$this->counter."\n";
+    //     }
 
     private function checkExec() {
         if ($this->counter >= Execute::$max_counter)

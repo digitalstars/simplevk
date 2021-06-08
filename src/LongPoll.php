@@ -5,45 +5,52 @@ namespace DigitalStar\vk_api;
  * Class LongPoll
  * @package DigitalStar\vk_api
  */
-class LongPoll extends vk_api
-{
+class LongPoll extends vk_api {
     /**
-     * @var
+     * @var vk_api
      */
     private $vk;
+
     /**
-     * @var
+     * @var int
      */
     private $group_id;
+
+
     /**
-     * @var
-     */
-    private $user_id;
-    /**
-     * @var
+     * @var string
      */
     private $key;
+
     /**
-     * @var
+     * @var string
      */
     private $server;
+
     /**
-     * @var
+     * @var int
      */
     private $ts;
 
     /**
+     * @var int
+     */
+    private $waitTime;
+
+    /**
      * LongPoll constructor.
      * @param $vk
+     * @param int $waitTime Time to wait
+     * @throws VkApiException
      */
-    public function __construct($vk)
-    {
+    public function __construct($vk, $waitTime = 25) {
         parent::setAllDataclass($vk->copyAllDataclass());
         $this->vk = $vk;
+        $this->waitTime = $waitTime;
+
         $data = $this->vk->userInfo();
         if ($data != false) {
             $this->vk->auth_type = 'user';
-            $this->user_id = $data['id'];
         } else {
             $this->vk->auth_type = 'group';
             $this->group_id = $this->vk->request('groups.getById', [])[0]['id'];
@@ -57,15 +64,17 @@ class LongPoll extends vk_api
         $this->getLongPollServer();
     }
 
+
     /**
-     *
+     * Updates data of LongPoll server
+     * @throws VkApiException
      */
-    public function getLongPollServer()
-    {
+    public function getLongPollServer() {
         if ($this->vk->auth_type == 'user')
             $data = $this->vk->request('messages.getLongPollServer', ['need_pts' => 1, 'lp_version' => 3]);
         else
             $data = $this->vk->request('groups.getLongPollServer', ['group_id' => $this->group_id]);
+
         unset($this->key);
         unset($this->server);
         unset($this->ts);
@@ -76,17 +85,21 @@ class LongPoll extends vk_api
      * @param $anon
      * @throws VkApiException
      */
-    public function listen($anon)
-    {
+    public function listen($anon) {
         while ($data = $this->processingData()) {
+            $startTime = time();
             foreach ($data->updates as $event) {
                 unset($this->vk->data);
                 $this->vk->data = $event;
                 $anon($event);
             }
+
             if ($this->vk instanceof Execute) {
                 $this->vk->exec();
             }
+
+            $sleepTime = 5-(time()-$startTime);
+            if($sleepTime>0) sleep($sleepTime);
         }
     }
 
@@ -118,12 +131,13 @@ class LongPoll extends vk_api
      */
     public function getData()
     {
-        $defult_params = ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' => 25];
+        $default_params = ['act' => 'a_check', 'key' => $this->key, 'ts' => $this->ts, 'wait' =>
+                $this->waitTime];
         if($this->vk->auth_type == 'user') {
             $params = ['mode' => 32, 'version' => 3];
-            $data = $this->request_core('https://' . $this->server . '?', $defult_params + $params);
+            $data = $this->request_core('https://' . $this->server . '?', $default_params + $params);
         } else {
-            $data = $this->request_core($this->server . '?', $defult_params);
+            $data = $this->request_core($this->server . '?', $default_params);
         }
         return $data;
     }
@@ -164,10 +178,9 @@ class LongPoll extends vk_api
      * @param null $user_id
      * @param null $type
      * @param null $data
-     * @return |null
+     * @return array|mixed|null
      */
-    public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null, &$data = null)
-    {
+    public function initVars(&$id = null, &$message = null, &$payload = null, &$user_id = null, &$type = null, &$data = null) {
         $data = $this->vk->data;
         $data_backup = $this->vk->data;
         $type = isset($data->type) ? $data->type : null;

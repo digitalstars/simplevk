@@ -18,7 +18,7 @@ class vk_api {
      */
     protected $version = '';
     /**
-     * @var array|mixed
+     * @var array|mixed|null
      */
     protected $data = [];
     /**
@@ -28,7 +28,7 @@ class vk_api {
     /**
      * @var string
      */
-    private $token = '';
+    private $token;
     /**
      * @var int
      */
@@ -45,15 +45,22 @@ class vk_api {
      * @var int
      */
     protected $try_count_resend_file = COUNT_TRY_SEND_FILE;
+    /**
+     * @var bool
+     */
+    private $ignore_request_error;
 
     /**
      * vk_api constructor.
      * @param $token
      * @param $version
      * @param null $also_version
+     * @param bool $ignore_request_error
      * @throws VkApiException
      */
-    public function __construct($token, $version, $also_version = null) {
+    public function __construct($token, $version, $also_version = null,
+                                $ignore_request_error = false) {
+        $this->ignore_request_error = $ignore_request_error;
         if ($token instanceof auth) {
             $this->auth = $token;
             $this->version = $version;
@@ -123,7 +130,7 @@ class vk_api {
      */
     protected function sendOK() {
         set_time_limit(0);
-        ini_set('display_errors', 'Off');
+        ini_set('display_errors', 0);
         ob_end_clean();
 
         // для Nginx
@@ -131,8 +138,9 @@ class vk_api {
             echo 'ok';
             session_write_close();
             fastcgi_finish_request();
-            return True;
+            return true;
         }
+        
         // для Apache
         ignore_user_abort(true);
 
@@ -143,7 +151,7 @@ class vk_api {
         echo 'ok';
         ob_end_flush();
         flush();
-        return True;
+        return true;
     }
 
     /**
@@ -161,6 +169,9 @@ class vk_api {
         }
     }
 
+    /**
+     * @throws VkApiException
+     */
     public function forward($id, $id_messages, $params = []) {
         $forward_messages = (is_array($id_messages)) ? join(',', $id_messages) : $id_messages;
         return $this->request('messages.send', ['peer_id' => $id, 'forward_messages' => $forward_messages] + $params);
@@ -197,7 +208,7 @@ class vk_api {
                 $f = $data['first_name'];
                 $l = $data['last_name'];
                 $tag = ['%fn%', '%ln%', '%full%', '%a_fn%', '%a_ln%', '%a_full%'];
-                $replace = [$f, $l, "$f $l", "@id{$id}($f)", "@id{$id}($l)", "@id{$id}($f $l)"];
+                $replace = [$f, $l, "$f $l", "@id$id($f)", "@id$id($l)", "@id$id($f $l)"];
                 return str_replace($tag, $replace, $message);
             } else
                 return $message;
@@ -215,21 +226,19 @@ class vk_api {
         $url = 'https://api.vk.com/method/' . $method;
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
-        $params['random_id'] = rand(-2147483648, 2147483647);
+        $params['random_id'] = 0;
 
-        while (True) {
+        while(true) {
             try {
                 return $this->request_core($url, $params);
             } catch (VkApiException $e) {
-                if (in_array($e->getCode(), $this->request_ignore_error)) {
+                if ($this->ignore_request_error&&
+                        in_array($e->getCode(), $this->request_ignore_error)) {
                     sleep(1);
                     continue;
-                }
-                else
-                    throw new VkApiException($e->getMessage(), $e->getCode());
+                }else throw new VkApiException($e->getMessage(), $e->getCode());
             }
         }
-        return false;
     }
 
     /**
@@ -258,7 +267,7 @@ class vk_api {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            $result = json_decode(curl_exec($ch), True);
+            $result = json_decode(curl_exec($ch), true);
             curl_close($ch);
         } else {
             $result = json_decode(file_get_contents($url, true, stream_context_create([
@@ -325,25 +334,25 @@ class vk_api {
                 if ($id < 0)
                     return "@club" . ($id * -1) . "($n)";
                 else
-                    return "@id{$id}($n)";
+                    return "@id$id($n)";
             } else {
                 if ($id < 0) {
                     $id = -$id;
                     $group_name = $this->request('groups.getById', ['group_id' => $id])[0]['name'];
-                    return "@club{$id}({$group_name})";
+                    return "@club$id($group_name)";
                 } else {
                     $info = $this->userInfo($id);
                     if ($n)
-                        return "@id{$id}($info[first_name] $info[last_name])";
+                        return "@id$id($info[first_name] $info[last_name])";
                     else
-                        return "@id{$id}($info[first_name])";
+                        return "@id$id($info[first_name])";
                 }
             }
         } else {
             if ($id < 0)
                 return "@club" . ($id * -1);
             else
-                return "@id{$id}";
+                return "@id$id";
         }
     }
 
@@ -351,7 +360,6 @@ class vk_api {
      * @param null $user_url
      * @param array $scope
      * @return mixed
-     * @throws VkApiException
      */
     public function userInfo($user_url = '', $scope = []) {
         $scope = ["fields" => join(",", $scope)];
@@ -376,7 +384,7 @@ class vk_api {
     public function isAdmin($user_id, $chat_id) { //возвращает привелегию по id
         try {
             $members = $this->request('messages.getConversationMembers', ['peer_id' => $chat_id])['items'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new VkApiException('Бот не админ в этой беседе, или бота нет в этой беседе');
         }
         foreach ($members as $key) {
@@ -461,7 +469,7 @@ class vk_api {
      * @param array $buttons
      * @param bool $inline
      * @param bool $one_time
-     * @return array|false|string
+     * @return false|string
      */
     public function generateKeyboard($buttons = [], $inline = false, $one_time = False) {
         $keyboard = [];
@@ -480,11 +488,11 @@ class vk_api {
                         break;
                     }
                     case 'vkpay': {
-                        $keyboard[$i][$j]["action"]["hash"] = "action={$button[2]}";
-                        $keyboard[$i][$j]["action"]["hash"] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id={$button[3]}";
-                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[4])) ? "&amount={$button[4]}" : '';
-                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[5])) ? "&description={$button[5]}" : '';
-                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[6])) ? "&data={$button[6]}" : '';
+                        $keyboard[$i][$j]["action"]["hash"] = "action=$button[2]";
+                        $keyboard[$i][$j]["action"]["hash"] .= ($button[3] < 0) ? "&group_id=".$button[3]*-1 : "&user_id=$button[3]";
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[4])) ? "&amount=$button[4]" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[5])) ? "&description=$button[5]" : '';
+                        $keyboard[$i][$j]["action"]["hash"] .= (isset($button[6])) ? "&data=$button[6]" : '';
                         $keyboard[$i][$j]["action"]["hash"] .= "&aid=1";
                         break;
                     }
@@ -508,8 +516,7 @@ class vk_api {
             $i++;
         }
         $keyboard = ["one_time" => $one_time, "buttons" => $keyboard, 'inline' => $inline];
-        $keyboard = json_encode($keyboard, JSON_UNESCAPED_UNICODE);
-        return $keyboard;
+        return json_encode($keyboard, JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -596,12 +603,18 @@ class vk_api {
         return $result;
     }
 
+    /**
+     * @throws VkApiException
+     */
     private function uploadVoice($id, $local_file_path) {
         $upload_url = $this->getUploadServerMessages($id, 'audio_message')['upload_url'];
-        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path, 'file'), true);
+        $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
         return $this->saveDocuments($answer_vk['file'], 'voice');
     }
 
+    /**
+     * @throws VkApiException
+     */
     public function sendVoice($id, $local_file_path, $params = []) {
         $upload_file = $this->uploadVoice($id, $local_file_path);
         return $this->request('messages.send', ['attachment' => "doc" . $upload_file['audio_message']['owner_id'] . "_" . $upload_file['audio_message']['id'], 'peer_id' => $id] + $params);
@@ -611,7 +624,7 @@ class vk_api {
      * @param $url
      * @param $local_file_path
      * @param string $type
-     * @return mixed
+     * @return bool|string
      * @throws VkApiException
      */
     protected function sendFiles($url, $local_file_path, $type = 'file') {
@@ -619,8 +632,8 @@ class vk_api {
             $type => new CURLFile(realpath($local_file_path))
         ];
 
+        $output = '';
         for ($i = 0; $i < $this->try_count_resend_file; ++$i) {
-
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Content-Type:multipart/form-data"
@@ -634,8 +647,10 @@ class vk_api {
             else
                 sleep(1);
         }
+
         if ($output == '')
             throw new VkApiException('Не удалось загрузить файл на сервер');
+
         return $output;
     }
 
@@ -674,8 +689,7 @@ class vk_api {
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerPost($id)['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
-        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
-        return $upload_file;
+        return $this->saveDocuments($answer_vk['file'], $title);
     }
 
     /**
@@ -728,8 +742,7 @@ class vk_api {
             $title = preg_replace("!.*?/!", '', $local_file_path);
         $upload_url = $this->getUploadServerMessages($id)['upload_url'];
         $answer_vk = json_decode($this->sendFiles($upload_url, $local_file_path), true);
-        $upload_file = $this->saveDocuments($answer_vk['file'], $title);
-        return $upload_file;
+        return $this->saveDocuments($answer_vk['file'], $title);
     }
 
     /**
@@ -935,10 +948,10 @@ class vk_api {
 
     /**
      * @param $id
-     * @return mixed
+     * @return string
      */
     public function dateRegistration($id) {
-        $site = file_get_contents("https://vk.com/foaf.php?id={$id}");
+        $site = file_get_contents("https://vk.com/foaf.php?id=$id");
         preg_match('<ya:created dc:date="(.*?)">', $site, $data);
         $data = explode('T', $data[1]);
         $date = date("d.m.Y", strtotime($data[0]));
