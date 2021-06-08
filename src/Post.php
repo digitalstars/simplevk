@@ -22,16 +22,19 @@ class Post extends Base
 
     /**
      * @param $id
-     * @param null $publish_date
+     * @param int|null $publish_date
      * @return mixed
      * @throws VkApiException
      */
     public function send($id, $publish_date = null)
     {
-        if ($publish_date >= time())
+        if ($publish_date !== null && $publish_date >= time()) {
             $this->props['publish_date'] = $publish_date;
-        else
+        } elseif ($publish_date === null) {
+            $this->props['publish_date'] = $publish_date;
+        } else {
             throw new VkApiException('Неверно указан $publish_date');
+        }
         return $this->vk_api->createPost($id, $this->message, $this->props, $this->media);
     }
 }
