@@ -70,8 +70,9 @@ require_once "simplevk-testing/autoload.php";
 ```
 
 ## Проверка готовности сервера
-Чтобы убедится, что ваш сервер готов к работе с simplevk, необходимо создать и запустить следующий скрипт:
+Чтобы убедится, что вы установили все правильно, и ваш сервер готов к работе с SimpleVK, необходимо создать и запустить следующий скрипт:
 ```php
+<?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
 \DigitalStars\SimpleVK\Diagnostics::run();
 ```
