@@ -84,13 +84,13 @@ require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
 </p>
 
 ## Примеры ботов
-### Минимальный Callback  
+### Минимальный Callback
 > Бот отвечает на любое сообщение
 
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\SimpleVK as vk;
+use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
 $vk->msg('Привет, ~!fn~')->send();
 ```
@@ -99,7 +99,7 @@ $vk->msg('Привет, ~!fn~')->send();
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\SimpleVK as vk;
+use DigitalStars\SimpleVK\SimpleVK as vk;
 $vk = vk::create(ТОКЕН, '5.120')->setConfirm(STR); //STR - строка подтверждения сервера
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $data = $vk->initVars($peer_id, $user_id, $type, $message); //инициализация переменных из события
@@ -119,7 +119,7 @@ if($type == 'message_new') {
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\LongPoll;
+use DigitalStars\SimpleVK\LongPoll;
 $vk = LongPoll::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникние в скрипте
 $vk->listen(function () use ($vk) {
@@ -136,7 +136,7 @@ $vk->listen(function () use ($vk) {
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\Bot;
+use DigitalStars\SimpleVK\Bot;
 $bot = Bot::create(ТОКЕН, '5.120');
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
 $bot->run(); //запускаем обработку события
@@ -146,7 +146,7 @@ $bot->run(); //запускаем обработку события
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\{Bot, LongPoll};
+use DigitalStars\SimpleVK\{Bot, LongPoll};
 $vk = LongPoll::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
 $bot->cmd('img', '!картинка')->img('cat.jpg')->text('Вот твой кот');
@@ -159,7 +159,7 @@ $vk->listen(function () use ($bot) {
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\{Bot, SimpleVK as vk};
+use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникшие в скрипте
 $bot = Bot::create($vk);
@@ -180,7 +180,7 @@ $bot->run();
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\{Bot, SimpleVK as vk};
+use DigitalStars\SimpleVK\{Bot, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $vk->setUserLogError(ID); //ID - это id vk, кому бот будет отправлять все ошибки, возникшие в скрипте
 $bot = Bot::create($vk);
@@ -195,7 +195,7 @@ $bot->run();
 ```php
 <?php
 require_once __DIR__.'/vendor/digitalstars/simplevk/autoload.php';
-use DigitalStars\simplevk\{Bot, Store, SimpleVK as vk};
+use DigitalStars\SimpleVK\{Bot, Store, SimpleVK as vk};
 $vk = vk::create(ТОКЕН, '5.120');
 $bot = Bot::create($vk);
 $bot->cmd('cmd1', '!запомни %s')->text('Запомнил!')->func(function ($msg, $params) use ($vk) {
@@ -212,4 +212,4 @@ $bot->cmd('cmd2', '!напомни')->func(function ($msg, $params) use ($vk) {
 $bot->run();
 ```
 ## Больше примеров
-В папке [examples](https://github.com/digitalstars/simplevk/tree/testing/examples) лежат прокомментированные примеры более сложных ботов и функций, а так же можете изучить функции в документации.
+В папке [examples](https://github.com/digitalstars/simplevk/tree/testing/examples) лежат прокомментированные примеры более сложных ботов и функций, а также вы можете изучить функции с примерами использования в документации.
