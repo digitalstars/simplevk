@@ -327,11 +327,6 @@ class SimpleVK {
         }
     }
 
-
-    public function sendWallComment($owner_id, $post_id, $message) {
-        return $this->request('wall.createComment', ['owner_id' => $owner_id, 'post_id' => $post_id, 'message' => $message]);
-    }
-
     public function dateRegistration($id) {
         $site = file_get_contents("https://vk.com/foaf.php?id={$id}");
         preg_match('<ya:created dc:date="(.*?)">', $site, $data);
