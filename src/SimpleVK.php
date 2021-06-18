@@ -293,41 +293,6 @@ class SimpleVK {
         ]);
     }
 
-    public function userInfo($users_url = null, $scope = []) {
-        function parserUrl($user_url) {
-            $url = preg_replace("!.*?/!", '', $user_url);
-            return $url === '' ? false : $url;
-        }
-
-        $user_ids = [];
-        $param_ids = [];
-        if ($users_url !== null) {
-            if (is_array($users_url)) {
-                $user_ids = array_map(static function ($url) {
-                    $url = parserUrl($url);
-                    if ($url !== false) {
-                        return $url;
-                    }
-                }, $users_url);
-            } else {
-                $url = parserUrl($users_url);
-                if ($url !== false) {
-                    $user_ids[] = $url;
-                }
-            }
-
-            $param_ids = ['user_ids' => implode(',', $user_ids)];
-        }
-
-        $scope = ["fields" => implode(",", $scope)];
-
-        try {
-            return $this->request('users.get', $param_ids + $scope);
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
     public function dateRegistration($id) {
         $site = file_get_contents("https://vk.com/foaf.php?id={$id}");
         preg_match('<ya:created dc:date="(.*?)">', $site, $data);
@@ -400,12 +365,35 @@ class SimpleVK {
         return 'https://jsoneditoronline.org/?id=' . $result['id'];
     }
 
-    public function groupInfo($group_url = null) {
-        if (!is_null($group_url))
-            $group_url = ['group_ids' => preg_replace("!.*?/!", '', $group_url)];
-        else
-            $group_url = [];
-        return current($this->request('groups.getById', $group_url));
+    public function userInfo($users_url = null, $fields = null, $name_case = 'nom') {
+        $users_url = is_array($users_url) ? $users_url : [$users_url];
+        $fields = is_array($fields) ? $fields : [$fields];
+        $user_ids = array_map('self::parseUrl', $users_url);
+        $param_ids = ['user_ids' => implode(',', $user_ids)];
+        $scope = ["fields" => implode(",", $fields)];
+        $case = ['name_case' => $name_case];
+
+        try {
+            $result = $this->request('users.get', $param_ids + $scope + $case);
+            return count($result) == 1 ? $result[0] : $result;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function groupInfo($groups_url = null, $fields = null) {
+        $groups_url = is_array($groups_url) ? $groups_url : [$groups_url];
+        $fields = is_array($fields) ? $fields : [$fields];
+        $group_ids = array_map('self::parseUrl', $groups_url);
+        $param_ids = ['group_ids' => implode(',', $group_ids)];
+        $fields = ["fields" => implode(",", $fields)];
+
+        try {
+            $result = $this->request('groups.getById', $param_ids + $fields);
+            return count($result) == 1 ? $result[0] : $result;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     public function getAllDialogs($extended = 0, $filter = 'all', $fields = null) {
@@ -644,6 +632,11 @@ class SimpleVK {
         } else {
             throw new SimpleVkException(77777, 'Curl недоступен. Прекращение выполнения скрипта');
         }
+    }
+
+    protected static function parseUrl($url) {
+        $url = preg_replace("!.*?/!", '', $url);
+        return $url === '' ? false : $url;
     }
 
     protected function request_core($method, $params = []) {
