@@ -8,6 +8,7 @@ require_once('config_simplevk.php');
 
 class SimpleVK {
     use ErrorHandler;
+
     protected $version;
     protected $data = [];
     protected $data_backup = [];
@@ -39,7 +40,7 @@ class SimpleVK {
                 return $headers;
             }
         }
-        if(!self::$retry_requests_processing && isset(getallheaders()['X-Retry-Counter'])) {
+        if (!self::$retry_requests_processing && isset(getallheaders()['X-Retry-Counter'])) {
             exit('ok');
         }
 
@@ -98,7 +99,7 @@ class SimpleVK {
         return Message::create($this)->text($text);
     }
 
-    public function isAdmin($user_id, $chat_id) { //возвращает привелегию по id
+    public function isAdmin($user_id, $chat_id) { //возвращает привилегию по id
         try {
             $members = $this->request('messages.getConversationMembers', ['peer_id' => $chat_id])['items'];
         } catch (Exception $e) {
@@ -141,13 +142,13 @@ class SimpleVK {
         return $this;
     }
 
-    public function initMsgID(&$id) {
-        $id = $this->data['object']['id'] ?? null;
+    public function initMsgID(&$mid) {
+        $mid = $this->data['object']['id'] ?? null;
         return $this;
     }
 
-    public function initConversationMsgID(&$id) {
-        $id = $this->data['object']['conversation_message_id'] ?? null;
+    public function initConversationMsgID(&$cmid) {
+        $cmid = $this->data['object']['conversation_message_id'] ?? null;
         return $this;
     }
 
@@ -156,10 +157,10 @@ class SimpleVK {
         if (!isset($data['object']['attachments']))
             return null;
         $result = [];
-        if(isset($data['object']['attachments']['attach1_type'])) //TODO временная заглушка для user longpoll
+        if (isset($data['object']['attachments']['attach1_type'])) //TODO временная заглушка для user longpoll
             return null;
         foreach ($data['object']['attachments'] as $key => $attachment) {
-            if($key == 'attach1_type') //TODO временная заглушка для user longpoll
+            if ($key == 'attach1_type') //TODO временная заглушка для user longpoll
                 return null;
             $type = $attachment['type'];
             $attachment = $attachment[$type];
@@ -196,11 +197,13 @@ class SimpleVK {
         return $this->data_backup;
     }
 
-    public function clientSupport(&$keyboard, &$inline, &$buttons) {
+    public function clientSupport(&$keyboard = null, &$inline = null, &$carousel = null, &$button_actions = null, &$lang_id = null) {
         $data = $this->data_backup['object']['client_info'];
         $keyboard = $data['keyboard'];
         $inline = $data['inline_keyboard'];
-        $buttons = $data['button_actions'];
+        $carousel = $data['carousel'];
+        $button_actions = $data['button_actions'];
+        $lang_id = $data['lang_id'];
         return $data;
     }
 
@@ -290,38 +293,36 @@ class SimpleVK {
         ]);
     }
 
-    public function userInfo($user_url = null, $scope = [])
-    {
-        function parserUrl($user_url)
-        {
-        $url = preg_replace("!.*?/!", '', $user_url);
-        return $url === '' ? false : $url;
+    public function userInfo($users_url = null, $scope = []) {
+        function parserUrl($user_url) {
+            $url = preg_replace("!.*?/!", '', $user_url);
+            return $url === '' ? false : $url;
         }
 
-        if ($user_url !== null) {
-            if (is_array($user_url)) {
-                $user_ids = array_map(static function($url){
-                    if(parserUrl($url) !== false){
+        $user_ids = [];
+        $param_ids = [];
+        if ($users_url !== null) {
+            if (is_array($users_url)) {
+                $user_ids = array_map(static function ($url) {
+                    $url = parserUrl($url);
+                    if ($url !== false) {
                         return $url;
                     }
-                },$user_url);
-
+                }, $users_url);
             } else {
-                $url = parserUrl($user_url);
+                $url = parserUrl($users_url);
                 if ($url !== false) {
                     $user_ids[] = $url;
                 }
             }
 
             $param_ids = ['user_ids' => implode(',', $user_ids)];
-        } else {
-            $user_ids = [];
-            $param_ids = [];
         }
+
         $scope = ["fields" => implode(",", $scope)];
 
         try {
-            return $this->request('users.get',  $param_ids + $scope);
+            return $this->request('users.get', $param_ids + $scope);
         } catch (Exception $e) {
             return false;
         }
@@ -516,8 +517,8 @@ class SimpleVK {
             if ($this->is_test_len_str and mb_strlen($params['message']) > 544)
                 $params['message'] = $this->lengthMessageProcessing($params['peer_id'] ?? null, $params['message']);
         }
-        if(isset($params['peer_id']) && is_array($params['peer_id'])) { //возможно везде заменить на peer_ids в методах
-            $params['peer_ids'] = join(',',$params['peer_id']);
+        if (isset($params['peer_id']) && is_array($params['peer_id'])) { //возможно везде заменить на peer_ids в методах
+            $params['peer_ids'] = join(',', $params['peer_id']);
             unset($params['peer_id']);
         }
         for ($iteration = 0; $iteration < 6; ++$iteration) {
@@ -535,7 +536,7 @@ class SimpleVK {
                 } else if ($e->getCode() == 77777) {
                     if ($iteration == 5) {
                         $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
-                                  Метод:$method\nПараметры:\n" . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                                  Метод:$method\nПараметры:\n" . json_encode($params, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                         throw new SimpleVkException(77777, $error_message);
                     }
                     continue;
@@ -546,7 +547,7 @@ class SimpleVK {
         return false;
     }
 
-    public function placeholders($message, $id = null){
+    public function placeholders($message, $id = null) {
         $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
 
         if ($id >= 2e9) {
@@ -683,8 +684,8 @@ class SimpleVK {
 //                $params['keyboard'] = $params['keyboard'];
 //            }
             $result['error']['request_params'] = $params;
-            $result =  $result['error'];
-            throw new SimpleVkException($result['error_code'], print_r($result, 1).PHP_EOL);
+            $result = $result['error'];
+            throw new SimpleVkException($result['error_code'], print_r($result, 1) . PHP_EOL);
         }
         if (isset($result['response']))
             return $result['response'];
@@ -701,7 +702,7 @@ class SimpleVK {
     protected function sendOK() {
         set_time_limit(0);
         ini_set('display_errors', 'Off');
-        if(ob_get_contents())
+        if (ob_get_contents())
             ob_end_clean();
 
         // для Nginx
