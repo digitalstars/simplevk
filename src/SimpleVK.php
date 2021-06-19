@@ -417,18 +417,19 @@ class SimpleVK {
         }
     }
 
-    public function getAllComments($owner_id_ir_url, $post_id = null, $extended = 0, $sort = 'asc', $fields = null) {
-        if (!is_numeric($owner_id_ir_url) and is_null($post_id)) {
-            if (preg_match("!(-?\d+)_(\d+)!", $owner_id_ir_url, $matches)) {
-                $owner_id_ir_url = $matches[1];
+    public function getAllComments($owner_id_or_url, $post_id = null, $sort = 'asc', $extended = 0, $fields = null) {
+        if (!is_numeric($owner_id_or_url) && is_null($post_id)) {
+            if (preg_match("!(-?\d+)_(\d+)!", $owner_id_or_url, $matches)) {
+                $owner_id = $matches[1];
                 $post_id = $matches[2];
-            } else
+            } else {
                 throw new SimpleVkException(0, "Передайте 2 параметра (id пользователя, id поста), или корректную ссылку на пост");
+            }
         }
         for ($count_all = 0, $offset = 0, $last_id = []; $offset <= $count_all; $offset += 99) {
             $members = $this->request('wall.getComments', $last_id + [
                     'count' => 100,
-                    'owner_id' => $owner_id_ir_url,
+                    'owner_id' => $owner_id,
                     'post_id' => $post_id,
                     'extended' => $extended,
                     'sort' => $sort,
@@ -447,7 +448,7 @@ class SimpleVK {
         }
     }
 
-    public function getAllMembers($group_id = null, $filter = null, $fields = null, $sort = null) {
+    public function getAllMembers($group_id = null, $sort = null, $filter = null, $fields = null) {
         if (is_null($group_id))
             $group_id = $this->groupInfo()['id'];
         return $this->generatorRequest('groups.getMembers', [
@@ -477,20 +478,23 @@ class SimpleVK {
 
     public function generatorRequest($method, $params, $count = 200) {
         for ($count_all = 0, $offset = 0; $offset <= $count_all; $offset += $count) {
-            $members = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
-            if ($count_all == 0)
-                $count_all = $members['count'];
-            foreach ($members['items'] as $item)
+            $result = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
+            if ($count_all == 0) {
+                $count_all = $result['count'];
+            }
+            foreach ($result['items'] as $item) {
                 yield $item;
+            }
         }
     }
 
     public function responseGeneratorRequest($method, $params, $count = 200) {
         for ($count_all = 0, $offset = 0; $offset <= $count_all; $offset += $count) {
-            $members = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
-            if ($count_all == 0)
-                $count_all = $members['count'];
-            yield $members;
+            $result = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
+            if ($count_all == 0) {
+                $count_all = $result['count'];
+            }
+            yield $result;
         }
     }
 
