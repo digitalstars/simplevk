@@ -4,13 +4,10 @@
 
 <p align="center">
 <img src="https://img.shields.io/badge/PHP-%3E=%207.0-8992bb.svg" alt="php version">
-<img src="https://img.shields.io/badge/VK_API-%205.103_--_5.120-8992bb.svg" alt="VK api version">
+<img src="https://img.shields.io/badge/VK_API-%205.103+-8992bb.svg" alt="VK api version">
 <img src="https://img.shields.io/badge/realise-%203.0.0--beta-8992bb.svg" alt="VK api version">
 <img src="https://img.shields.io/packagist/l/digitalstars/simplevk" alt="License">
 </p> 
-
-
-> ВАЖНО: Эта ветка находится в ранней бете, предназначена для тестирования. Использование в реальных проектах - на ваш страх и риск
 
 > Документация находится в процессе создания.
 
