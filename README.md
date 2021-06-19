@@ -213,4 +213,4 @@ $bot->cmd('cmd2', '!напомни')->func(function ($msg, $params) use ($vk) {
 $bot->run();
 ```
 ## Больше примеров
-В папке [examples](https://github.com/digitalstars/simplevk/tree/testing/examples) лежат прокомментированные примеры более сложных ботов и функций, а также вы можете изучить функции с примерами использования в документации.
+Находятся на сайте с документацией в [разделе примеров](https://simplevk.scripthub.ru/v3/install/examples.html), а также в документации есть примеры для каждого метода классов.
