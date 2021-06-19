@@ -74,7 +74,7 @@ class SimpleVK {
     }
 
     public static function enableRetryRequestsProcessing() {
-        self::$retry_requests = true;
+        self::$retry_requests_processing = true;
     }
 
     public static function disableSendOK() {
