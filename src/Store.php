@@ -18,8 +18,9 @@ class Store {
         if (!flock($this->file, LOCK_SH))
             throw new SimpleVkException(0, "Не удалось захватить файл");
         $line = '';
+        fgets($this->file);
         while (!feof($this->file))
-            $line = fgets($this->file);
+            $line .= fgets($this->file);
         $this->data = json_decode($line, true);
         if (!is_array($this->data))
             $this->data = [];
