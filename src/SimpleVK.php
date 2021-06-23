@@ -16,6 +16,7 @@ class SimpleVK {
     protected $token;
     private static $debug_mode = false;
     private static $retry_requests_processing = false;
+    private static $error_suppression = false;
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     public static $proxy = PROXY;
@@ -73,12 +74,16 @@ class SimpleVK {
             self::$proxy['user_pwd'] = $pass;
     }
 
-    public static function enableRetryRequestsProcessing() {
-        self::$retry_requests_processing = true;
+    public static function retryRequestsProcessing($flag = true) {
+        self::$retry_requests_processing = $flag;
     }
 
-    public static function disableSendOK() {
-        self::$debug_mode = true;
+    public static function errorSuppression($flag = true) {
+        self::$error_suppression = $flag;
+    }
+
+    public static function disableSendOK($flag = true) {
+        self::$debug_mode = $flag;
     }
 
     public function setConfirm($str) {
@@ -681,8 +686,12 @@ class SimpleVK {
 //                $params['keyboard'] = $params['keyboard'];
 //            }
             $result['error']['request_params'] = $params;
-            $result = $result['error'];
-            throw new SimpleVkException($result['error_code'], print_r($result, 1) . PHP_EOL);
+            if(self::$error_suppression) {
+                return $result;
+            } else {
+                $result = $result['error'];
+                throw new SimpleVkException($result['error_code'], print_r($result, 1) . PHP_EOL);
+            }
         }
         if (isset($result['response']))
             return $result['response'];
