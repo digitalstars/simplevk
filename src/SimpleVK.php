@@ -689,8 +689,7 @@ class SimpleVK {
             if(self::$error_suppression) {
                 return $result;
             } else {
-                $result = $result['error'];
-                throw new SimpleVkException($result['error_code'], print_r($result, 1) . PHP_EOL);
+                throw new SimpleVkException($result['error_code'], print_r($result['error'], 1) . PHP_EOL);
             }
         }
         if (isset($result['response']))

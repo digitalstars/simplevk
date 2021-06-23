@@ -152,12 +152,7 @@ class LongPoll extends SimpleVK {
             $result = json_decode(curl_exec($ch), true);
             curl_close($ch);
         } else {
-            $result = json_decode(file_get_contents($url . http_build_query($params), true, stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => "Content-type: application/x-www-form-urlencoded\r\n"
-                ]
-            ])), true);
+            throw new SimpleVkException(77777, 'Curl недоступен. Не удается выполнить запрос');
         }
         if (!isset($result)) {
             if ($iteration <= 5) {
