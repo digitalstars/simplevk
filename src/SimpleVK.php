@@ -30,18 +30,9 @@ class SimpleVK {
     }
 
     public function __construct($token, $version, $also_version = null) {
-        if (!function_exists('getallheaders')) {
-            function getallheaders() {
-                $headers = [];
-                foreach ($_SERVER as $name => $value) {
-                    if (substr($name, 0, 5) == 'HTTP_') {
-                        $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-                    }
-                }
-                return $headers;
-            }
-        }
-        if (!self::$retry_requests_processing && isset(getallheaders()['X-Retry-Counter'])) {
+
+        if(!self::$retry_requests_processing &&
+            ((function_exists('getallheaders') && isset(getallheaders()['X-Retry-Counter'])) || isset($_SERVER['HTTP_X_RETRY_COUNTER']))) {
             exit('ok');
         }
 
@@ -548,7 +539,9 @@ class SimpleVK {
         $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
 
         if ($id >= 2e9) {
-            $id = $this->data['object']['from_id'] ?? null;
+            $id = $this->data['object']['from_id'] ??
+                $this->data['object']['user_id'] ??
+                $this->data['object']['liker_id'] ?? null;
         }
         if (strpos($message, '~') !== false) {
             return preg_replace_callback(
