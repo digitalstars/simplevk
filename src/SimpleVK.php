@@ -91,6 +91,11 @@ class SimpleVK {
         exit('security error');
     }
 
+    public function reply($message) {
+        $this->initPeerID($id);
+        return $this->request('messages.send', ['peer_id' => $id, 'message' => $message]);
+    }
+
     public function msg($text = null) {
         return Message::create($this)->text($text);
     }
