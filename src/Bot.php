@@ -83,7 +83,7 @@ class Bot {
     private function newAction($id) {
         if (!isset($this->config['action'][$id]))
             $this->config['action'][$id] = [];
-        return new Message($this->vk, $this->config['action'][$id], $this, $this->config['btn'], $id);
+        return new MessageBot($this->vk, $this->config['action'][$id], $this, $this->config['btn'], $id);
     }
 
     public function break() {
@@ -297,7 +297,7 @@ class Bot {
     }
 
     public function msg($text = null) {
-        return Message::create($this->vk, $v, $this, $this->config['btn'])->text($text);
+        return MessageBot::create($this->vk, $v, $this, $this->config['btn'])->text($text);
     }
 
     public function editBtn($id, $is_save = false) {
@@ -328,11 +328,11 @@ class Bot {
         $is_edit = $is_edit || ($this->config['action'][$action_id]['is_edit'] ?? false);
         if ($is_edit) {
             if ($id_message['type'])
-                $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, $id_message['id'], null, $result_parse);
+                $result = MessageBot::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, $id_message['id'], null, $result_parse);
             else
-                $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, null, $id_message['id'], $result_parse);
+                $result = MessageBot::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, null, $id_message['id'], $result_parse);
         } else
-            $result = Message::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+            $result = MessageBot::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
         $this->status = 0;
         return $result;
     }
@@ -450,6 +450,130 @@ class Bot {
         if (isset($this->config['action']['other']))
             return $this->runAction($id, $user_id, 'other', null, $message_id);
         return null;
+    }
+}
+
+class MessageBot extends Message {
+    protected $buttons;
+    /** @var Bot */
+    protected $bot = null;
+    protected $id_action = null;
+
+    public function __construct($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
+        $this->buttons = &$buttons;
+        $this->bot = $bot;
+        $this->id_action = $id_action;
+        parent::__construct($vk, $cfg);
+    }
+
+    public static function create($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
+        return new self($vk, $cfg, $bot, $buttons, $id_action);
+    }
+
+    public function load($cfg = []) {
+        if ($cfg instanceof self) {
+            $this->vk = $cfg->vk;
+            $this->config = $cfg->config;
+            $this->buttons = &$cfg->buttons;
+        } else if ($cfg instanceof Message) {
+            $this->vk = $cfg->vk;
+            $this->config = $cfg->config;
+        } else {
+            $this->config = $cfg;
+        }
+        return $this;
+    }
+
+    public function kbd($kbd = [], $inline = false, $one_time = False) {
+        if (is_string($kbd) or (isset($kbd[0]) and is_string($kbd[0])))
+            $kbd = [[$kbd]];
+        $this->config['kbd'] = ['kbd' => $kbd, 'inline' => $inline, 'one_time' => $one_time];
+        return $this;
+    }
+
+    public function a_run($id) {
+        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
+        return $this;
+    }
+
+    public function b_run($id) {
+        $this->config['func_before_chain'][] = ['f' => 'run', 'args' => $id];
+        return $this;
+    }
+
+    public function run() {
+        $id = $this->generateNewAction();
+        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
+        return $this->bot->cmd($id);
+    }
+
+    public function edit($is_save = true, $save_params = ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd']) {
+        if (!empty(array_intersect(array_keys($this->config), ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd', 'func']))) {
+            $id = $this->generateNewAction();
+            $this->config['func_after_chain'][] = ['f' => 'edit', 'args' => $id];
+            if ($is_save) {
+                $new_msg_config = [];
+                foreach ($this->config as $key => $val)
+                    if (in_array($key, $save_params))
+                        $new_msg_config[$key] = $val;
+                return $this->bot->cmd($id)->load($new_msg_config);
+            } else
+                return $this->bot->cmd($id);
+        } else {
+            $this->config['is_edit'] = true;
+            return $this;
+        }
+    }
+
+    private function generateNewAction() {
+        $id = explode('$', $this->id_action);
+        if (count($id) > 2 or (isset($id[1]) and !is_numeric($id[1])))
+            throw new SimpleVkException(0, "Нельзя использовать '$' в id действий");
+        $id[1] = isset($id[1]) ? ($id[1] + 1) : 1;
+        return join('$', $id);
+    }
+
+    public function access() {
+        $this->bot->access($this->id_action, func_get_args());
+        return $this;
+    }
+
+    public function getAccess() {
+        return $this->bot->getAccess($this->id_action);
+    }
+
+    public function notAccess() {
+        $this->bot->notAccess($this->id_action, func_get_args());
+        return $this;
+    }
+
+    public function getNotAccess() {
+        return $this->bot->getNotAccess($this->id_action);
+    }
+
+    public function redirect($id): Bot {
+        return $this->bot->redirect($this->id_action, $id);
+    }
+
+    protected function parseKbd($kbd) {
+        $kbd_result = $kbd;
+        foreach ($kbd as $row_index => $row)
+            foreach ($row as $col_index => $col) {
+                if (!is_string($col)) {
+                    $kbd_result[$row_index][$col_index] = $col;
+                    continue;
+                }
+                if (!isset($this->buttons[$col]))
+                    throw new SimpleVkException(0, "Кнопки с id " . $col . " не найдена. Возможно вы используете для отправки сообщения не тот экземпляр класса, в котором была создана эта кнопка.");
+                $btn = $this->buttons[$col];
+                $payload = ['name' => $col];
+                if (is_array($btn[1]))
+                    $btn[1] = array_merge($btn[1], $payload);
+                else
+                    $btn[1] = $payload;
+                $kbd_result[$row_index][$col_index] = $btn;
+            }
+        return $kbd_result;
     }
 }
 

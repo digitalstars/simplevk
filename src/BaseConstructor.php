@@ -205,15 +205,19 @@ class BaseConstructor {
         if (isset($this->config['func']) and is_callable($this->config['func']))
             if ($this->config['func']($this, $var))
                 return $this->null();
-        if (!empty($this->config['func_before_chain']))
+        if (!empty($this->config['func_before_chain'])) {
+            $is_isset_bot = isset($this->bot);
             foreach ($this->config['func_before_chain'] as $func) {
-                if ($func['f'] == 'run')
+                if ($func['f'] == 'run') {
+                    if (!$is_isset_bot)
+                        throw new SimpleVkException(0, "->run() можно использовать только если Message создан через Bot");
                     $this->bot->run($func['args']);
-                else
+                } else
                     call_user_func_array($func['f'], $func['args']);
-                if ($this->bot->getStatus())
+                if ($is_isset_bot && $this->bot->getStatus())
                     return $this->null();
             }
+        }
         if (!empty($this->config['event'])) {
             if ($this->config['event']['type'] == 0)
                 $this->vk->eventAnswerSnackbar($this->config['event']['text']);
@@ -229,17 +233,23 @@ class BaseConstructor {
         if (isset($this->config['func_after']) and is_callable($this->config['func_after']))
             if ($this->config['func_after']($result, $var))
                 return $this->null();
-        if (!empty($this->config['func_after_chain']))
+        if (!empty($this->config['func_after_chain'])) {
+            $is_isset_bot = isset($this->bot);
             foreach ($this->config['func_after_chain'] as $func) {
-                if ($func['f'] == 'run')
+                if ($func['f'] == 'run') {
+                    if (!$is_isset_bot)
+                        throw new SimpleVkException(0, "->run() можно использовать только если Message создан через Bot");
                     $this->bot->run($func['args'], $id);
-                else if ($func['f'] == 'edit')
+                } else if ($func['f'] == 'edit') {
+                    if (!$is_isset_bot)
+                        throw new SimpleVkException(0, "->edit() можно использовать только если Message создан через Bot");
                     $this->bot->editRun($func['args'], $id, $result);
-                else
+                } else
                     call_user_func_array($func['f'], $func['args']);
-                if ($this->bot->getStatus())
+                if ($is_isset_bot && $this->bot->getStatus())
                     return $this->null();
             }
+        }
         return $this->null();
     }
 

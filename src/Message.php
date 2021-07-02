@@ -4,23 +4,12 @@ namespace DigitalStars\SimpleVK;
 
 class Message extends BaseConstructor {
     use FileUploader;
-    private $buttons;
-    /** @var Bot */
-    protected $bot = null;
-    private $id_action = null;
 
-    public function __construct($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
-        $this->buttons = &$buttons;
-        $this->bot = $bot;
-        $this->id_action = $id_action;
-        parent::__construct($vk, $cfg);
+    public static function create($vk = null, &$cfg = null) {
+        return new self($vk, $cfg);
     }
 
-    public static function create($vk = null, &$cfg = null, $bot = null, &$buttons = null, $id_action = null) {
-        return new self($vk, $cfg, $bot, $buttons, $id_action);
-    }
-
-    public function voice($path) {
+    public function voice($path): Message {
         $this->config['voice'] = $path;
         return $this;
     }
@@ -30,93 +19,59 @@ class Message extends BaseConstructor {
     }
 
     public function load($cfg = []) {
-        if ($cfg instanceof Message) {
+        if ($cfg instanceof self) {
             $this->vk = $cfg->vk;
             $this->config = $cfg->config;
-            $this->buttons = &$cfg->buttons;
-        } else
+        } else if ($cfg instanceof MessageBot) {
+            return MessageBot::create($cfg->vk, $cfg->config, $cfg->bot, $cfg->buttons, $cfg->id_action);
+        } else {
             $this->config = $cfg;
+        }
         return $this;
     }
 
     public function kbd($kbd = [], $inline = false, $one_time = False) {
+        $is_invalid_kbd = false;
         if (is_string($kbd) or (isset($kbd[0]) and is_string($kbd[0])))
-            $kbd = [[$kbd]];
+            $is_invalid_kbd = true;
+        foreach ($kbd as $row)
+            foreach ($row as $col)
+                if (is_string($col))
+                    $is_invalid_kbd = true;
+        if ($is_invalid_kbd)
+            throw new SimpleVkException(0, "Класс simpleVK не имеет доступ к указанным в kbd() кнопкам, потому что они созданы классом Bot. Используйте отправку сообщения через класс bot");
         $this->config['kbd'] = ['kbd' => $kbd, 'inline' => $inline, 'one_time' => $one_time];
+        return $this;
+    }
+
+    public function eventAnswerSnackbar($text) {
+        $this->config['event'] = [
+            'type' => 0,
+            'text' => $text
+        ];
+        return $this;
+    }
+
+    public function eventAnswerOpenLink($url) {
+        $this->config['event'] = [
+            'type' => 1,
+            'url' => $url
+        ];
+        return $this;
+    }
+
+    public function eventAnswerOpenApp($app_id, $owner_id = null, $hash = null) {
+        $this->config['event'] = [
+            'type' => 2,
+            'app_id' => $app_id,
+            'owner_id' => $owner_id,
+            'hash' => $hash
+        ];
         return $this;
     }
 
     public function getKbd() {
         return $this->config['kbd'] ?? null;
-    }
-
-    public function a_run($id) {
-        $this->checkBot();
-        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
-        return $this;
-    }
-
-    public function b_run($id) {
-        $this->checkBot();
-        $this->config['func_before_chain'][] = ['f' => 'run', 'args' => $id];
-        return $this;
-    }
-
-    public function run() {
-        $id = $this->generateNewAction();
-        $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
-        return $this->bot->cmd($id);
-    }
-
-    public function edit($is_save = true, $save_params = ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd']) {
-        if (!empty(array_intersect(array_keys($this->config), ['text', 'img', 'doc', 'attachments', 'params', 'voice', 'kbd', 'func']))) {
-            $id = $this->generateNewAction();
-            $this->config['func_after_chain'][] = ['f' => 'edit', 'args' => $id];
-            if ($is_save) {
-                $new_msg_config = [];
-                foreach ($this->config as $key => $val)
-                    if (in_array($key, $save_params))
-                        $new_msg_config[$key] = $val;
-                return $this->bot->cmd($id)->load($new_msg_config);
-            } else
-                return $this->bot->cmd($id);
-        } else {
-            $this->config['is_edit'] = true;
-            return $this;
-        }
-    }
-
-    private function generateNewAction() {
-        $this->checkBot();
-        $id = explode('$', $this->id_action);
-        if (count($id) > 2 or (isset($id[1]) and !is_numeric($id[1])))
-            throw new SimpleVkException(0, "Нельзя использовать '$' в id действий");
-        $id[1] = isset($id[1]) ? ($id[1] + 1) : 1;
-        return join('$', $id);
-    }
-
-    public function access() {
-        if (!is_null($this->bot))
-            $this->bot->access($this->id_action, func_get_args());
-        return $this;
-    }
-
-    public function getAccess() {
-        if (!is_null($this->bot))
-            return $this->bot->getAccess($this->id_action);
-        return null;
-    }
-
-    public function notAccess() {
-        if (!is_null($this->bot))
-            $this->bot->notAccess($this->id_action, func_get_args());
-        return $this;
-    }
-
-    public function getNotAccess() {
-        if (!is_null($this->bot))
-            return $this->bot->getNotAccess($this->id_action);
-        return null;
     }
 
     public function forward($message_ids = null, $conversation_message_ids = null, $peer_id = null, $owner_id = null) {
@@ -159,47 +114,6 @@ class Message extends BaseConstructor {
         return $this;
     }
 
-//    public function for
-
-    public function eventAnswerSnackbar($text) {
-        $this->checkBot();
-        $this->config['event'] = [
-            'type' => 0,
-            'text' => $text
-        ];
-        return $this;
-    }
-
-    public function eventAnswerOpenLink($url) {
-        $this->checkBot();
-        $this->config['event'] = [
-            'type' => 1,
-            'url' => $url
-        ];
-        return $this;
-    }
-
-    public function eventAnswerOpenApp($app_id, $owner_id = null, $hash = null) {
-        $this->checkBot();
-        $this->config['event'] = [
-            'type' => 2,
-            'app_id' => $app_id,
-            'owner_id' => $owner_id,
-            'hash' => $hash
-        ];
-        return $this;
-    }
-
-    public function redirect($id) {
-        $this->checkBot();
-        return $this->bot->redirect($this->id_action, $id);
-    }
-
-    private function checkBot() {
-        if (is_null($this->bot))
-            throw new SimpleVkException(0, "Метод только для событий конструктора ботов");
-    }
-
     public function carousel() {
         $config = [];
         $this->config['carousel'][] = &$config;
@@ -230,25 +144,8 @@ class Message extends BaseConstructor {
         return $this;
     }
 
-    private function parseKbd($kbd) {
-        $kbd_result = $kbd;
-        foreach ($kbd as $row_index => $row)
-            foreach ($row as $col_index => $col) {
-                if (!is_string($col)) {
-                    $kbd_result[$row_index][$col_index] = $col;
-                    continue;
-                }
-                if (!isset($this->buttons[$col]))
-                    throw new SimpleVkException(0, "Кнопки с id " . $col . " не найдена. Возможно вы используете для отправки сообщения не тот экземпляр класса, в котором была создана эта кнопка.");
-                $btn = $this->buttons[$col];
-                $payload = ['name' => $col];
-                if (is_array($btn[1]))
-                    $btn[1] = array_merge($btn[1], $payload);
-                else
-                    $btn[1] = $payload;
-                $kbd_result[$row_index][$col_index] = $btn;
-            }
-        return $kbd_result;
+    protected function parseKbd($kbd) {
+        return $kbd;
     }
 
     private function parseKeyboard($keyboard_raw = []) {
