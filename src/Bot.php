@@ -471,13 +471,13 @@ class MessageBot extends Message {
     }
 
     public function load($cfg = []) {
-        if ($cfg instanceof self) {
+        if ($cfg instanceof Message) {
+            $this->vk = $cfg->vk;
+            $this->config = $cfg->config;
+        } else if ($cfg instanceof self) {
             $this->vk = $cfg->vk;
             $this->config = $cfg->config;
             $this->buttons = &$cfg->buttons;
-        } else if ($cfg instanceof Message) {
-            $this->vk = $cfg->vk;
-            $this->config = $cfg->config;
         } else {
             $this->config = $cfg;
         }

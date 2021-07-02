@@ -19,11 +19,12 @@ class Message extends BaseConstructor {
     }
 
     public function load($cfg = []) {
+        if ($cfg instanceof MessageBot) {
+            return MessageBot::create($cfg->vk, $cfg->config, $cfg->bot, $cfg->buttons, $cfg->id_action);
+        }
         if ($cfg instanceof self) {
             $this->vk = $cfg->vk;
             $this->config = $cfg->config;
-        } else if ($cfg instanceof MessageBot) {
-            return MessageBot::create($cfg->vk, $cfg->config, $cfg->bot, $cfg->buttons, $cfg->id_action);
         } else {
             $this->config = $cfg;
         }
@@ -34,10 +35,11 @@ class Message extends BaseConstructor {
         $is_invalid_kbd = false;
         if (is_string($kbd) or (isset($kbd[0]) and is_string($kbd[0])))
             $is_invalid_kbd = true;
-        foreach ($kbd as $row)
-            foreach ($row as $col)
-                if (is_string($col))
-                    $is_invalid_kbd = true;
+        if (!$is_invalid_kbd)
+            foreach ($kbd as $row)
+                foreach ($row as $col)
+                    if (is_string($col))
+                        $is_invalid_kbd = true;
         if ($is_invalid_kbd)
             throw new SimpleVkException(0, "Класс simpleVK не имеет доступ к указанным в kbd() кнопкам, потому что они созданы классом Bot. Используйте отправку сообщения через класс bot");
         $this->config['kbd'] = ['kbd' => $kbd, 'inline' => $inline, 'one_time' => $one_time];
@@ -288,7 +290,7 @@ class Message extends BaseConstructor {
             $message_id = $message_id ?? $conversation_message_id;
             $result = $this->request('messages.edit', ['peer_id' => $peer_id, $message_id_key => $message_id] + $query);
         }
-        $this->postProcessing($peer_id, $result, $var);
+        $this->postProcessing($peer_id, $message_id ?? $result, $var);
         return $result;
     }
 
