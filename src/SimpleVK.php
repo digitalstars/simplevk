@@ -649,7 +649,8 @@ class SimpleVK {
     protected function request_core($method, $params = []) {
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
-        $params['random_id'] = random_int(-2147483648, 2147483647);
+        if ($method === 'messages.send')
+            $params['random_id'] = 0;
         if (!is_null($this->group_id) and empty($params['group_id']))
             $params['group_id'] = $this->group_id;
         $url = $this->api_url . $method;
