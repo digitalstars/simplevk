@@ -93,7 +93,7 @@ class SimpleVK {
 
     public function reply($message) {
         $this->initPeerID($id);
-        return $this->request('messages.send', ['peer_id' => $id, 'message' => $message]);
+        return $this->request('messages.send', ['peer_id' => $id, 'message' => $message, 'random_id' => 0]);
     }
 
     public function msg($text = null) {
@@ -606,7 +606,7 @@ class SimpleVK {
                 ?: "$#" . (unpack('V', iconv('UTF-8', 'UCS-4LE', $a[0]))[1]) . ";");
             $bytes += $byte;
             if ($bytes > 4096) {
-                $this->request('messages.send', ['message' => $tmp_str, 'peer_id' => $id]); // Отправка части сообщения
+                $this->request('messages.send', ['message' => $tmp_str, 'peer_id' => $id, 'random_id' => 0]); // Отправка части сообщения
                 $bytes = $byte;
                 $tmp_str = $a[0];
             } else
@@ -649,8 +649,6 @@ class SimpleVK {
     protected function request_core($method, $params = []) {
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
-        if ($method === 'messages.send')
-            $params['random_id'] = 0;
         if (!is_null($this->group_id) and empty($params['group_id']))
             $params['group_id'] = $this->group_id;
         $url = $this->api_url . $method;

@@ -32,7 +32,7 @@ trait ErrorHandler {
                     call_user_func_array($ids, [$errors[$type], $message, $file, $line, "$errors[$type][$type] $message ($file на $line строке)"]);
                 else {
                     $message = "$errors[$type][$type] $message ($file на $line строке)";
-                    $this->request('messages.send', ['peer_id' => $ids, 'message' => $message, 'dont_parse_links' => 1]);
+                    $this->request('messages.send', ['peer_id' => $ids, 'message' => $message, 'random_id' => 0, 'dont_parse_links' => 1]);
                 }
             }
             return TRUE; // не запускаем внутренний обработчик ошибок PHP

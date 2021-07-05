@@ -310,7 +310,7 @@ class Message extends BaseConstructor {
         if (empty($query))
             $result = null;
         else
-            $result = $this->request('messages.send', ['peer_id' => $id] + $query);
+            $result = $this->request('messages.send', ['peer_id' => $id, 'random_id' => 0] + $query);
         $this->postProcessing($id, $result, $var);
         return $result;
     }
