@@ -371,6 +371,9 @@ class SimpleVK {
         $fields = is_array($fields) ? $fields : [$fields];
         $user_ids = array_map('self::parseUrl', $users_url);
         $param_ids = ['user_ids' => implode(',', $user_ids)];
+        if($param_ids['user_ids'] == '') {
+            $param_ids = [];
+        }
         $scope = ["fields" => implode(",", $fields)];
         $case = ['name_case' => $name_case];
 
@@ -387,6 +390,9 @@ class SimpleVK {
         $fields = is_array($fields) ? $fields : [$fields];
         $group_ids = array_map('self::parseUrl', $groups_url);
         $param_ids = ['group_ids' => implode(',', $group_ids)];
+        if($param_ids['group_ids'] == '') {
+            $param_ids = [];
+        }
         $fields = ["fields" => implode(",", $fields)];
 
         try {
@@ -686,7 +692,7 @@ class SimpleVK {
             if(self::$error_suppression) {
                 return $result;
             } else {
-                throw new SimpleVkException($result['error_code'], print_r($result['error'], 1) . PHP_EOL);
+                throw new SimpleVkException($result['error']['error_code'], print_r($result['error'], 1) . PHP_EOL);
             }
         }
         if (isset($result['response']))
