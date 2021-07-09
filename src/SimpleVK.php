@@ -20,7 +20,7 @@ class SimpleVK {
     protected $auth = null;
     protected $request_ignore_error = REQUEST_IGNORE_ERROR;
     public static $proxy = PROXY;
-    public static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
+    protected static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
     private $is_test_len_str = true;
     protected $group_id = null;
     protected $ch = null;
