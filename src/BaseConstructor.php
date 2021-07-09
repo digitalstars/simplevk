@@ -219,6 +219,8 @@ class BaseConstructor {
             }
         }
         if (!empty($this->config['event'])) {
+            if (!isset($this->bot))
+                throw new SimpleVkException(0, "Методы ->event...() можно использовать только если Message создан через Bot");
             if ($this->config['event']['type'] == 0)
                 $this->vk->eventAnswerSnackbar($this->config['event']['text']);
             else if ($this->config['event']['type'] == 1)
