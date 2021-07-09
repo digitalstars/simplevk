@@ -116,7 +116,7 @@ class Message extends BaseConstructor {
             $images[] = $this->getMsgAttachmentUploadImage(0, $img_path);
         }
         $this->config['img'] = [];
-        $this->config['attachments'] = array_merge($this->config['attachments'], $images);
+        $this->config['attachments'] = array_merge($this->config['attachments'] ?? [], $images);
         return $this;
     }
 
@@ -163,6 +163,7 @@ class Message extends BaseConstructor {
                     {
                         $keyboard[$row][$col]['action']['link'] = $button[2];
                         $keyboard[$row][$col]['action']['label'] = $button[3];
+                        break;
                     }
                 }
             }
@@ -188,7 +189,7 @@ class Message extends BaseConstructor {
                 $element['photo_id'] = str_replace('photo', '', $this->getMsgAttachmentUploadImage($id, $carousel['img']));
             $template['elements'][] = $element;
         }
-        return json_encode($template, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return json_encode($template, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     private function assembleMsg($id, $var) {

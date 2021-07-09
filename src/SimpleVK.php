@@ -213,6 +213,7 @@ class SimpleVK {
         $ids = [];
         $i = 0;
         $count = 0;
+        print "Начинаю рассылку\n";
         $members = $this->request('messages.getConversations', ['count' => 1])['count'];
         foreach ($this->getAllDialogs() as $dialog) {
             if ($dialog['conversation']['can_write']['allowed']) {
@@ -267,7 +268,7 @@ class SimpleVK {
         ]);
     }
 
-    public function eventAnswerOpenLink($url) {
+    public function eventAnswerOpenLink($link) {
         $this->checkTypeEvent();
         $this->request('messages.sendMessageEventAnswer', [
             'event_id' => $this->data['object']['event_id'],
@@ -275,7 +276,7 @@ class SimpleVK {
             'peer_id' => $this->data['object']['peer_id'],
             'event_data' => json_encode([
                 'type' => 'open_link',
-                'link' => $url
+                'link' => $link
             ])
         ]);
     }
@@ -313,11 +314,11 @@ class SimpleVK {
     }
 
     public function buttonPayToGroup($group_id, $amount, $description = null, $data = null, $payload = null) {
-        return ['vkpay', $payload, 'pay-to-group', $group_id, $amount, $description, $data];
+        return ['vkpay', $payload, 'pay-to-group', $group_id, $amount, urlencode($description), $data];
     }
 
     public function buttonPayToUser($user_id, $amount, $description = null, $payload = null) {
-        return ['vkpay', $payload, 'pay-to-user', $user_id, $amount, $description];
+        return ['vkpay', $payload, 'pay-to-user', $user_id, $amount, urlencode($description)];
     }
 
     public function buttonDonateToGroup($group_id, $payload = null) {
@@ -490,19 +491,14 @@ class SimpleVK {
             if ($count_all == 0) {
                 $count_all = $result['count'];
             }
+            if(!isset($result['items'])) {
+                yield $result;
+                continue;
+            }
+
             foreach ($result['items'] as $item) {
                 yield $item;
             }
-        }
-    }
-
-    public function responseGeneratorRequest($method, $params, $count = 200) {
-        for ($count_all = 0, $offset = 0; $offset <= $count_all; $offset += $count) {
-            $result = $this->request($method, $params + ['offset' => $offset, 'count' => $count]);
-            if ($count_all == 0) {
-                $count_all = $result['count'];
-            }
-            yield $result;
         }
     }
 
@@ -654,6 +650,7 @@ class SimpleVK {
     }
 
     protected function request_core($method, $params = []) {
+//        print_r($params);
         $params['access_token'] = $this->token;
         $params['v'] = $this->version;
         if (!is_null($this->group_id) and empty($params['group_id']))
