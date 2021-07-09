@@ -491,6 +491,32 @@ class MessageBot extends Message {
         return $this;
     }
 
+    public function eventAnswerSnackbar($text) {
+        $this->config['event'] = [
+            'type' => 0,
+            'text' => $text
+        ];
+        return $this;
+    }
+
+    public function eventAnswerOpenLink($url) {
+        $this->config['event'] = [
+            'type' => 1,
+            'url' => $url
+        ];
+        return $this;
+    }
+
+    public function eventAnswerOpenApp($app_id, $owner_id = null, $hash = null) {
+        $this->config['event'] = [
+            'type' => 2,
+            'app_id' => $app_id,
+            'owner_id' => $owner_id,
+            'hash' => $hash
+        ];
+        return $this;
+    }
+
     public function a_run($id) {
         $this->config['func_after_chain'][] = ['f' => 'run', 'args' => $id];
         return $this;
