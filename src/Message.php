@@ -105,14 +105,14 @@ class Message extends BaseConstructor {
         return $this;
     }
 
-    public function reply($message_id = null, $conversation_message_id = null) {
+    public function reply($message_id = null, $conversation_message_id = null, $peer_id = null) {
         if ($message_id == null && $conversation_message_id == null) {
             $this->config['forward'] = ['forward' => ['is_reply' => true]];
             return $this;
         }
         $this->config['forward'] = ['forward' => [
             ($message_id ? 'message_ids' : 'conversation_message_ids') => $message_id ?: $conversation_message_id,
-            'is_reply' => true]];
+            'is_reply' => true] + (($peer_id) ? ['peer_id' => $peer_id] : [])];
         return $this;
     }
 

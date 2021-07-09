@@ -155,6 +155,7 @@ class SimpleVK {
 
     public function getAttachments() {
         $data = $this->data;
+        return null;
         if (!isset($data['object']['attachments']))
             return null;
         $result = [];
