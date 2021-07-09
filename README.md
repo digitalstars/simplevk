@@ -10,9 +10,9 @@
 <img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License">
 </p> 
 
-# SimpleVK
-[Документация на русском](https://simplevk.scripthub.ru)
---- |  
+# SimpleVK 2
+[Документация SimpleVK 2](https://simplevk.scripthub.ru/v2/guide/guide.html) | [Документация SimpleVK 3](https://simplevk.scripthub.ru/v3/install/who_simplevk.html) | 
+--- |  --- |  
 
 [Беседа VK](https://vk.me/join/AJQ1dzQRUQxtfd7zSm4STOmt) | [Telegram](https://t.me/vk_api_chat) | [Discord](https://discord.gg/RFqAWRj)
 --- | --- | --- |
