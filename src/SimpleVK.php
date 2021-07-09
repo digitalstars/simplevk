@@ -306,7 +306,7 @@ class SimpleVK {
     }
 
     public function buttonLocation($payload = null) {
-        return ['location', $payload];
+        return ['location', $payload, null];
     }
 
     public function buttonOpenLink($link, $label = 'Открыть', $payload = null) {
