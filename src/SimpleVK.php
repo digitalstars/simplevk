@@ -381,6 +381,9 @@ class SimpleVK {
 
         try {
             $result = $this->request('users.get', $param_ids + $scope + $case);
+            if(isset($result['error'])) {
+                return $result;
+            }
             return count($result) == 1 ? $result[0] : $result;
         } catch (Exception $e) {
             return false;
@@ -399,6 +402,9 @@ class SimpleVK {
 
         try {
             $result = $this->request('groups.getById', $param_ids + $fields);
+            if(isset($result['error'])) {
+                return $result;
+            }
             return count($result) == 1 ? $result[0] : $result;
         } catch (Exception $e) {
             return false;
