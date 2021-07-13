@@ -45,6 +45,7 @@ class SimpleVK {
                 $this->debugRun();
             } else {
                 $this->sendOK();
+                self::$debug_mode = true;
             }
             if (isset($this->data['object']['message']) && $this->data['type'] == 'message_new') {
                 $this->data['object'] = $this->data['object']['message'];
