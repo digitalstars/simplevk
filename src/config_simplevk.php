@@ -20,13 +20,25 @@ const DEFAULT_APP = [
         'id' => 2274003,
         'secret' => 'hHbZxrka2uZ6jB1inYsH'
     ],
-    'ios' => [
+    'iphone' => [
         'id' => 3140623,
         'secret' => 'VeWdmVclDCtn6ihuP1nt'
     ],
-    'windows' => [
+    'ipad' => [
+        'id' => 3682744,
+        'secret' => 'mY6CDUswIVdJLCD3j15n'
+    ],
+    'windows_desktop' => [
         'id' => 3697615,
         'secret' => 'AlVXZFMUqyrnABp8ncuU'
+    ],
+//    'windows_phone' => [
+//        'id' => 3502557,
+//        'secret' => 'PEObAuQi6KloPM4T30DV'
+//    ],
+    'vk_messenger' => [
+        'id' => 5027722,
+        'secret' => 'Skg1Tn1r2qEbbZIAJMx3'
     ]
 ];
 

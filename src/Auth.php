@@ -28,8 +28,8 @@ class Auth {
 
     public function __construct($login = null, $pass = null) {
         if (isset($login) and isset($pass)) {
-            $this->login = $login;
-            $this->pass = $pass;
+            $this->login = urlencode($login);
+            $this->pass = urlencode($pass);
             $this->loadCashed();
         }
     }
