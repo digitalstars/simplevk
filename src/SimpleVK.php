@@ -191,6 +191,51 @@ class SimpleVK {
         return $result;
     }
 
+    public function getAffectedUsers($use_category = false) {
+        $affected_users = [];
+
+        $fwd = $this->data['object']['fwd_messages'] ?? null;
+        if ($fwd) {
+            foreach ($fwd as $value) {
+                $affected_users['fwd'][] = $value['from_id'];
+            }
+        }
+        $affected_users['reply'] = [$this->data['object']['reply_message']['from_id'] ?? null];
+        $this->initText($msg);
+
+        if (preg_match_all("/\[(id|club|public)([0-9]*)\|[^\]]*\]/", $msg, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $key => $value) {
+                $affected_users['mention'][] = (int)(($value[1] == 'id') ? $value[2] : -$value[2]);
+            }
+        }
+
+        if (preg_match_all("/vk.com\/([a-z0-9_]{1,})?/", $msg, $matches)) {
+            $affected_users['url'] = array_column($this->userInfo($matches[1]), 'id') ?? [];
+            if (count($matches[1]) != count($affected_users['url'])) { //оптимизация
+                $group_ids = array_map(function ($el) {
+                    if (strpos($el, 'public') === 0) {
+                        return str_replace('public', 'club', $el);
+                    }
+                    return $el;
+                }, $matches[1]);
+                $group_ids = array_column($this->groupInfo($group_ids), 'id') ?? [];
+                $group_ids = array_map(function ($el) {
+                    return $el * -1;
+                }, $group_ids);
+                $affected_users['url'] = array_merge($affected_users['url'], $group_ids);
+            }
+            if ($affected_users['url'] == []) {
+                $affected_users['url'] = null;
+            }
+        }
+
+        if (!$use_category) {
+            return array_values(array_filter(array_merge(...array_values($affected_users))));
+        }
+
+        return array_filter($affected_users);
+    }
+
     public function initVars(&$peer_id = null, &$user_id = null, &$type = null, &$message = null, &$payload = null, &$id = null, &$attachments = null) {
         $data = $this->data;
         $type = $data['type'] ?? null;
