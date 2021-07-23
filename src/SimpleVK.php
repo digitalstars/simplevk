@@ -210,7 +210,9 @@ class SimpleVK {
         }
 
         if (preg_match_all("/vk.com\/([a-z0-9_]{1,})?/", $msg, $matches)) {
-            $affected_users['url'] = array_column($this->userInfo($matches[1]), 'id') ?? [];
+            $user_ids = $this->userInfo($matches[1]);
+            $user_ids = (isset($user_ids['id'])) ? [$user_ids] : $user_ids;
+            $affected_users['url'] = array_column($user_ids, 'id') ?? [];
             if (count($matches[1]) != count($affected_users['url'])) { //оптимизация
                 $group_ids = array_map(function ($el) {
                     if (strpos($el, 'public') === 0) {
@@ -218,7 +220,10 @@ class SimpleVK {
                     }
                     return $el;
                 }, $matches[1]);
-                $group_ids = array_column($this->groupInfo($group_ids), 'id') ?? [];
+
+                $group_ids = $this->groupInfo($group_ids);
+                $group_ids = (isset($group_ids['id'])) ? [$group_ids] : $group_ids;
+                $group_ids = array_column($group_ids, 'id') ?? [];
                 $group_ids = array_map(function ($el) {
                     return $el * -1;
                 }, $group_ids);
