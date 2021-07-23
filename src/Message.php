@@ -242,7 +242,7 @@ class Message extends BaseConstructor {
                 $forward['peer_id'] = $init_peer_id;
             }
             if (empty($forward['message_ids']) && empty($forward['conversation_message_ids'])) {
-                $this->vk->initMsgID($msg_id)->initConversationMsgID($convers_msg_id);
+                $this->vk->initID($msg_id)->initConversationMsgID($convers_msg_id);
                 $forward[$msg_id ? 'message_ids' : 'conversation_message_ids'] = $msg_id ?: $convers_msg_id;
             }
             $forward = ['forward' => json_encode($forward)];
