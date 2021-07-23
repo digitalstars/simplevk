@@ -4,6 +4,7 @@ namespace DigitalStars\SimpleVK;
 
 class LongPoll extends SimpleVK {
     use ErrorHandler;
+
     private $key;
     private $server;
     private $ts;
@@ -42,12 +43,11 @@ class LongPoll extends SimpleVK {
     public static function enableInWeb($bool = true) {
         self::$longpoll_in_web = $bool;
     }
-    
-     /**
+
+    /**
      * Проверить наличие модуля многопоточности и если есть включить потоки
      */
-    private function multiThread()
-    {
+    private function multiThread() {
         extension_loaded('posix') and extension_loaded('pcntl') ? $this->is_multi_thread = true : $this->is_multi_thread = false;
     }
 
@@ -112,11 +112,11 @@ class LongPoll extends SimpleVK {
                         break;
                 }
                 continue;
-            } else {
-                unset($this->ts);
-                $this->ts = $data['ts'];
-                return $data;
             }
+
+            unset($this->ts);
+            $this->ts = $data['ts'];
+            return $data;
         }
     }
 
@@ -136,31 +136,18 @@ class LongPoll extends SimpleVK {
     }
 
     private function request_core_lp($url, $params = [], $iteration = 1) {
-        if (function_exists('curl_init')) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url . http_build_query($params));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            if (isset(self::$proxy['ip'])) {
-                curl_setopt($ch, CURLOPT_PROXYTYPE, self::$proxy_types[self::$proxy['type']]);
-                curl_setopt($ch, CURLOPT_PROXY, self::$proxy['ip']);
-                if (isset(self::$proxy['user_pwd'])) {
-                    curl_setopt($ch, CURLOPT_PROXYUSERPWD, self::$proxy['user_pwd']);
-                }
-            }
-            $result = json_decode(curl_exec($ch), true);
-            curl_close($ch);
-        } else {
-            throw new SimpleVkException(77777, 'Curl недоступен. Не удается выполнить запрос');
-        }
+        $ch = $this->curlInit();
+        curl_setopt($ch, CURLOPT_URL, $url . http_build_query($params));
+        $result = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
         if (!isset($result)) {
             if ($iteration <= 5) {
                 SimpleVkException::nullError('Запрос к вк вернул пустоту. Повторная отправка, попытка №' . $iteration);
                 $result = $this->request_core_lp($url, $params, ++$iteration); //TODO рекурсия
             } else {
                 $error_message = "Запрос к вк вернул пустоту. Завершение 5 попыток отправки\n
-                                  Метод:$url\nПараметры:\n" . json_encode($params, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                                  Метод:$url\nПараметры:\n" . json_encode($params, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 SimpleVkException::nullError($error_message);
                 throw new \Exception($error_message, 77777);
             }
@@ -181,7 +168,7 @@ class LongPoll extends SimpleVK {
     private function userLongPoll($anon) {
         $data = $this->data;
         $this->data = [];
-        if(isset($data[2]))
+        if (isset($data[2]))
             $this->initFlags($data[2]);
         switch ($data[0]) {
             case 2:
@@ -191,7 +178,7 @@ class LongPoll extends SimpleVK {
                 $this->data['flags']['important'] = $this->flag(3);
                 $this->data['flags']['spam'] = $this->flag(6);
                 $this->data['flags']['deleted'] = $this->flag(7);
-                $this->data['flags']['deleted_all'] = (int) ($this->flag(7) && $this->flag(17));
+                $this->data['flags']['deleted_all'] = (int)($this->flag(7) && $this->flag(17));
                 $this->data['flags']['audio_listened'] = $this->flag(12);
                 break;
             }
@@ -200,7 +187,7 @@ class LongPoll extends SimpleVK {
                 $this->data['type'] = 'unset_message_flags';
                 $this->parseMessageStruct($data);
                 $this->data['flags']['important'] = $this->flag(3);
-                $this->data['flags']['cancel_spam'] = (int) ($this->flag(6) && $this->flag(15));
+                $this->data['flags']['cancel_spam'] = (int)($this->flag(6) && $this->flag(15));
                 $this->data['flags']['deleted'] = $this->flag(7);
                 break;
             }
@@ -226,7 +213,7 @@ class LongPoll extends SimpleVK {
                 break;
             }
         }
-        if($data[0] == 4) {
+        if ($data[0] == 4) {
 //            print_r($data);
 //            print_r($this->data);
         }
@@ -248,12 +235,12 @@ class LongPoll extends SimpleVK {
     private function parseMessageStruct($data) {
         $this->data['object']['id'] = $data[1] ?? null;
         $this->data['object']['peer_id'] = $data[3] ?? null;
-        if(isset($data[4])) {
+        if (isset($data[4])) {
             $this->data['object']['date'] = $data[4] ?? null;
             $this->data['object']['text'] = $data[5] ?? null;
             $this->data['object']['from_id'] = $data[6]['from'] ?? $this->data['object']['peer_id'];
 
-            if(isset($data[6]['source_act'])) {
+            if (isset($data[6]['source_act'])) {
                 $this->data['object']['source'] = $data[6];
             } else {
                 $this->data['object']['temp']['emoji'] = $data[6]['emoji'] ?? null;

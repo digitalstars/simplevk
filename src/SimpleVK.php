@@ -23,7 +23,6 @@ class SimpleVK {
     protected static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
     private $is_test_len_str = true;
     protected $group_id = null;
-    protected $ch = null;
 
     public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
@@ -31,12 +30,11 @@ class SimpleVK {
 
     public function __construct($token, $version, $also_version = null) {
 
-        if(!self::$retry_requests_processing &&
+        if (!self::$retry_requests_processing &&
             ((function_exists('getallheaders') && isset(getallheaders()['X-Retry-Counter'])) || isset($_SERVER['HTTP_X_RETRY_COUNTER']))) {
             exit('ok');
         }
 
-        $this->ch = $this->curlInit();
         $this->processAuth($token, $version, $also_version);
         $this->data = json_decode(file_get_contents('php://input'), 1);
         $this->data_backup = $this->data;
@@ -374,7 +372,7 @@ class SimpleVK {
         $fields = is_array($fields) ? $fields : [$fields];
         $user_ids = array_map('self::parseUrl', $users_url);
         $param_ids = ['user_ids' => implode(',', $user_ids)];
-        if($param_ids['user_ids'] == '') {
+        if ($param_ids['user_ids'] == '') {
             $param_ids = [];
         }
         $scope = ["fields" => implode(",", $fields)];
@@ -382,7 +380,7 @@ class SimpleVK {
 
         try {
             $result = $this->request('users.get', $param_ids + $scope + $case);
-            if(isset($result['error'])) {
+            if (isset($result['error'])) {
                 return $result;
             }
             return count($result) == 1 ? $result[0] : $result;
@@ -396,14 +394,14 @@ class SimpleVK {
         $fields = is_array($fields) ? $fields : [$fields];
         $group_ids = array_map('self::parseUrl', $groups_url);
         $param_ids = ['group_ids' => implode(',', $group_ids)];
-        if($param_ids['group_ids'] == '') {
+        if ($param_ids['group_ids'] == '') {
             $param_ids = [];
         }
         $fields = ["fields" => implode(",", $fields)];
 
         try {
             $result = $this->request('groups.getById', $param_ids + $fields);
-            if(isset($result['error'])) {
+            if (isset($result['error'])) {
                 return $result;
             }
             return count($result) == 1 ? $result[0] : $result;
@@ -498,7 +496,7 @@ class SimpleVK {
             if ($count_all == 0) {
                 $count_all = $result['count'];
             }
-            if(!isset($result['items'])) {
+            if (!isset($result['items'])) {
                 yield $result;
                 continue;
             }
@@ -636,6 +634,7 @@ class SimpleVK {
     protected function curlInit() {
         if (function_exists('curl_init')) {
             $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             if (isset(self::$proxy['ip'])) {
@@ -663,38 +662,23 @@ class SimpleVK {
         if (!is_null($this->group_id) and empty($params['group_id']))
             $params['group_id'] = $this->group_id;
         $url = $this->api_url . $method;
-        if (function_exists('curl_init')) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type:multipart/form-data'
-            ]);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            if (isset(self::$proxy['ip'])) {
-                curl_setopt($ch, CURLOPT_PROXYTYPE, self::$proxy_types[self::$proxy['type']]);
-                curl_setopt($ch, CURLOPT_PROXY, self::$proxy['ip']);
-                if (isset(self::$proxy['user_pwd'])) {
-                    curl_setopt($ch, CURLOPT_PROXYUSERPWD, self::$proxy['user_pwd']);
-                }
-            }
-            $result = json_decode(curl_exec($ch), True);
-            curl_close($ch);
-        } else {
-            throw new SimpleVkException(77777, 'Curl недоступен. Не удается выполнить запрос');
-        }
+
+        $ch = $this->curlInit();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type:multipart/form-data'
+        ]);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+        $result = json_decode(curl_exec($ch), True);
+        curl_close($ch);
+
         if (!isset($result)) {
             throw new SimpleVkException(77777, 'Запрос к вк вернул пустоту.');
         }
         if (isset($result['error'])) {
             unset($params['access_token']);
-//            if(isset($params['keyboard'])) {
-//                $params['keyboard'] = $params['keyboard'];
-//            }
             $result['error']['request_params'] = $params;
-            if(self::$error_suppression) {
+            if (self::$error_suppression) {
                 return $result;
             } else {
                 throw new SimpleVkException($result['error']['error_code'], print_r($result['error'], 1) . PHP_EOL);
