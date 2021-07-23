@@ -128,7 +128,12 @@ class SimpleVK {
     }
 
     public function initUserID(&$user_id) {
-        $user_id = $this->data['object']['from_id'] ?? $this->data['object']['user_id'] ?? null;
+        $user_id =
+            $this->data['object']['deleter_id'] ?? // кто удалил коммент для wall_reply_delete / market_comment_delete
+            $this->data['object']['liker_id'] ?? //кто поставил лайк like_add / like_remove
+            $this->data['object']['from_id'] ??
+            $this->data['object']['user_id'] ??
+            $this->data['object']['owner_id'] ?? null;
         return $this;
     }
 
@@ -142,7 +147,7 @@ class SimpleVK {
         return $this;
     }
 
-    public function initMsgID(&$mid) {
+    public function initID(&$mid) {
         $mid = $this->data['object']['id'] ?? null;
         return $this;
     }
@@ -186,13 +191,13 @@ class SimpleVK {
         return $result;
     }
 
-    public function initVars(&$id = null, &$user_id = null, &$type = null, &$message = null, &$payload = null, &$msg_id = null, &$attachments = null) {
+    public function initVars(&$peer_id = null, &$user_id = null, &$type = null, &$message = null, &$payload = null, &$id = null, &$attachments = null) {
         $data = $this->data;
         $type = $data['type'] ?? null;
-        $id = $data['object']['peer_id'] ?? null;
+        $peer_id = $data['object']['peer_id'] ?? null;
         $message = $data['object']['text'] ?? null;
-        $user_id = $data['object']['from_id'] ?? $data['object']['user_id'] ?? null;
-        $msg_id = $data['object']['id'] ?? null;
+        $this->initUserID($user_id);
+        $id = $data['object']['id'] ?? null;
         $payload = $this->getPayload();
         $attachments = $this->getAttachments();
         return $this->data_backup;
@@ -552,9 +557,7 @@ class SimpleVK {
         $tag = ['!fn', '!ln', '!full', 'fn', 'ln', 'full'];
 
         if ($id >= 2e9) {
-            $id = $this->data['object']['from_id'] ??
-                $this->data['object']['user_id'] ??
-                $this->data['object']['liker_id'] ?? null;
+            $this->initUserID($id);
         }
         if (strpos($message, '~') !== false) {
             return preg_replace_callback(
