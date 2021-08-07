@@ -191,46 +191,57 @@ class SimpleVK {
         return $result;
     }
 
-    public function getAffectedUsers($use_category = false) {
+    public function getAffectedUsers($use_category = false, $category = ['fwd', 'reply', 'mention', 'url']) {
         $affected_users = [];
+        $category = is_array($category) ? $category : [$category];
 
-        $fwd = $this->data['object']['fwd_messages'] ?? null;
-        if ($fwd) {
-            foreach ($fwd as $value) {
-                $affected_users['fwd'][] = $value['from_id'];
+        if(in_array('fwd', $category)) {
+            $fwd = $this->data['object']['fwd_messages'] ?? null;
+            if ($fwd) {
+                foreach ($fwd as $value) {
+                    $affected_users['fwd'][] = $value['from_id'];
+                }
             }
         }
-        $affected_users['reply'] = [$this->data['object']['reply_message']['from_id'] ?? null];
+
+        if(in_array('reply', $category)) {
+            $affected_users['reply'] = [$this->data['object']['reply_message']['from_id'] ?? null];
+        }
+
         $this->initText($msg);
 
-        if (preg_match_all("/\[(id|club|public)([0-9]*)\|[^\]]*\]/", $msg, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $key => $value) {
-                $affected_users['mention'][] = (int)(($value[1] == 'id') ? $value[2] : -$value[2]);
+        if(in_array('mention', $category)) {
+            if (preg_match_all("/\[(id|club|public)([0-9]*)\|[^\]]*\]/", $msg, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $key => $value) {
+                    $affected_users['mention'][] = (int)(($value[1] == 'id') ? $value[2] : -$value[2]);
+                }
             }
         }
 
-        if (preg_match_all("/vk.com\/([a-z0-9_]{1,})?/", $msg, $matches)) {
-            $user_ids = $this->userInfo($matches[1]);
-            $user_ids = (isset($user_ids['id'])) ? [$user_ids] : $user_ids;
-            $affected_users['url'] = array_column($user_ids, 'id') ?? [];
-            if (count($matches[1]) != count($affected_users['url'])) { //оптимизация
-                $group_ids = array_map(function ($el) {
-                    if (strpos($el, 'public') === 0) {
-                        return str_replace('public', 'club', $el);
-                    }
-                    return $el;
-                }, $matches[1]);
+        if(in_array('url', $category)) {
+            if (preg_match_all("/vk.com\/([a-z0-9_]{1,})?/", $msg, $matches)) {
+                $user_ids = $this->userInfo($matches[1]);
+                $user_ids = (isset($user_ids['id'])) ? [$user_ids] : $user_ids;
+                $affected_users['url'] = array_column($user_ids, 'id') ?? [];
+                if (count($matches[1]) != count($affected_users['url'])) { //оптимизация
+                    $group_ids = array_map(function ($el) {
+                        if (strpos($el, 'public') === 0) {
+                            return str_replace('public', 'club', $el);
+                        }
+                        return $el;
+                    }, $matches[1]);
 
-                $group_ids = $this->groupInfo($group_ids);
-                $group_ids = (isset($group_ids['id'])) ? [$group_ids] : $group_ids;
-                $group_ids = array_column($group_ids, 'id') ?? [];
-                $group_ids = array_map(function ($el) {
-                    return $el * -1;
-                }, $group_ids);
-                $affected_users['url'] = array_merge($affected_users['url'], $group_ids);
-            }
-            if ($affected_users['url'] == []) {
-                $affected_users['url'] = null;
+                    $group_ids = $this->groupInfo($group_ids);
+                    $group_ids = (isset($group_ids['id'])) ? [$group_ids] : $group_ids;
+                    $group_ids = array_column($group_ids, 'id') ?? [];
+                    $group_ids = array_map(function ($el) {
+                        return $el * -1;
+                    }, $group_ids);
+                    $affected_users['url'] = array_merge($affected_users['url'], $group_ids);
+                }
+                if ($affected_users['url'] == []) {
+                    $affected_users['url'] = null;
+                }
             }
         }
 
