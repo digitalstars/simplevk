@@ -685,7 +685,7 @@ class SimpleVK {
                 $tmp_str .= $a[0];
             return "";
         };
-        preg_replace_callback('/./us', $anon, $str);
+        preg_replace_callback('/./us', $anon, mb_convert_encoding($str, 'UTF-8', 'UTF-8'));
         $this->is_test_len_str = true;
         return $tmp_str;
     }
