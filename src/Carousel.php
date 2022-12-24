@@ -40,6 +40,11 @@ class Carousel {
         return $this;
     }
 
+    public function attachment($attachment) {
+        $this->config['attachment'] = $attachment;
+        return $this;
+    }
+
     public function getImg() {
         return $this->config['img'];
     }

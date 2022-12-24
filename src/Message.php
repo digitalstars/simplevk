@@ -185,6 +185,8 @@ class Message extends BaseConstructor {
                 $element['title'] = $carousel['title'];
             if (isset($carousel['description']))
                 $element['description'] = $carousel['description'];
+            if (isset($carousel['attachment']))
+                $element['photo_id'] = $carousel['attachment'];
             if (isset($carousel['img']))
                 $element['photo_id'] = str_replace('photo', '', $this->getMsgAttachmentUploadImage($id, $carousel['img']));
             $template['elements'][] = $element;
