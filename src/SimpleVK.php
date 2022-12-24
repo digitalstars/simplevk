@@ -582,7 +582,7 @@ class SimpleVK {
         if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['message'], $params['peer_id'] ?? null);
             if ($this->is_test_len_str and mb_strlen($params['message']) > 544)
-                $params['message'] = $this->lengthMessageProcessing($params['peer_id'] ?? null, $params['message']);
+                $params['message'] = $this->lengthMessageProcessing($params['peer_id'] ?? null, $params['message'], $params);
         }
         if (isset($params['peer_id']) && is_array($params['peer_id'])) { //возможно везде заменить на peer_ids в методах
             $params['peer_ids'] = join(',', $params['peer_id']);
@@ -669,23 +669,23 @@ class SimpleVK {
         return $payload;
     }
 
-    protected function lengthMessageProcessing($id, $str) {
+    protected function lengthMessageProcessing($id, $str, $params) {
         $bytes = 0;
         $tmp_str = '';
         $this->is_test_len_str = false;
-        $anon = function ($a) use (&$tmp_str, &$bytes, $id) {
+        $anon = function ($a) use (&$tmp_str, &$bytes, $id, $params) {
             $byte = strlen((@iconv('UTF-8', 'cp1251', $a[0]))
                 ?: "$#" . (unpack('V', iconv('UTF-8', 'UCS-4LE', $a[0]))[1]) . ";");
             $bytes += $byte;
             if ($bytes > 4096) {
-                $this->request('messages.send', ['message' => $tmp_str, 'peer_id' => $id, 'random_id' => 0]); // Отправка части сообщения
+                $this->request('messages.send', ['message' => $tmp_str, 'peer_id' => $id, 'dont_parse_links' => $params['dont_parse_links'] ?? 0]); // Отправка части сообщения
                 $bytes = $byte;
                 $tmp_str = $a[0];
             } else
                 $tmp_str .= $a[0];
             return "";
         };
-        preg_replace_callback('/./us', $anon, $str);
+        preg_replace_callback('/./us', $anon, mb_convert_encoding($str, 'UTF-8', 'UTF-8'));
         $this->is_test_len_str = true;
         return $tmp_str;
     }
