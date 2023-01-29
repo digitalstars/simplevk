@@ -48,11 +48,19 @@ trait ErrorHandler {
             }
         };
 
+        $exception_handler = function ($exception) use ($error_handler) {
+            $message = $this->normalization($exception->getMessage());
+            $file = $this->normalization($exception->getFile());
+            $line = $this->normalization($exception->getLine());
+            $error_handler(1, $message, $file, $line); // запускаем обработчик ошибок
+        };
+
         ini_set('error_reporting', E_ALL);
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
 
         set_error_handler($error_handler);
+        set_exception_handler($exception_handler);
         register_shutdown_function($fatal_error_handler);
 
         return $this;
