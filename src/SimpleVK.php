@@ -23,6 +23,7 @@ class SimpleVK {
     protected static $proxy_types = ['socks4' => CURLPROXY_SOCKS4, 'socks5' => CURLPROXY_SOCKS5];
     private $is_test_len_str = true;
     protected $group_id = null;
+    public $time_checker = null;
 
     public static function create($token, $version, $also_version = null) {
         return new self($token, $version, $also_version);
@@ -579,6 +580,7 @@ class SimpleVK {
     }
 
     public function request($method, $params = []) {
+        $time_start = microtime(true);
         if (isset($params['message'])) {
             $params['message'] = $this->placeholders($params['message'], $params['peer_id'] ?? null);
             if ($this->is_test_len_str and mb_strlen($params['message']) > 544)
@@ -590,7 +592,9 @@ class SimpleVK {
         }
         for ($iteration = 0; $iteration < 6; ++$iteration) {
             try {
-                return $this->request_core($method, $params);
+                $return = $this->request_core($method, $params);
+                $this->time_checker += (microtime(true) - $time_start);
+                return $return;
             } catch (SimpleVkException $e) {
                 if (in_array($e->getCode(), $this->request_ignore_error)) {
                     sleep(1);
@@ -608,9 +612,11 @@ class SimpleVK {
                     }
                     continue;
                 }
+                $this->time_checker += (microtime(true) - $time_start);
                 throw new Exception($e->getMessage(), $e->getCode());
             }
         }
+        $this->time_checker += (microtime(true) - $time_start);
         return false;
     }
 

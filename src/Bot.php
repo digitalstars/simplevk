@@ -16,6 +16,7 @@ class Bot {
     private $compile_files = [];
     private $events = ['message_new', 'message_event'];
     private $before_run = null;
+    private $anon_time_log_func = null;
 
     public function __construct($token_or_vk, $version = null, $also_version = null) {
         if ($token_or_vk instanceof SimpleVK) {
@@ -29,6 +30,10 @@ class Bot {
 
     public static function create($token_or_vk, $version = null, $also_version = null) {
         return new self($token_or_vk, $version, $also_version);
+    }
+
+    public function setTimeLoggerFunc($func) {
+        $this->anon_time_log_func = $func;
     }
 
     public function vk() {
@@ -325,15 +330,27 @@ class Bot {
                 if ((is_array($access) and $access[0] == $id and in_array($user_id, $access)) or (is_numeric($access) and ($id == $access or $user_id == $access)))
                     return null;
         $this->status = 0;
+
+        $this->vk->time_checker = microtime(true);
+
         $is_edit = $is_edit || ($this->config['action'][$action_id]['is_edit'] ?? false);
         if ($is_edit) {
             if ($id_message['type'])
                 $result = MessageBot::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, $id_message['id'], null, $result_parse);
             else
                 $result = MessageBot::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->sendEdit($id, null, $id_message['id'], $result_parse);
-        } else
+        } else {
             $result = MessageBot::create($this->vk, $this->config['action'][$action_id], $this, $this->config['btn'], $action_id)->send($id, null, $result_parse);
+        }
         $this->status = 0;
+
+        $time_exec = microtime(true) - $this->vk->time_checker;
+        $time_exec = round($time_exec*1000,2);
+        $func = $this->anon_time_log_func;
+        if($func) {
+            $func($time_exec, $action_id);
+        }
+
         return $result;
     }
 
